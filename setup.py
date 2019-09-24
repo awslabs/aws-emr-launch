@@ -17,7 +17,7 @@ setuptools.setup(
 
     author="author",
 
-    package_dir={"": "emrlaunch"},
+    package_dir={"src": "src"},
     packages=setuptools.find_packages(),
 
     install_requires=[
