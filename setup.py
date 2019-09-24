@@ -1,5 +1,7 @@
 import setuptools
 
+with open('VERSION', 'r') as version_file:
+    version = version_file.read().strip()
 
 with open("README.md") as fp:
     long_description = fp.read()
@@ -7,7 +9,7 @@ with open("README.md") as fp:
 
 setuptools.setup(
     name="emr-launch",
-    version="0.0.1",
+    version=version,
 
     description="EMR Launch modules",
     long_description=long_description,
@@ -15,8 +17,8 @@ setuptools.setup(
 
     author="author",
 
-    package_dir={"": "templates"},
-    packages=setuptools.find_packages(where="templates"),
+    package_dir={"": "emrlaunch"},
+    packages=setuptools.find_packages(),
 
     install_requires=[
         "aws-cdk.core",
