@@ -9,6 +9,7 @@ pytest-cov = "*"
 aws-sam-cli = "*"
 pytest-flake8 = "*"
 cfnresponse = "*"
+zest-releaser = {extras = ["recommended"],version = "*"}
 
 [packages]
 
