@@ -3,15 +3,16 @@ from aws_cdk import (
     core
 )
 
-from emrlaunch.security_groups import (
+from aws_emr_launch.constructs.security_groups import (
     EMRSecurityGroups
 )
+
 
 def test_emr_security_groups():
     app = core.App()
     stack = core.Stack(app, 'test-stack')
     vpc = ec2.Vpc(stack, 'test-vpc')
-    emr_security_groups = EMRSecurityGroups(stack, 'test-security-groups', vpc)
+    emr_security_groups = EMRSecurityGroups(stack, 'test-security-groups', vpc=vpc)
 
     assert emr_security_groups.service_group
     assert emr_security_groups.master_group
