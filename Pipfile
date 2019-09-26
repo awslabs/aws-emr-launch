@@ -16,6 +16,7 @@ aws-cdk-aws-iam = "*"
 aws-cdk-aws-s3 = "*"
 aws-cdk-aws-kms = "*"
 aws-cdk-aws-ec2 = "*"
+aws-cdk-aws-lambda = "*"
 requests = "*"
 requests-aws4auth = "*"
 

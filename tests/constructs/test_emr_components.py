@@ -7,6 +7,7 @@ from aws_emr_launch.constructs.emr_components import (
     TransientEMRComponents
 )
 
+
 def test_emr_security_groups():
     app = core.App()
     stack = core.Stack(app, 'test-stack')
