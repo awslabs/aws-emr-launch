@@ -3,6 +3,8 @@ import json
 import logging
 import traceback
 
+from . import return_message
+
 emr = boto3.client('emr')
 
 LOGGER = logging.getLogger()
@@ -23,11 +25,10 @@ def handler(event, context):
         )
 
         LOGGER.info("Got step response {0}".format(json.dumps(response)))
-
-        return {'code': 0, 'steps': response['StepIds'], 'msg': "", 'cluster': cluster_id}
+        return return_message(step_ids=response['StepIds'], cluster_id=cluster_id)
 
     except Exception as e:
         trc = traceback.format_exc()
         s = "Failed adding steps to cluster {0}: {1}\n\n{2}".format(cluster_id, str(e), trc)
         LOGGER.error(s)
-        return {'code': 1, 'steps': [], 'msg': s, 'cluster': cluster_id}
+        return return_message(code=1, message=s, cluster_id=cluster_id)

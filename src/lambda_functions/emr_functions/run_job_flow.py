@@ -3,14 +3,12 @@ import json
 import logging
 import traceback
 
+from . import return_message, str2bool
+
 emr = boto3.client('emr')
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
-
-
-def str2bool(v):
-    return v.lower() in ("yes", "true", "t", "1")
 
 
 def handler(event, context):
@@ -37,7 +35,7 @@ def handler(event, context):
                 break
 
         if is_job_running and fail_if_job_running:
-            return {'code': 2, 'steps': [], 'msg': "Job flow already running", 'cluster': ''}
+            return return_message(code=2, message='Job Flow already running')
         else:
             # run job
             LOGGER.info("Submitting new job flow {0} with fail_if_job_running set to {1}"
@@ -52,13 +50,13 @@ def handler(event, context):
             )
 
             raw_steps = response['Steps']
-            steps = [x['Id'] for x in raw_steps]
-            LOGGER.info("Got job flow steps {0}".format(",".join(steps)))
+            step_ids = [x['Id'] for x in raw_steps]
+            LOGGER.info("Got job flow steps {0}".format(",".join(step_ids)))
 
-            return {'code': 0, 'steps': steps, 'msg': "", 'cluster': job_flow}
+            return return_message(step_ids=step_ids, cluster_id=job_flow)
 
     except Exception as e:
         trc = traceback.format_exc()
         s = "Failed running flow {0}: {1}\n\n{2}".format(str(event), str(e), trc)
         LOGGER.error(s)
-        return {'code': 1, 'steps': [], 'msg': s, 'cluster': ''}
+        return return_message(code=1, message=s)
