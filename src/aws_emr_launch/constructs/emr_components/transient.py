@@ -1,7 +1,6 @@
 from typing import Optional, List
 from aws_cdk import (
     aws_s3 as s3,
-    aws_iam as iam,
     aws_kms as kms,
     aws_ec2 as ec2,
     core

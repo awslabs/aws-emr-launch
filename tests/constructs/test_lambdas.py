@@ -14,3 +14,4 @@ def test_emr_lambdas():
 
     assert emr_lambdas.run_job_flow
     assert emr_lambdas.add_job_flow_steps
+    assert emr_lambdas.check_step_status

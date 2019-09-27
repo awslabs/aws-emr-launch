@@ -12,7 +12,7 @@ class EMRLambdas(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
-        code=aws_lambda.Code.asset(_lambda_path('emr_function'))
+        code = aws_lambda.Code.asset(_lambda_path('emr_functions'))
 
         self._run_job_flow = aws_lambda.Function(
             self,
