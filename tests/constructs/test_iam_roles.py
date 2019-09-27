@@ -20,7 +20,7 @@ def test_emr_security_groups():
 
     emr_roles = EMRRoles(
         stack, 'test-emr-components',
-        cluster_name='TestCluster', environment='test',
+        role_name_prefix='TestCluster',
         artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket,
         read_buckets=[read_bucket], read_write_buckets=[read_write_bucket],
         read_kms_keys=[read_key], write_kms_key=write_key, ebs_kms_key=ebs_key)

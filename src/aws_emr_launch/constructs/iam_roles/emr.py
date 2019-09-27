@@ -32,7 +32,6 @@ def _emr_artifacts_policy() -> iam.PolicyDocument:
 
 
 class EMRServiceRole(iam.Role):
-
     def __init__(self, scope: core.Construct, id: str, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
@@ -45,7 +44,6 @@ class EMRServiceRole(iam.Role):
 
 
 class EMRAutoScalingRole(iam.Role):
-
     def __init__(self, scope: core.Construct, id: str, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
@@ -67,7 +65,6 @@ class EMRAutoScalingRole(iam.Role):
 
 
 class EMREC2InstanceRole(iam.Role):
-
     def __init__(self, scope: core.Construct, id: str, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -77,20 +74,19 @@ class EMREC2InstanceRole(iam.Role):
 
 
 class EMRRoles(core.Construct):
-
-    def __init__(self, scope: core.Construct, id: str, cluster_name: str, environment: str,
-                 artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket,
+    def __init__(self, scope: core.Construct, id: str, role_name_prefix: str,
+                 artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket, *,
                  read_buckets: List[s3.Bucket] = None, read_write_buckets: List[s3.Bucket] = None,
                  read_kms_keys: Optional[List[kms.Key]] = None, write_kms_key: Optional[kms.Key] = None,
                  ebs_kms_key: Optional[kms.Key] = None) -> None:
         super().__init__(scope, id)
 
         self._service_role = EMRServiceRole(
-            self, 'TransientEMRServiceRole', role_name='{}-ServiceRole-{}'.format(cluster_name, environment))
+            self, 'TransientEMRServiceRole', role_name='{}-ServiceRole'.format(role_name_prefix))
         self._instance_role = EMREC2InstanceRole(
-            self, 'TransientEMRInstanceRole', role_name='{}-InstanceRole-{}'.format(cluster_name, environment))
+            self, 'TransientEMRInstanceRole', role_name='{}-InstanceRole'.format(role_name_prefix))
         self._autoscaling_role = EMREC2InstanceRole(
-            self, 'TransientEMRAutoScalingRole', role_name='{}-AutoScalingRole-{}'.format(cluster_name, environment))
+            self, 'TransientEMRAutoScalingRole', role_name='{}-AutoScalingRole'.format(role_name_prefix))
 
         artifacts_bucket.grant_read(self._service_role)
         artifacts_bucket.grant_read(self._instance_role)
