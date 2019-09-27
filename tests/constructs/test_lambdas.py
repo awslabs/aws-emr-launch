@@ -2,9 +2,7 @@ from aws_cdk import (
     core
 )
 
-from aws_emr_launch.constructs.lambdas.emr_lambdas import (
-    EMRLambdas
-)
+from aws_emr_launch.constructs.lambdas.emr_lambdas import EMRLambdas
 
 
 def test_emr_lambdas():
