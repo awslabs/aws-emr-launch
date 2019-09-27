@@ -12,10 +12,12 @@ class EMRLambdas(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
+        code=aws_lambda.Code.asset(_lambda_path('emr_function'))
+
         self._run_job_flow = aws_lambda.Function(
             self,
             'AddJobFlow',
-            code=aws_lambda.Code.asset(_lambda_path('emr_functions')),
+            code=code,
             handler='run_job_flow.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             timeout=core.Duration.minutes(5),
@@ -35,7 +37,7 @@ class EMRLambdas(core.Construct):
         self._add_job_flow_steps = aws_lambda.Function(
             self,
             'AddJobFlowSteps',
-            code=aws_lambda.Code.asset(_lambda_path('emr_functions')),
+            code=code,
             handler='add_job_flow_steps.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             timeout=core.Duration.minutes(5),
@@ -50,6 +52,26 @@ class EMRLambdas(core.Construct):
             ]
         )
 
+        self._check_step_status = aws_lambda.Function(
+            self,
+            'CheckStepStatus',
+            code=code,
+            handler='check_step_status.handler',
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            timeout=core.Duration.minutes(5),
+            initial_policy=[
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=[
+                        'elasticmapreduce:DescribeCluster',
+                        'elasticmapreduce:DescribeStep',
+                        'cloudwatch:PutMetricData'
+                    ],
+                    resources=['*']
+                )
+            ]
+        )
+
     @property
     def run_job_flow(self):
         return self._run_job_flow
@@ -57,3 +79,7 @@ class EMRLambdas(core.Construct):
     @property
     def add_job_flow_steps(self):
         return self._add_job_flow_steps
+
+    @property
+    def check_step_status(self):
+        return self._check_step_status
