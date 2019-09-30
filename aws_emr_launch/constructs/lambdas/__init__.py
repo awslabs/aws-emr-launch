@@ -12,7 +12,7 @@
 # permissions and limitations under the License.
 
 import os
-LAMBDA_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../lambda_functions/'))
+LAMBDA_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../lambda_sources/'))
 
 
 def _lambda_path(path):

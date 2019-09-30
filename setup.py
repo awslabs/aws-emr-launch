@@ -17,8 +17,8 @@ setuptools.setup(
 
     author="author",
 
-    package_dir={"src": "src"},
-    packages=setuptools.find_packages(where="aws_emr_launch"),
+    package_dir={"aws_emr_launch": "aws_emr_launch"},
+    packages=setuptools.find_packages(),
 
     install_requires=[
         "aws-cdk.core",

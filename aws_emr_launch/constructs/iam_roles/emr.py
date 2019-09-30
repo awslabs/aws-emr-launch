@@ -11,11 +11,10 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from typing import Optional, List
+from typing import Optional
 from aws_cdk import (
     aws_iam as iam,
     aws_s3 as s3,
-    aws_kms as kms,
     core
 )
 
@@ -45,6 +44,7 @@ def _emr_artifacts_policy() -> iam.PolicyDocument:
 
 
 class EMRServiceRole(iam.Role):
+
     def __init__(self, scope: core.Construct, id: str, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
@@ -57,6 +57,7 @@ class EMRServiceRole(iam.Role):
 
 
 class EMRAutoScalingRole(iam.Role):
+
     def __init__(self, scope: core.Construct, id: str, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
@@ -78,6 +79,7 @@ class EMRAutoScalingRole(iam.Role):
 
 
 class EMREC2InstanceRole(iam.Role):
+
     def __init__(self, scope: core.Construct, id: str, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -87,11 +89,9 @@ class EMREC2InstanceRole(iam.Role):
 
 
 class EMRRoles(core.Construct):
+
     def __init__(self, scope: core.Construct, id: str, role_name_prefix: str,
-                 artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket, *,
-                 read_buckets: List[s3.Bucket] = None, read_write_buckets: List[s3.Bucket] = None,
-                 read_kms_keys: Optional[List[kms.Key]] = None, write_kms_key: Optional[kms.Key] = None,
-                 ebs_kms_key: Optional[kms.Key] = None) -> None:
+                 artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket) -> None:
         super().__init__(scope, id)
 
         self._service_role = EMRServiceRole(
@@ -106,17 +106,6 @@ class EMRRoles(core.Construct):
 
         logs_bucket.grant_read_write(self._service_role)
         logs_bucket.grant_read_write(self._instance_role)
-
-        for bucket in read_buckets if read_buckets else []:
-            bucket.grant_read(self._instance_role)
-        for bucket in read_write_buckets if read_write_buckets else []:
-            bucket.grant_read_write(self._instance_role)
-        for key in read_kms_keys if read_kms_keys else []:
-            key.grant_decrypt(self._instance_role)
-        if write_kms_key:
-            write_kms_key.grant_encrypt(self._instance_role)
-        if ebs_kms_key:
-            ebs_kms_key.grant_encrypt_decrypt(self._instance_role)
 
     @property
     def service_role(self):

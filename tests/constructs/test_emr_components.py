@@ -20,24 +20,36 @@ from aws_cdk import (
 
 from aws_emr_launch.constructs.emr_components import TransientEMRComponents
 
+
 def test_emr_security_groups():
     app = core.App()
     stack = core.Stack(app, 'test-stack')
     vpc = ec2.Vpc(stack, 'test-vpc')
     artifacts_bucket = s3.Bucket(stack, 'test-artifacts-bucket')
     logs_bucket = s3.Bucket(stack, 'test-logs-bucket')
-    read_bucket = s3.Bucket(stack, 'test-read-bucket')
-    read_write_bucket = s3.Bucket(stack, 'test-read-write-bucket')
-    read_key = kms.Key(stack, 'test-read-key')
-    write_key = kms.Key(stack, 'test-write-key')
-    ebs_key = kms.Key(stack, 'test-ebs-key')
+    input_bucket = s3.Bucket(stack, 'test-input-bucket')
+    output_bucket = s3.Bucket(stack, 'test-output-bucket')
+    input_key = kms.Key(stack, 'test-input-key')
+    s3_key = kms.Key(stack, 'test-s3-key')
+    local_disk_key = kms.Key(stack, 'test-local-disk-key')
 
     emr_components = TransientEMRComponents(
         stack, 'test-emr-components',
         cluster_name='TestCluster', environment='test',
-        vpc=vpc, artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket,
-        read_buckets=[read_bucket], read_write_buckets=[read_write_bucket],
-        read_kms_keys=[read_key], write_kms_key=write_key, ebs_kms_key=ebs_key)
+        vpc=vpc, artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
+
+    emr_components \
+        .authorize_input_buckets([input_bucket]) \
+        .authorize_output_buckets([output_bucket]) \
+        .authorize_input_keys([input_key]) \
+        .set_s3_encryption('SSE-KMS', s3_key) \
+        .set_local_disk_encryption_key(local_disk_key) \
+        .set_tls_certificate_location('s3://null_bucket/cert')
 
     assert emr_components.security_groups
     assert emr_components.roles
+    assert emr_components.s3_encryption_key
+    assert emr_components.local_disk_encryption_key
+    assert emr_components.ebs_encryption
+    assert emr_components.tls_certificate_location
+    assert emr_components.security_configuration
