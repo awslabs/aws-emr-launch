@@ -17,6 +17,7 @@ from aws_cdk import (
     aws_kms as kms,
     aws_ec2 as ec2,
     aws_emr as emr,
+    aws_sns as sns,
     core
 )
 
@@ -38,9 +39,19 @@ class TransientEMRComponents(core.Construct):
         self._logs_bucket = logs_bucket
 
         self._security_groups = EMRSecurityGroups(self, 'TransientEMRComponents_SecurityGroups', vpc=vpc)
+
         self._roles = EMRRoles(self, 'TransientEMRComponents_Roles',
                                role_name_prefix='{}-{}'.format(cluster_name, environment),
                                artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
+
+        self._success_topic = sns.Topic(
+            self, 'TransientEMRComponents_SuccessTopic',
+            display_name='{}-{}-SuccessTopic'.format(cluster_name, environment),
+            topic_name='{}-{}-SuccessTopic'. format(cluster_name, environment))
+        self._failure_topic = sns.Topic(
+            self, 'TransientEMRComponents_FailureTopic',
+            display_name='{}-{}-FailureTopic'.format(cluster_name, environment),
+            topic_name='{}-{}-FailureTopic'. format(cluster_name, environment))
 
         self._s3_encryption_mode = None
         self._s3_encryption_key = None
@@ -135,6 +146,14 @@ class TransientEMRComponents(core.Construct):
     @property
     def roles(self) -> EMRRoles:
         return self._roles
+
+    @property
+    def success_topic(self) -> sns.Topic:
+        return self._success_topic
+
+    @property
+    def failure_topic(self) -> sns.Topic:
+        return self._failure_topic
 
     @property
     def s3_encryption_mode(self) -> str:

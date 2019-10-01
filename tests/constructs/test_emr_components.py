@@ -43,11 +43,13 @@ def test_emr_security_groups():
         .authorize_output_buckets([output_bucket]) \
         .authorize_input_keys([input_key]) \
         .set_s3_encryption('SSE-KMS', s3_key) \
-        .set_local_disk_encryption_key(local_disk_key) \
+        .set_local_disk_encryption_key(local_disk_key, ebs_encryption=True) \
         .set_tls_certificate_location('s3://null_bucket/cert')
 
     assert emr_components.security_groups
     assert emr_components.roles
+    assert emr_components.success_topic
+    assert emr_components.failure_topic
     assert emr_components.s3_encryption_key
     assert emr_components.local_disk_encryption_key
     assert emr_components.ebs_encryption
