@@ -8,6 +8,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-flake8 = "*"
 cfnresponse = "*"
+zest-releaser = {extras = ["recommended"],version = "*"}
 
 [packages]
 boto3 = "*"

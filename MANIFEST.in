@@ -1,0 +1,16 @@
+include VERSION
+include *.md
+include *.txt
+recursive-include examples *.py
+recursive-include tests *.py
+include *.in
+include *.sh
+include *.yaml
+recursive-include scripts *.sh
+recursive-include examples *.md
+recursive-include examples *.sh
+include *.lock
+include Config
+include Pipfile
+recursive-include src *.py
+include tox.ini
