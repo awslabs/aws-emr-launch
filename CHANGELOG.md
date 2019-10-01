@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.1.0 (unreleased)
+0.1.0 (2019-10-01)
 ------------------
 - emr_components.transient: Security Groups
 - emr_components.transient: Roles
