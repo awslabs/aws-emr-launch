@@ -219,3 +219,8 @@ class TransientEMRComponents(core.Construct):
         for key in input_keys:
             key.grant_decrypt(self._roles.instance_role)
         return self
+
+    def authorize_output_keys(self, output_keys: List[kms.Key]):
+        for key in output_keys:
+            key.grant_encrypt(self._roles.instance_role)
+        return self
