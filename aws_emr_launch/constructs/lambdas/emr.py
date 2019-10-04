@@ -86,13 +86,13 @@ class EMRLambdas(core.Construct):
         )
 
     @property
-    def run_job_flow(self):
+    def run_job_flow(self) -> aws_lambda.Function:
         return self._run_job_flow
 
     @property
-    def add_job_flow_steps(self):
+    def add_job_flow_steps(self) -> aws_lambda.Function:
         return self._add_job_flow_steps
 
     @property
-    def check_step_status(self):
+    def check_step_status(self) -> aws_lambda.Function:
         return self._check_step_status

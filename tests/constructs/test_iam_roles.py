@@ -16,7 +16,7 @@ from aws_cdk import (
     core
 )
 
-from aws_emr_launch.constructs.iam_roles.emr import EMRRoles
+from aws_emr_launch.constructs.iam_roles import EMRRoles
 
 
 def test_emr_security_groups():

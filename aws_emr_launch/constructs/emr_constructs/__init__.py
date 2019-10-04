@@ -11,6 +11,6 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from .transient import (
-    TransientEMRComponents
+from .profile_components import (
+    EMRProfileComponents
 )

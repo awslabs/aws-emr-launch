@@ -18,7 +18,7 @@ from aws_cdk import (
     core
 )
 
-from aws_emr_launch.constructs.emr_components import TransientEMRComponents
+from aws_emr_launch.constructs.emr_constructs import EMRProfileComponents
 
 
 def test_emr_security_groups():
@@ -33,7 +33,7 @@ def test_emr_security_groups():
     s3_key = kms.Key(stack, 'test-s3-key')
     local_disk_key = kms.Key(stack, 'test-local-disk-key')
 
-    emr_components = TransientEMRComponents(
+    emr_components = EMRProfileComponents(
         stack, 'test-emr-components',
         cluster_name='TestCluster', environment='test',
         vpc=vpc, artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)

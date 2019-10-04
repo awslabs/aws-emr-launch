@@ -39,26 +39,28 @@ class EMRSecurityGroups(core.Construct):
         self._service_group.add_egress_rule(self._master_group, ec2.Port.tcp(8443))
         self._service_group.add_egress_rule(self._workers_group, ec2.Port.tcp(8443))
 
-    def _set_common_ingress_rules(self, primary: ec2.SecurityGroup, secondary: ec2.SecurityGroup):
+    @staticmethod
+    def _set_common_ingress_rules(primary: ec2.SecurityGroup, secondary: ec2.SecurityGroup) -> ec2.SecurityGroup:
         primary.add_ingress_rule(primary, ec2.Port.tcp_range(0, 65535))
         primary.add_ingress_rule(primary, ec2.Port.udp_range(0, 65535))
         primary.add_ingress_rule(primary, ec2.Port.icmp_type(-1))
         primary.add_ingress_rule(secondary, ec2.Port.tcp_range(0, 65535))
         primary.add_ingress_rule(secondary, ec2.Port.udp_range(0, 65535))
         primary.add_ingress_rule(secondary, ec2.Port.icmp_type(-1))
+        return primary
 
     @property
-    def vpc(self):
+    def vpc(self) -> ec2.Vpc:
         return self._vpc
 
     @property
-    def master_group(self):
+    def master_group(self) -> ec2.SecurityGroup:
         return self._master_group
 
     @property
-    def workers_group(self):
+    def workers_group(self) -> ec2.SecurityGroup:
         return self._workers_group
 
     @property
-    def service_group(self):
+    def service_group(self) -> ec2.SecurityGroup:
         return self._service_group

@@ -108,13 +108,13 @@ class EMRRoles(core.Construct):
         logs_bucket.grant_read_write(self._instance_role)
 
     @property
-    def service_role(self):
+    def service_role(self) -> iam.Role:
         return self._service_role
 
     @property
-    def instance_role(self):
+    def instance_role(self) -> iam.Role:
         return self._instance_role
 
     @property
-    def autoscaling_role(self):
+    def autoscaling_role(self) -> iam.Role:
         return self._autoscaling_role
