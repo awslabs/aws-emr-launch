@@ -20,12 +20,12 @@ from aws_cdk import (
 )
 
 
-class EMRLambdas(core.Construct):
+class EMRControlLambdas(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
-        code = aws_lambda.Code.asset(_lambda_path('emr_functions'))
+        code = aws_lambda.Code.asset(_lambda_path('emr_step_function_lambdas'))
 
         self._run_job_flow = aws_lambda.Function(
             self,

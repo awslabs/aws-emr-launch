@@ -13,10 +13,7 @@
 
 from typing import Optional, List
 from aws_cdk import (
-    aws_s3 as s3,
-    aws_kms as kms,
     aws_ec2 as ec2,
-    aws_emr as emr,
     core
 )
 
@@ -25,7 +22,8 @@ from .profile_components import EMRProfileComponents
 
 class BaseConfiguration(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, profile_components: EMRProfileComponents, *,
+    def __init__(self, scope: core.Construct, id: str, cluster_name: str,
+                 profile_components: EMRProfileComponents, *,
                  release_label: Optional[str] = 'emr-5.27.0',
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[dict]] = None,
@@ -39,9 +37,9 @@ class BaseConfiguration(core.Construct):
 
         self._profile_components = profile_components
         self._config = {
-            'Name': profile_components.cluster_name,
+            'Name': cluster_name,
             'LogUri': 's3://{}/elasticmapreduce/{}'.format(
-                profile_components.logs_bucket.bucket_name, profile_components.cluster_name),
+                profile_components.logs_bucket.bucket_name, cluster_name),
             'ReleaseLabel': release_label,
             'SecurityConfiguration': profile_components.security_configuration.name,
             'Applications': self._get_applications(applications),

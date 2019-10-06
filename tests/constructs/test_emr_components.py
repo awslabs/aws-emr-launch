@@ -35,7 +35,7 @@ def test_emr_security_groups():
 
     emr_components = EMRProfileComponents(
         stack, 'test-emr-components',
-        cluster_name='TestCluster', environment='test',
+        profile_name='TestCluster', environment='test',
         vpc=vpc, artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
 
     emr_components \
@@ -48,8 +48,6 @@ def test_emr_security_groups():
 
     assert emr_components.security_groups
     assert emr_components.roles
-    assert emr_components.success_topic
-    assert emr_components.failure_topic
     assert emr_components.s3_encryption_key
     assert emr_components.local_disk_encryption_key
     assert emr_components.ebs_encryption

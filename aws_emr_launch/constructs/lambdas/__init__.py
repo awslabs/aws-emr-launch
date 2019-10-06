@@ -11,10 +11,6 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from .emr import (
-    EMRLambdas
-)
-
 import os
 LAMBDA_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../lambda_sources/'))
 

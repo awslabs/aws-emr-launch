@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.1.1 (unreleased)
 ------------------
 
+- emr lambda utils
+
 - add cluster configuration construct
 
 - refactor and rename components

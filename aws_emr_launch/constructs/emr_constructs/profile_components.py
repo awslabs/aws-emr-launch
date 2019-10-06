@@ -27,11 +27,11 @@ from ..iam_roles.emr import EMRRoles
 class EMRProfileComponents(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
-                 cluster_name: str, environment: str, vpc: ec2.Vpc,
+                 profile_name: str, environment: str, vpc: ec2.Vpc,
                  artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket) -> None:
         super().__init__(scope, id)
 
-        self._cluster_name = cluster_name
+        self._profile_name = profile_name
         self._environment = environment
         self._vpc = vpc
         self._artifacts_bucket = artifacts_bucket
@@ -40,7 +40,7 @@ class EMRProfileComponents(core.Construct):
         self._security_groups = EMRSecurityGroups(self, 'TransientEMRComponents_SecurityGroups', vpc=vpc)
 
         self._roles = EMRRoles(self, 'TransientEMRComponents_Roles',
-                               role_name_prefix='{}-{}'.format(cluster_name, environment),
+                               role_name_prefix='{}-{}'.format(profile_name, environment),
                                artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
 
         self._s3_encryption_mode = None
@@ -59,7 +59,7 @@ class EMRProfileComponents(core.Construct):
             return
 
         if self._security_configuration is None:
-            name = '{}-{}-SecurityConfiguration'.format(self._cluster_name, self._environment)
+            name = '{}-{}-SecurityConfiguration'.format(self._profile_name, self._environment)
             self._security_configuration = emr.CfnSecurityConfiguration(
                 self, 'TransientEMRComponents_SecurityConfiguration',
                 security_configuration={}, name=name
@@ -110,8 +110,8 @@ class EMRProfileComponents(core.Construct):
         }
 
     @property
-    def cluster_name(self) -> str:
-        return self._cluster_name
+    def profile_name(self) -> str:
+        return self._profile_name
 
     @property
     def environment(self) -> str:
