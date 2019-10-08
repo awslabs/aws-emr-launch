@@ -18,10 +18,13 @@ from aws_cdk import (
     core
 )
 
-from aws_emr_launch.constructs.emr_constructs import EMRProfileComponents
+from aws_emr_launch.constructs.emr_constructs import (
+    EMRProfileComponents,
+    InstanceGroupConfiguration
+)
 
 
-def test_emr_security_groups():
+def test_profile_components():
     app = core.App()
     stack = core.Stack(app, 'test-stack')
     vpc = ec2.Vpc(stack, 'test-vpc')
@@ -53,3 +56,22 @@ def test_emr_security_groups():
     assert emr_components.ebs_encryption
     assert emr_components.tls_certificate_location
     assert emr_components.security_configuration
+
+
+def test_cluster_configurations():
+    app = core.App()
+    stack = core.Stack(app, 'test-stack')
+    vpc = ec2.Vpc(stack, 'test-vpc')
+    artifacts_bucket = s3.Bucket(stack, 'test-artifacts-bucket')
+    logs_bucket = s3.Bucket(stack, 'test-logs-bucket')
+
+    emr_components = EMRProfileComponents(
+        stack, 'test-emr-components',
+        profile_name='TestCluster', environment='test',
+        vpc=vpc, artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
+
+    cluster_config = InstanceGroupConfiguration(
+        stack, 'test-instance-group-config',
+        cluster_name='test-cluster', profile_components=emr_components)
+
+    assert cluster_config.config

@@ -45,7 +45,7 @@ def _emr_artifacts_policy() -> iam.PolicyDocument:
 
 class EMRServiceRole(iam.Role):
 
-    def __init__(self, scope: core.Construct, id: str, role_name: Optional[str] = None):
+    def __init__(self, scope: core.Construct, id: str, *, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
                          inline_policies={
@@ -58,7 +58,7 @@ class EMRServiceRole(iam.Role):
 
 class EMRAutoScalingRole(iam.Role):
 
-    def __init__(self, scope: core.Construct, id: str, role_name: Optional[str] = None):
+    def __init__(self, scope: core.Construct, id: str, *, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
                          managed_policies=[
@@ -80,7 +80,7 @@ class EMRAutoScalingRole(iam.Role):
 
 class EMREC2InstanceRole(iam.Role):
 
-    def __init__(self, scope: core.Construct, id: str, role_name: Optional[str] = None):
+    def __init__(self, scope: core.Construct, id: str, *, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
                          inline_policies={
@@ -90,7 +90,7 @@ class EMREC2InstanceRole(iam.Role):
 
 class EMRRoles(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, role_name_prefix: str,
+    def __init__(self, scope: core.Construct, id: str, *, role_name_prefix: str,
                  artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket) -> None:
         super().__init__(scope, id)
 

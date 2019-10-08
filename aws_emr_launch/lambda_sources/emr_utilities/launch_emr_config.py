@@ -11,10 +11,18 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import boto3
+import json
+import logging
+import traceback
 
-def str2bool(v):
-    return v.lower() in ("yes", "true", "t", "1")
+from . import return_message
+
+sfn = boto3.client('stepfunctions')
+
+LOGGER = logging.getLogger()
+LOGGER.setLevel(logging.INFO)
 
 
-def return_message(code=0, step_ids=None, message='', cluster_id=''):
-    return {'Code': code, 'StepIds': step_ids, 'Message': message, 'ClusterId': cluster_id}
+def handler(event, context):
+    return {}

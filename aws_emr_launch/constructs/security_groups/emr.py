@@ -19,7 +19,7 @@ from aws_cdk import (
 
 class EMRSecurityGroups(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, vpc: ec2.Vpc) -> None:
+    def __init__(self, scope: core.Construct, id: str, *, vpc: ec2.Vpc) -> None:
         super().__init__(scope, id)
 
         self._vpc = vpc

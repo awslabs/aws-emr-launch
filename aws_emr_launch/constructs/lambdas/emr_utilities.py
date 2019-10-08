@@ -11,21 +11,26 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import json
+
+from typing import Optional
 from . import _lambda_path
 
 from aws_cdk import (
     aws_lambda,
     aws_iam as iam,
+    aws_sns as sns,
+    aws_stepfunctions as sfn,
     core
 )
 
 
-class EMRControlLambdas(core.Construct):
+class StepFunctionLambdas(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
-        code = aws_lambda.Code.asset(_lambda_path('emr_step_function_lambdas'))
+        code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
 
         self._run_job_flow = aws_lambda.Function(
             self,
@@ -96,3 +101,31 @@ class EMRControlLambdas(core.Construct):
     @property
     def check_step_status(self) -> aws_lambda.Function:
         return self._check_step_status
+
+
+class LaunchEMRConfigLambda(aws_lambda.Function):
+
+    def __init__(self, scope: core.Construct, id: str, *, props: aws_lambda.FunctionProps,
+                 step_function: sfn.StateMachine,
+                 cluster_config: dict,
+                 step_function_wait_time: Optional[int] = 60,
+                 fail_if_job_running: Optional[bool] = False,
+                 success_topic: Optional[sns.Topic] = None,
+                 failure_topic: Optional[sns.Topic] = None):
+
+        environment = {
+            'DEFAULT_STEP_FUNCTION_ARN': step_function.state_machine_arn,
+            'DEFAULT_CLUSTER_CONFIG': json.dumps(cluster_config),
+            'DEFAULT_STEP_FUNCTION_WAIT_TIME': str(step_function_wait_time),
+            'DEFAULT_FAIL_IF_JOB_RUNNING': str(fail_if_job_running),
+        }
+
+        if success_topic:
+            environment['DEFAULT_SUCCESS_TOPIC_ARN'] = success_topic.topic_arn
+        if failure_topic:
+            environment['DEFAULT_FAILURE_TOPIC_ARN'] = failure_topic.topic_arn
+
+        function_props = props.__dict__.get('_values', {})
+        function_props['environment'] = dict(function_props.get('environment', {}), **environment)
+
+        super().__init__(scope, id, **function_props)

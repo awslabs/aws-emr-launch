@@ -21,6 +21,7 @@ aws-cdk-aws-emr = "*"
 aws-cdk-aws-sns = "*"
 aws-cdk-aws-sqs = "*"
 aws-cdk-aws-lambda = "*"
+aws-cdk-aws-stepfunctions = "*"
 requests = "*"
 requests-aws4auth = "*"
 

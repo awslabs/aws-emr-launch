@@ -22,8 +22,9 @@ from .profile_components import EMRProfileComponents
 
 class BaseConfiguration(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, cluster_name: str,
-                 profile_components: EMRProfileComponents, *,
+    def __init__(self, scope: core.Construct, id: str, *,
+                 cluster_name: str,
+                 profile_components: EMRProfileComponents,
                  release_label: Optional[str] = 'emr-5.27.0',
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[dict]] = None,
@@ -41,7 +42,6 @@ class BaseConfiguration(core.Construct):
             'LogUri': 's3://{}/elasticmapreduce/{}'.format(
                 profile_components.logs_bucket.bucket_name, cluster_name),
             'ReleaseLabel': release_label,
-            'SecurityConfiguration': profile_components.security_configuration.name,
             'Applications': self._get_applications(applications),
             'BootstrapActions': bootstrap_actions if bootstrap_actions else [],
             'Steps': steps if steps else [],
@@ -58,6 +58,8 @@ class BaseConfiguration(core.Construct):
                 'KeepJobFlowAliveWhenNoSteps': auto_terminate
             }
         }
+        if profile_components.security_configuration:
+            self._config['SecurityConfiguration'] = profile_components.security_configuration.name
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -107,7 +109,9 @@ class BaseConfiguration(core.Construct):
 
 class InstanceGroupConfiguration(BaseConfiguration):
 
-    def __init__(self, scope: core.Construct, id: str, profile_components: EMRProfileComponents, *,
+    def __init__(self, scope: core.Construct, id: str, *,
+                 cluster_name: str,
+                 profile_components: EMRProfileComponents,
                  release_label: Optional[str] = 'emr-5.27.0',
                  subnet: Optional[ec2.Subnet] = None,
                  master_instance_type: Optional[str] = 'm5.2xlarge',
@@ -123,7 +127,8 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  use_glue_catalog: Optional[bool] = True,
                  auto_terminate: Optional[bool] = False):
 
-        super().__init__(scope, id, profile_components, release_label=release_label, applications=applications,
+        super().__init__(scope, id, cluster_name=cluster_name, profile_components=profile_components,
+                         release_label=release_label, applications=applications,
                          bootstrap_actions=bootstrap_actions, steps=steps, configurations=configurations,
                          tags=tags, use_glue_catalog=use_glue_catalog, auto_terminate=auto_terminate)
 

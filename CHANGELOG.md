@@ -4,6 +4,10 @@ Changelog for emr-launch
 0.1.1 (unreleased)
 ------------------
 
+- InstanceGroup launch lambda
+
+- cluster_configuration tests
+
 - emr lambda utils
 
 - add cluster configuration construct

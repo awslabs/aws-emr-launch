@@ -11,18 +11,21 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from aws_cdk import (
-    core
-)
-
-from aws_emr_launch.constructs.lambdas.emr_utilities import StepFunctionLambdas
+import json
+import datetime
 
 
-def test_emr_lambdas():
-    app = core.App()
-    stack = core.Stack(app, 'test-stack')
-    emr_lambdas = StepFunctionLambdas(stack, 'test-lambdas')
+def str2bool(v):
+    return v.lower() in ("yes", "true", "t", "1")
 
-    assert emr_lambdas.run_job_flow
-    assert emr_lambdas.add_job_flow_steps
-    assert emr_lambdas.check_step_status
+
+def return_message(code=0, step_ids=None, message='', cluster_id=''):
+    return {'Code': code, 'StepIds': step_ids, 'Message': message, 'ClusterId': cluster_id}
+
+
+class JSONDateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+
+        return json.JSONEncoder.default(self, o)

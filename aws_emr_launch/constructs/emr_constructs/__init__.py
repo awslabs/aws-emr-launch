@@ -12,5 +12,10 @@
 # permissions and limitations under the License.
 
 from .profile_components import (
-    EMRProfileComponents
+    EMRProfileComponents,
+)
+
+from .cluster_configurations import (
+    BaseConfiguration,
+    InstanceGroupConfiguration
 )

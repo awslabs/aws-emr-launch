@@ -1,7 +1,7 @@
 import os
 import json
-import boto3
 
+from botocore.client import BaseClient
 from typing import Mapping
 
 
@@ -11,7 +11,7 @@ class StepFunctionParameters(object):
         self._step_function_arn = mapping.get('DEFAULT_STEP_FUNCTION_ARN', None)
         self._step_function_wait_time = mapping.get('DEFAULT_STEP_FUNCTION_WAIT_TIME', None)
         self._success_topic_arn = mapping.get('DEFAULT_SUCCESS_TOPIC', None)
-        self._failure_topic_arn  = mapping.get('DEFAULT_FAILURE_TOPIC', None)
+        self._failure_topic_arn = mapping.get('DEFAULT_FAILURE_TOPIC', None)
         self._cluster_config = mapping.get('DEFAULT_CLUSTER_CONFIG', None)
         self._fail_if_job_running = mapping.get('DEFAULT_FAIL_IF_JOB_RUNNING', None)
 
@@ -44,8 +44,7 @@ def load_defaults():
     return StepFunctionParameters(os.environ)
 
 
-def execute_step_function(parameters: StepFunctionParameters):
-    sfn = boto3.client('stepfunctions')
+def execute_step_function(client: BaseClient, parameters: StepFunctionParameters):
     json_input = json.dumps({
         'WaitTime': parameters.step_function_wait_tine,
         'SuccessTopicArn': parameters.success_topic_arn,
@@ -54,7 +53,7 @@ def execute_step_function(parameters: StepFunctionParameters):
         'ClusterConfig': parameters.cluster_config
     })
 
-    response = sfn.start_execution(
+    response = client.start_execution(
         stateMachineArn=parameters.step_function_arn,
         input=json_input
     )
