@@ -25,28 +25,6 @@ from aws_cdk import (
 )
 
 
-class EMRUtilitiesStack(core.Stack):
-
-    def __init__(self, props: core.StackProps):
-        stack_props = props.__dict__.get('_values', {})
-        super().__init__(**stack_props)
-
-        self._step_function_lambdas = StepFunctionLambdas(
-            self, 'EMRUtilitiesStack_StepFunctionLambdas')
-        self._emr_config_utils_layer = aws_lambda.LayerVersion(
-            self, 'EMRUtilitiesStack_EMRConfigUtilsLayer',
-            code=aws_lambda.Code.asset(_lambda_path('layers/emr_config_utils')),
-            compatible_runtimes=[
-                aws_lambda.Runtime(name="python3.7", supports_inline_code=True)
-            ],
-            description=''
-        )
-
-    @property
-    def step_function_lambdas(self):
-        return self._step_function_lambdas
-
-
 class StepFunctionLambdas(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str) -> None:
@@ -151,3 +129,33 @@ class LaunchEMRConfigLambda(aws_lambda.Function):
         function_props['environment'] = dict(function_props.get('environment', {}), **environment)
 
         super().__init__(scope, id, **function_props)
+
+
+class EMRUtilitiesStack(core.Stack):
+
+    def __init__(self, props: core.StackProps):
+        stack_props = props.__dict__.get('_values', {})
+        super().__init__(**stack_props)
+
+        self._step_function_lambdas = StepFunctionLambdas(
+            self, 'EMRUtilitiesStack_StepFunctionLambdas')
+
+        self._emr_config_utils_layer = aws_lambda.LayerVersion(
+            self, 'EMRUtilitiesStack_EMRConfigUtilsLayer',
+            code=aws_lambda.Code.asset(_lambda_path('layers/emr_config_utils')),
+            compatible_runtimes=[
+                aws_lambda.Runtime(name="python3.7", supports_inline_code=True)
+            ],
+            description='EMR configuration utility functions',
+            layer_version_name='emr_config_utils'
+        )
+
+    @property
+    def step_function_lambdas(self) -> StepFunctionLambdas:
+        return self._step_function_lambdas
+
+    @property
+    def emr_config_utils_layer(self) -> aws_lambda.LayerVersion:
+        return self._emr_config_utils_layer
+
+
