@@ -36,7 +36,7 @@ def handler(event, context):
 
         # check if job flow already exists
         job_flow_name = cluster_input['Name']
-        is_job_running = False
+        job_is_running = False
         LOGGER.info('Checking if job flow {} is running already'.format(job_flow_name))
         response = emr.list_clusters(ClusterStates=['STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING'])
         for job_flow_running in response['Clusters']:
@@ -44,10 +44,10 @@ def handler(event, context):
             if jf_name == job_flow_name:
                 LOGGER.info('Job flow {} is already running: terminate? {}'
                             .format(job_flow_name, str(fail_if_job_running)))
-                is_job_running = True
+                job_is_running = True
                 break
 
-        if is_job_running and fail_if_job_running:
+        if job_is_running and fail_if_job_running:
             return return_message(code=2, message='Job Flow already running')
         else:
             # run job

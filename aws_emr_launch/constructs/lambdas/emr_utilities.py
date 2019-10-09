@@ -25,7 +25,29 @@ from aws_cdk import (
 )
 
 
-class StepFunctionLambdas(core.Stack):
+class EMRUtilitiesStack(core.Stack):
+
+    def __init__(self, props: core.StackProps):
+        stack_props = props.__dict__.get('_values', {})
+        super().__init__(**stack_props)
+
+        self._step_function_lambdas = StepFunctionLambdas(
+            self, 'EMRUtilitiesStack_StepFunctionLambdas')
+        self._emr_config_utils_layer = aws_lambda.LayerVersion(
+            self, 'EMRUtilitiesStack_EMRConfigUtilsLayer',
+            code=aws_lambda.Code.asset(_lambda_path('layers/emr_config_utils')),
+            compatible_runtimes=[
+                aws_lambda.Runtime(name="python3.7", supports_inline_code=True)
+            ],
+            description=''
+        )
+
+    @property
+    def step_function_lambdas(self):
+        return self._step_function_lambdas
+
+
+class StepFunctionLambdas(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
@@ -34,7 +56,7 @@ class StepFunctionLambdas(core.Stack):
 
         self._run_job_flow = aws_lambda.Function(
             self,
-            'AddJobFlow',
+            'StepFunctionLambdas_AddJobFlow',
             code=code,
             handler='run_job_flow.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -54,7 +76,7 @@ class StepFunctionLambdas(core.Stack):
 
         self._add_job_flow_steps = aws_lambda.Function(
             self,
-            'AddJobFlowSteps',
+            'StepFunctionLambdas_AddJobFlowSteps',
             code=code,
             handler='add_job_flow_steps.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -72,7 +94,7 @@ class StepFunctionLambdas(core.Stack):
 
         self._check_step_status = aws_lambda.Function(
             self,
-            'CheckStepStatus',
+            'StepFunctionLambdas_CheckStepStatus',
             code=code,
             handler='check_step_status.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
