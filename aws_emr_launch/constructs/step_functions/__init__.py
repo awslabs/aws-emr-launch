@@ -11,18 +11,3 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from aws_cdk import (
-    core
-)
-
-from aws_emr_launch.constructs.lambdas.emr_utilities import EMRUtilitiesStack
-
-
-def test_emr_lambdas():
-    app = core.App()
-    emr_lambdas_stack = EMRUtilitiesStack(app, 'test-lambdas-stack')
-
-    assert emr_lambdas_stack.run_job_flow
-    assert emr_lambdas_stack.add_job_flow_steps
-    assert emr_lambdas_stack.check_step_status
-    assert emr_lambdas_stack.emr_config_utils_layer

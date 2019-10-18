@@ -11,12 +11,17 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import logging
+
 from botocore.stub import Stubber
 
 from aws_emr_launch.lambda_sources.emr_utilities import (
     return_message,
     add_job_flow_steps
 )
+
+# Turn the LOGGER off for the tests
+add_job_flow_steps.LOGGER.setLevel(logging.WARN)
 
 
 def test_add_job_flow_steps():
