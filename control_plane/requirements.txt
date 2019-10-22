@@ -1,4 +1,6 @@
--e .
 aws-cdk-core
 aws-cdk-aws-iam
+aws-cdk-aws-ssm
 aws-cdk-aws-lambda
+aws-cdk-aws-events
+aws-cdk-aws-events-targets

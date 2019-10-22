@@ -2,10 +2,9 @@
 
 from aws_cdk import core
 
-from control_plane.control_plane_stack import ControlPlaneStack
-
+from constructs.control_plane_stack import ControlPlaneStack
 
 app = core.App()
-ControlPlaneStack(app, "control-plane")
+ControlPlaneStack(app, "aws-emr-launch-control-plane")
 
 app.synth()

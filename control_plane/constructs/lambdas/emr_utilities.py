@@ -11,18 +11,15 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-import json
-
-from typing import Optional
-from . import _lambda_path
+from typing import List
 
 from aws_cdk import (
     aws_lambda,
     aws_iam as iam,
-    aws_sns as sns,
-    aws_stepfunctions as sfn,
     core
 )
+
+from . import _lambda_path
 
 
 class EMRUtilities(core.Construct):
@@ -32,9 +29,12 @@ class EMRUtilities(core.Construct):
 
         code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
 
-        self._fail_if_job_running = aws_lambda.Function(
+        self._shared_functions = []
+
+        self._shared_functions.append(aws_lambda.Function(
             self,
             'FailIfJobRunning',
+            function_name='EMRLaunch_EMRUtilities_FailIfJobRunning',
             code=code,
             handler='fail_if_job_running.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -48,11 +48,12 @@ class EMRUtilities(core.Construct):
                     resources=['*']
                 )
             ]
-        )
+        ))
 
-        self._run_job_flow = aws_lambda.Function(
+        self._shared_functions.append(aws_lambda.Function(
             self,
             'AddJobFlow',
+            function_name='EMRLaunch_EMRUtilities_AddJobFlow',
             code=code,
             handler='run_job_flow.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -66,11 +67,33 @@ class EMRUtilities(core.Construct):
                     resources=['*']
                 )
             ]
-        )
+        ))
+
+        self._shared_functions.append(aws_lambda.Function(
+            self,
+            'AddJobFlowSteps',
+            function_name='EMRLaunch_EMRUtilities_AddJobFlowSteps',
+            code=code,
+            handler='add_job_flow_steps.handler',
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            timeout=core.Duration.minutes(1),
+            initial_policy=[
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=[
+                        'elasticmapreduce:DescribeCluster',
+                        'elasticmapreduce:AddTags',
+                        'elasticmapreduce:AddJobFlowSteps'
+                    ],
+                    resources=['*']
+                )
+            ]
+        ))
 
         self._cluster_state_change_event = aws_lambda.Function(
             self,
             'ClusterStateChangeEvent',
+            function_name='EMRLaunch_EMRUtilities_ClusterStateChangeEvent',
             code=code,
             handler='cluster_state_change_event.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -90,39 +113,10 @@ class EMRUtilities(core.Construct):
             ]
         )
 
-        self._add_job_flow_steps = aws_lambda.Function(
-            self,
-            'AddJobFlowSteps',
-            code=code,
-            handler='add_job_flow_steps.handler',
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
-            initial_policy=[
-                iam.PolicyStatement(
-                    effect=iam.Effect.ALLOW,
-                    actions=[
-                        'elasticmapreduce:DescribeCluster',
-                        'elasticmapreduce:AddTags',
-                        'elasticmapreduce:AddJobFlowSteps'
-                    ],
-                    resources=['*']
-                )
-            ]
-        )
-
     @property
-    def fail_if_job_running(self) -> aws_lambda.Function:
-        return self._fail_if_job_running
-
-    @property
-    def run_job_flow(self) -> aws_lambda.Function:
-        return self._run_job_flow
+    def shared_functions(self) -> List[aws_lambda.Function]:
+        return self._shared_functions
 
     @property
     def cluster_state_change_event(self) -> aws_lambda.Function:
         return self._cluster_state_change_event
-
-    @property
-    def add_job_flow_steps(self) -> aws_lambda.Function:
-        return self._add_job_flow_steps
-
