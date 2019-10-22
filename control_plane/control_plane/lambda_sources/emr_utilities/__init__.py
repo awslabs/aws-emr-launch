@@ -14,13 +14,34 @@
 import json
 import datetime
 
+from typing import List, Optional
 
-def str2bool(v):
+def str2bool(v: str) -> bool:
     return v.lower() in ("yes", "true", "t", "1")
 
 
-def return_message(code=0, step_ids=None, message='', cluster_id=''):
+def return_message(code: int = 0, step_ids: Optional[List[str]] = None,
+                   message: str = '', cluster_id: str = '') -> dict:
     return {'Code': code, 'StepIds': step_ids, 'Message': message, 'ClusterId': cluster_id}
+
+
+def get_tag_value(tags: List[dict], key: str) -> Optional[str]:
+    for tag in tags:
+        if tag['Key'] == key:
+            return tag['Value']
+    return None
+
+
+def upsert_tag_value(tags: List[dict], key: str, value: str) -> List[dict]:
+    for tag in tags:
+        if tag['Key'] == key:
+            tag['Key'] = value
+            return tags
+    tags.append({
+        'Key': key,
+        'Value': value
+    })
+    return tags
 
 
 class JSONDateTimeEncoder(json.JSONEncoder):
@@ -29,3 +50,8 @@ class JSONDateTimeEncoder(json.JSONEncoder):
             return o.isoformat()
 
         return json.JSONEncoder.default(self, o)
+
+
+class ClusterEventTags:
+    STATE_CHANGE = 'TaskToken-ClusterState'
+    STEP_CHANGE = 'TaskToke-StepChange'

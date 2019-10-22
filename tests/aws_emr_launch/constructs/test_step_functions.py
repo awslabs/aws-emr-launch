@@ -11,18 +11,20 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-import boto3
-import json
-import logging
-import traceback
+from aws_cdk import (
+    core
+)
 
-from . import return_message
-
-sfn = boto3.client('stepfunctions')
-
-LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.INFO)
+from aws_emr_launch.constructs.step_functions.launch_emr_config import LaunchEMRConfigStack
 
 
-def handler(event, context):
-    return {}
+def test_emr_lambdas():
+    app = core.App()
+    emr_lambdas_stack = EMRUtilities(app, 'test-lambdas-stack')
+    step_functions_stack = LaunchEMRConfigStack(
+        app,
+        'test-step-functions-stack',
+        run_job_flow_lambda=emr_lambdas_stack.run_job_flow,
+        check_step_status_lambda=emr_lambdas_stack.check_step_status)
+
+    assert step_functions_stack.to_string()

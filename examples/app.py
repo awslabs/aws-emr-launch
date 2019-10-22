@@ -8,7 +8,7 @@ from aws_cdk import (
 )
 
 from aws_emr_launch.constructs.emr_constructs import EMRProfileComponents, InstanceGroupConfiguration
-from aws_emr_launch.constructs.lambdas.emr_utilities import EMRUtilitiesStack
+from control_plane.constructs.lambdas import EMRUtilitiesStack
 
 
 app = core.App()

@@ -15,10 +15,10 @@ import logging
 
 from botocore.stub import Stubber
 
-from aws_emr_launch.lambda_sources.emr_utilities import (
-    return_message,
-    add_job_flow_steps
+from control_plane.lambda_sources.emr_utilities import (
+    return_message
 )
+from control_plane.lambda_sources.emr_utilities import add_job_flow_steps
 
 # Turn the LOGGER off for the tests
 add_job_flow_steps.LOGGER.setLevel(logging.WARN)

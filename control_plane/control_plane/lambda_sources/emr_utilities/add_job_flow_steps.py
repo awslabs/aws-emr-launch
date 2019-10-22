@@ -27,7 +27,7 @@ LOGGER.setLevel(logging.INFO)
 def handler(event, context):
 
     try:
-        LOGGER.info('SFN metadata: {} (type = {})'.format(json.dumps(event), type(event)))
+        LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
         cluster_id = event.get('ClusterId', None)
         steps = event['Steps']
 

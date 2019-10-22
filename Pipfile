@@ -11,7 +11,6 @@ cfnresponse = "*"
 zest-releaser = {extras = ["recommended"],version = "*"}
 
 [packages]
-boto3 = "*"
 aws-cdk-core = "*"
 aws-cdk-aws-iam = "*"
 aws-cdk-aws-s3 = "*"
@@ -23,8 +22,6 @@ aws-cdk-aws-sqs = "*"
 aws-cdk-aws-lambda = "*"
 aws-cdk-aws-stepfunctions = "*"
 aws-cdk-aws-stepfunctions-tasks = "*"
-requests = "*"
-requests-aws4auth = "*"
 
 [requires]
 python_version = "3.7"

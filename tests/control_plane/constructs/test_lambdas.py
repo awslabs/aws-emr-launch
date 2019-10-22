@@ -15,12 +15,12 @@ from aws_cdk import (
     core
 )
 
-from aws_emr_launch.constructs.lambdas.emr_utilities import EMRUtilitiesStack
+from control_plane.constructs.lambdas.emr_utilities import EMRUtilities
 
 
 def test_emr_lambdas():
     app = core.App()
-    emr_lambdas_stack = EMRUtilitiesStack(app, 'test-lambdas-stack')
+    emr_lambdas_stack = EMRUtilities(app, 'test-lambdas-stack')
 
     assert emr_lambdas_stack.run_job_flow
     assert emr_lambdas_stack.add_job_flow_steps
