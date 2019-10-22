@@ -95,7 +95,7 @@ class EMRProfileComponents(core.Construct):
 
             if self._local_disk_encryption_key:
                 atrest_config['LocalDiskEncryptionConfiguration'] = {
-                    'EncryptionProviderType': 'AwsKms',
+                    'EncryptionKeyProviderType': 'AwsKms',
                     'AwsKmsKey': self._local_disk_encryption_key.key_arn
                 }
                 if self._ebs_encryption:

@@ -1,37 +1,25 @@
 import setuptools
 
-with open('VERSION', 'r') as version_file:
-    version = version_file.read().strip()
 
 with open("README.md") as fp:
     long_description = fp.read()
 
 
 setuptools.setup(
-    name="aws-emr-launch",
-    version=version,
+    name="examples",
+    version="0.0.1",
 
-    description="EMR Launch modules",
+    description="An empty CDK Python app",
     long_description=long_description,
     long_description_content_type="text/markdown",
 
     author="author",
 
-    package_dir={"aws_emr_launch": "aws_emr_launch"},
-    packages=setuptools.find_packages(),
+    package_dir={"": "examples"},
+    packages=setuptools.find_packages(where="examples"),
 
     install_requires=[
         "aws-cdk.core",
-        "aws-cdk-aws.iam",
-        "aws-cdk-aws.s3",
-        "aws-cdk-aws.kms",
-        "aws-cdk-aws.ec2",
-        "aws-cdk-aws.emr",
-        "aws-cdk-aws.sns",
-        "aws-cdk-aws.sqs",
-        "aws-cdk-aws.lambda",
-        "aws-cdk-aws.stepfunctions",
-        "aws-cdk-aws.stepfunctions-tasks"
     ],
 
     python_requires=">=3.6",

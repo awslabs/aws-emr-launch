@@ -52,12 +52,11 @@ class EMRServiceRole(iam.Role):
                              'emr-artifacts-policy': _emr_artifacts_policy()
                          },
                          managed_policies=[
-                             iam.ManagedPolicy.from_aws_managed_policy_name('AmazonElasticMapReduceRole')
+                             iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonElasticMapReduceRole')
                          ])
 
 
 class EMRAutoScalingRole(iam.Role):
-
     def __init__(self, scope: core.Construct, id: str, *, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
@@ -79,7 +78,6 @@ class EMRAutoScalingRole(iam.Role):
 
 
 class EMREC2InstanceRole(iam.Role):
-
     def __init__(self, scope: core.Construct, id: str, *, role_name: Optional[str] = None):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -89,7 +87,6 @@ class EMREC2InstanceRole(iam.Role):
 
 
 class EMRRoles(core.Construct):
-
     def __init__(self, scope: core.Construct, id: str, *, role_name_prefix: str,
                  artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket) -> None:
         super().__init__(scope, id)

@@ -13,6 +13,7 @@
 
 from aws_cdk import (
     aws_lambda,
+    aws_sns as sns,
     aws_stepfunctions as sfn,
     aws_stepfunctions_tasks as sfn_tasks,
     core
@@ -26,15 +27,29 @@ class LaunchEMRConfigStack(core.Stack):
                  **kwargs) -> None:
         super().__init__(app, id, **kwargs)
 
-        run_job_flow = sfn.Task(
-            self, 'LaunchEMRConfigStack_RunJobFlow',
+        start_emr_cluster = sfn.Task(
+            self, 'Start EMR Cluster',
             input_path='$',
             output_path='$',
             result_path='$.Result',
             task=sfn_tasks.RunLambdaTask(
                 run_job_flow_lambda,
                 integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
-                payload={'TaskToken': sfn.Context.task_token}))
+                payload={'TaskToken': sfn.Context.task_token})
+        )
 
+        confirm_cluster_started = sfn.Choice(self, 'Cluster Started?')
 
-        run_job_flow.to_string()
+        notify_failed = sfn.Task(
+            self, 'Failure Notification',
+            task=sfn_tasks.PublishToTopic(
+                sns.Topic.from_topic_arn(
+                    self, 'FailureTopic', sfn.TaskInput.from_data_at('$.FailureTopicArn').value),
+                message=sfn.TaskInput.from_data_at('$.Result.Message'),
+                subject='Launch EMR Config Failure'
+            )
+        )
+
+        definition = start_emr_cluster.next(notify_failed)
+
+        self._state_machine = sfn.StateMachine(self, 'StateMachine', definition=definition)

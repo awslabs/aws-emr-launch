@@ -28,7 +28,6 @@ class BaseConfiguration(core.Construct):
                  release_label: Optional[str] = 'emr-5.27.0',
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[dict]] = None,
-                 steps: Optional[List[dict]] = None,
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
@@ -44,7 +43,6 @@ class BaseConfiguration(core.Construct):
             'ReleaseLabel': release_label,
             'Applications': self._get_applications(applications),
             'BootstrapActions': bootstrap_actions if bootstrap_actions else [],
-            'Steps': steps if steps else [],
             'Tags': tags if tags else [],
             'Configurations': self._get_configurations(configurations, use_glue_catalog),
             'JobFlowRole': profile_components.roles.instance_role.role_arn,
@@ -121,7 +119,6 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  core_instance_count: Optional[int] = 2,
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[dict]] = None,
-                 steps: Optional[List[dict]] = None,
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
@@ -129,7 +126,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
 
         super().__init__(scope, id, cluster_name=cluster_name, profile_components=profile_components,
                          release_label=release_label, applications=applications,
-                         bootstrap_actions=bootstrap_actions, steps=steps, configurations=configurations,
+                         bootstrap_actions=bootstrap_actions, configurations=configurations,
                          tags=tags, use_glue_catalog=use_glue_catalog, auto_terminate=auto_terminate)
 
         subnet = profile_components.vpc.private_subnets[0] if subnet is None else subnet
