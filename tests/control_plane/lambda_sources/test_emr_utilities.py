@@ -15,13 +15,11 @@ import logging
 
 from botocore.stub import Stubber
 
-from control_plane.lambda_sources.emr_utilities import (
-    return_message
-)
-from control_plane.lambda_sources.emr_utilities import add_job_flow_steps
+from control_plane.lambda_sources.emr_utilities.utils import return_message
+from control_plane.lambda_sources.emr_utilities import run_job_flow
 
 # Turn the LOGGER off for the tests
-add_job_flow_steps.LOGGER.setLevel(logging.WARN)
+run_job_flow.LOGGER.setLevel(logging.WARN)
 
 
 def test_add_job_flow_steps():

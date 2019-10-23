@@ -55,4 +55,3 @@ class ControlPlaneStack(core.Stack):
     @property
     def emr_events(self) -> EMREvents:
         return self._emr_events
-

@@ -11,13 +11,15 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import json
 import boto3
 import logging
 import traceback
 
-from . import *
+from utils import *
 
 emr = boto3.client('emr')
+ssm = boto3.client('ssm')
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
@@ -30,20 +32,16 @@ def handler(event, context):
         cluster_config = event['ClusterConfig']
         task_token = event.get('TaskToken', None)
 
-        if task_token:
-            tags = cluster_config.get('Tags', [])
-            tags.append({
-                'Key': ClusterEventTags.STATE_CHANGE,
-                'Value': task_token
-            })
-            cluster_config['Tags'] = tags
-
         # run job
         LOGGER.info('Submitting new job flow {}'.format(json.dumps(cluster_config)))
         response = emr.run_job_flow(**cluster_config)
 
         LOGGER.info('Got job flow response {}'.format(json.dumps(response)))
+        cluster_id = response['JobFlowId']
 
+        parameter_name = ClusterEventParameterUtil.cluster_state_change_key(cluster_id)
+        LOGGER.info('Putting TaskToken to Parameter Store: {}'.format(parameter_name))
+        ssm.put_parameter(Name=parameter_name, Type='String', Value=task_token)
     except Exception as e:
         trc = traceback.format_exc()
         s = 'Failed running flow {}: {}\n\n{}'.format(str(event), str(e), trc)

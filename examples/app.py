@@ -4,45 +4,44 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_kms as kms,
     aws_s3 as s3,
+    aws_sns as sns,
     core
 )
 
 from aws_emr_launch.constructs.emr_constructs import EMRProfileComponents, InstanceGroupConfiguration
-from control_plane.constructs.lambdas import EMRUtilitiesStack
-
+from aws_emr_launch.constructs.step_functions.launch_emr_config import LaunchEMRConfig
 
 app = core.App()
-stack = core.Stack(app, 'test-stack')
-vpc = ec2.Vpc(stack, 'test-vpc')
-artifacts_bucket = s3.Bucket(stack, 'test-artifacts-bucket')
-logs_bucket = s3.Bucket(stack, 'test-logs-bucket')
-input_bucket = s3.Bucket(stack, 'test-input-bucket')
-output_bucket = s3.Bucket(stack, 'test-output-bucket')
-input_key = kms.Key(stack, 'test-input-key')
-s3_key = kms.Key(stack, 'test-s3-key')
-local_disk_key = kms.Key(stack, 'test-local-disk-key')
+stack = core.Stack(app, 'test-stack', env=core.Environment(account='876929970656', region='us-west-2'))
+vpc = ec2.Vpc(stack, 'ExampleVPC')
+artifacts_bucket = s3.Bucket.from_bucket_name(stack, 'ArtifactsBucket', 'chamcca-emr-launch-artifacts-uw2')
+logs_bucket = s3.Bucket.from_bucket_name(stack, 'LogsBucket', 'chamcca-emr-launch-logs-uw2')
+data_bucket = s3.Bucket.from_bucket_name(stack, 'DataBucket', 'chamcca-emr-launch-data-uw2')
+
+success_topic = sns.Topic(stack, 'SuccessTopic')
+failure_topic = sns.Topic(stack, 'FailureTopic')
 
 emr_components = EMRProfileComponents(
     stack, 'test-emr-components',
-    profile_name='TestCluster', environment='test',
-    vpc=vpc, artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
+    profile_name='TestCluster',
+    vpc=vpc,
+    artifacts_bucket=artifacts_bucket,
+    logs_bucket=logs_bucket)
 
 emr_components \
-    .authorize_input_buckets([input_bucket]) \
-    .authorize_output_buckets([output_bucket]) \
-    .authorize_input_keys([input_key]) \
-    .set_s3_encryption('SSE-KMS', s3_key) \
-    .set_local_disk_encryption_key(local_disk_key, ebs_encryption=True)
+    .authorize_input_buckets([data_bucket]) \
+    .authorize_output_buckets([data_bucket])
 
 cluster_config = InstanceGroupConfiguration(
     stack, 'test-instance-group-config',
-    cluster_name='test-cluster', profile_components=emr_components)
+    cluster_name='test-cluster',
+    profile_components=emr_components,
+    auto_terminate=False)
 
-emr_lambdas_stack = EMRUtilitiesStack(app, 'test-lambdas-stack')
-# step_functions_stack = LaunchEMRConfigStack(
-#     app,
-#     'test-step-functions-stack',
-#     run_job_flow_lambda=emr_lambdas_stack.run_job_flow,
-#     check_step_status_lambda=emr_lambdas_stack.check_step_status)
+step_functions_stack = LaunchEMRConfig(
+    stack, 'test-step-functions-stack',
+    cluster_config=cluster_config,
+    success_topic=None,
+    failure_topic=None)
 
 app.synth()

@@ -20,9 +20,8 @@ from control_plane.constructs.lambdas.emr_utilities import EMRUtilities
 
 def test_emr_lambdas():
     app = core.App()
-    emr_lambdas_stack = EMRUtilities(app, 'test-lambdas-stack')
+    stack = core.Stack(app, 'test-lambdas-stack')
+    emr_lambdas_stack = EMRUtilities(stack, 'test-emr-utilities')
 
-    assert emr_lambdas_stack.run_job_flow
-    assert emr_lambdas_stack.add_job_flow_steps
-    assert emr_lambdas_stack.check_step_status
-    assert emr_lambdas_stack.emr_config_utils_layer
+    assert emr_lambdas_stack.shared_functions
+    assert emr_lambdas_stack.cluster_state_change_event

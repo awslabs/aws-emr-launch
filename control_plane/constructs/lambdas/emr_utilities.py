@@ -53,7 +53,7 @@ class EMRUtilities(core.Construct):
         self._shared_functions.append(aws_lambda.Function(
             self,
             'AddJobFlow',
-            function_name='EMRLaunch_EMRUtilities_AddJobFlow',
+            function_name='EMRLaunch_EMRUtilities_RunJobFlow',
             code=code,
             handler='run_job_flow.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -62,7 +62,9 @@ class EMRUtilities(core.Construct):
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
                     actions=[
-                        'elasticmapreduce:RunJobFlow'
+                        'elasticmapreduce:RunJobFlow',
+                        'iam:PassRole',
+                        'ssm:PutParameter'
                     ],
                     resources=['*']
                 )
@@ -102,8 +104,8 @@ class EMRUtilities(core.Construct):
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
                     actions=[
-                        'elasticmapreduce:DescribeCluster',
-                        'elasticmapreduce:RemoveTags',
+                        'ssm:GetParameter',
+                        'ssm:DeleteParameter',
                         'states:SendTaskSuccess',
                         'states:SendTaskHeartbeat',
                         'states:SendTaskFailure'

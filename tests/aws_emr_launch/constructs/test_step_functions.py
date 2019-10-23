@@ -15,16 +15,11 @@ from aws_cdk import (
     core
 )
 
-from aws_emr_launch.constructs.step_functions.launch_emr_config import LaunchEMRConfigStack
+from aws_emr_launch.constructs.step_functions.launch_emr_config import LaunchEMRConfig
 
 
 def test_emr_lambdas():
     app = core.App()
-    emr_lambdas_stack = EMRUtilities(app, 'test-lambdas-stack')
-    step_functions_stack = LaunchEMRConfigStack(
-        app,
-        'test-step-functions-stack',
-        run_job_flow_lambda=emr_lambdas_stack.run_job_flow,
-        check_step_status_lambda=emr_lambdas_stack.check_step_status)
+    stack = core.Stack(app, 'test-step-functions-stack')
 
-    assert step_functions_stack.to_string()
+    assert stack

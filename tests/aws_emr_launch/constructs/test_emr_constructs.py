@@ -38,8 +38,10 @@ def test_profile_components():
 
     emr_components = EMRProfileComponents(
         stack, 'test-emr-components',
-        profile_name='TestCluster', environment='test',
-        vpc=vpc, artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
+        profile_name='TestCluster',
+        vpc=vpc,
+        artifacts_bucket=artifacts_bucket,
+        logs_bucket=logs_bucket)
 
     emr_components \
         .authorize_input_buckets([input_bucket]) \
@@ -67,8 +69,10 @@ def test_cluster_configurations():
 
     emr_components = EMRProfileComponents(
         stack, 'test-emr-components',
-        profile_name='TestCluster', environment='test',
-        vpc=vpc, artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
+        profile_name='TestCluster',
+        vpc=vpc,
+        artifacts_bucket=artifacts_bucket,
+        logs_bucket=logs_bucket)
 
     cluster_config = InstanceGroupConfiguration(
         stack, 'test-instance-group-config',

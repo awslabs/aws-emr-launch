@@ -45,15 +45,16 @@ class BaseConfiguration(core.Construct):
             'BootstrapActions': bootstrap_actions if bootstrap_actions else [],
             'Tags': tags if tags else [],
             'Configurations': self._get_configurations(configurations, use_glue_catalog),
-            'JobFlowRole': profile_components.roles.instance_role.role_arn,
+            'JobFlowRole': profile_components.roles.instance_role.instance_profile.attr_arn,
             'ServiceRole': profile_components.roles.service_role.role_arn,
             'AutoScalingRole': profile_components.roles.autoscaling_role.role_arn,
+            'VisibleToAllUsers': True,
             'Instances': {
                 'EmrManagedMasterSecurityGroup': profile_components.security_groups.master_group.security_group_id,
                 'EmrManagedSlaveSecurityGroup': profile_components.security_groups.workers_group.security_group_id,
                 'ServiceAccessSecurityGroup': profile_components.security_groups.service_group.security_group_id,
                 'TerminationProtected': False,
-                'KeepJobFlowAliveWhenNoSteps': auto_terminate
+                'KeepJobFlowAliveWhenNoSteps': not auto_terminate
             }
         }
         if profile_components.security_configuration:

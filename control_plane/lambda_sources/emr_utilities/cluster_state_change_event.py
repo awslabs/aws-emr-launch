@@ -11,14 +11,16 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-import boto3
 import json
+import boto3
 import logging
 import traceback
 
-from . import *
+from botocore.exceptions import ClientError
 
-emr = boto3.client('emr')
+from utils import *
+
+ssm = boto3.client('ssm')
 sfn = boto3.client('stepfunctions')
 
 LOGGER = logging.getLogger()
@@ -33,24 +35,32 @@ def handler(event, context):
         state = event['detail']['state']
         state_change_reason = json.loads(event['detail']['stateChangeReason'])
 
-        response = emr.describe_cluster(ClusterId=cluster_id)
-        task_token = get_tag_value(response['Cluster']['Tags'], ClusterEventTags.STATE_CHANGE)
+        parameter_name = ClusterEventParameterUtil.cluster_state_change_key(cluster_id)
+        LOGGER.info('Getting TaskToken from Parameter Store: {}'.format(parameter_name))
+        try:
+            task_token = ssm.get_parameter(Name=parameter_name)['Parameter']['Value']
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ParameterNotFound':
+                task_token = None
+            else:
+                raise e
 
         if task_token is None:
-            LOGGER.info('No {} Tag found in response: {}'.format(ClusterEventTags.STATE_CHANGE, response))
+            LOGGER.info('No {} Parameter found'.format(parameter_name))
             return
 
         if state in ['WAITING', 'TERMINATED']:
-            message = return_message(code=0, message='ClusterState: {}'.format(state))
+            message = return_message(code=0, cluster_id=cluster_id, message='ClusterState: {}'.format(state))
         elif state == 'TERMINATED_WITH_ERRORS':
-            message = return_message(code=1, message='ClusterState: {} StateChangeReason: {}'
+            message = return_message(code=1, cluster_id=cluster_id, message='ClusterState: {} StateChangeReason: {}'
                                      .format(state, state_change_reason))
         else:
             LOGGER.info('Sending Task Heartbeat, TaskToken: {}, ClusterState: {}'.format(task_token, state))
             sfn.send_task_heartbeat(taskToken=task_token)
+            return
 
-        LOGGER.info('Removing Cluster Tag, ClusterId: {}, Tag: {}'.format(cluster_id, ClusterEventTags.STATE_CHANGE))
-        emr.remove_tags(ResourceId=cluster_id, TagKeys=[ClusterEventTags.STATE_CHANGE])
+        LOGGER.info('Removing TaskToken Parameter: {}'.format(parameter_name))
+        ssm.delete_parameter(Name=parameter_name)
 
         LOGGER.info('Sending Task Success, TaskToken: {}, Output: {}'.format(task_token, message))
         sfn.send_task_success(taskToken=task_token, output=json.dumps(message))

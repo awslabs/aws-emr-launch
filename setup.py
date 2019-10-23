@@ -29,9 +29,12 @@ setuptools.setup(
         "aws-cdk-aws.emr",
         "aws-cdk-aws.sns",
         "aws-cdk-aws.sqs",
+        "aws-cdk-aws.ssm",
         "aws-cdk-aws.lambda",
         "aws-cdk-aws.stepfunctions",
-        "aws-cdk-aws.stepfunctions-tasks"
+        "aws-cdk-aws.stepfunctions-tasks",
+        "aws-cdk-aws.events",
+        "aws-cdk-aws.events-targets"
     ],
 
     python_requires=">=3.6",

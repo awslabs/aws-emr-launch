@@ -16,8 +16,8 @@ import datetime
 
 from typing import List, Optional
 
-def str2bool(v: str) -> bool:
-    return v.lower() in ("yes", "true", "t", "1")
+def parse_bool(v: str) -> bool:
+    return str(v).lower() in ("yes", "true", "t", "1")
 
 
 def return_message(code: int = 0, step_ids: Optional[List[str]] = None,
@@ -52,6 +52,13 @@ class JSONDateTimeEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-class ClusterEventTags:
-    STATE_CHANGE = 'TaskToken-ClusterState'
-    STEP_CHANGE = 'TaskToke-StepChange'
+class ClusterEventParameterUtil:
+    PARAMETER_STORE_PREFIX = '/emr_launch/control_plane/task_tokens/emr_utilities/{}/{}'
+
+    @staticmethod
+    def cluster_state_change_key(cluster_id):
+        return ClusterEventParameterUtil.PARAMETER_STORE_PREFIX.format('cluster_state', cluster_id)
+
+    @staticmethod
+    def step_state_change_key(step_id):
+        return ClusterEventParameterUtil.PARAMETER_STORE_PREFIX.format('step_state', step_id)

@@ -16,7 +16,7 @@ import json
 import logging
 import traceback
 
-from . import return_message, str2bool
+from utils import *
 
 emr = boto3.client('emr')
 
@@ -28,23 +28,21 @@ def handler(event, context):
 
     try:
         LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
-        cluster_config = event['ClusterConfig']
 
-        fail_if_job_running = str2bool(event['FailIfJobRunning']) \
-            if 'FailIfJobRunning' in event \
-            else True
+        # This will work for {"JobInput": {"FailIfJobRunning": true}} or {"FailIfJobRunning": true}
+        fail_if_job_running = parse_bool(event.get('ExecutionInput', event).get('FailIfJobRunning', False))
 
         # check if job flow already exists
         if fail_if_job_running:
+            cluster_name = event.get('ClusterName', '')
             job_is_running = False
-            job_flow_name = cluster_config['Name']
-            LOGGER.info('Checking if job flow {} is running already'.format(job_flow_name))
+            LOGGER.info('Checking if job flow {} is running already'.format(cluster_name))
             response = emr.list_clusters(ClusterStates=['STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING'])
             for job_flow_running in response['Clusters']:
                 jf_name = job_flow_running['Name']
-                if jf_name == job_flow_name:
+                if jf_name == cluster_name:
                     LOGGER.info('Job flow {} is already running: terminate? {}'
-                                .format(job_flow_name, str(fail_if_job_running)))
+                                .format(cluster_name, str(fail_if_job_running)))
                     job_is_running = True
                     break
 

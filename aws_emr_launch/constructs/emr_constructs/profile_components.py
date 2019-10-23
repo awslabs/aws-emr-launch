@@ -27,20 +27,19 @@ from ..iam_roles.emr import EMRRoles
 class EMRProfileComponents(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
-                 profile_name: str, environment: str, vpc: ec2.Vpc,
+                 profile_name: str, vpc: ec2.Vpc,
                  artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket) -> None:
         super().__init__(scope, id)
 
         self._profile_name = profile_name
-        self._environment = environment
         self._vpc = vpc
         self._artifacts_bucket = artifacts_bucket
         self._logs_bucket = logs_bucket
 
-        self._security_groups = EMRSecurityGroups(self, 'TransientEMRComponents_SecurityGroups', vpc=vpc)
+        self._security_groups = EMRSecurityGroups(self, 'EMRProfileComponents_SecurityGroups', vpc=vpc)
 
-        self._roles = EMRRoles(self, 'TransientEMRComponents_Roles',
-                               role_name_prefix='{}-{}'.format(profile_name, environment),
+        self._roles = EMRRoles(self, 'EMRProfileComponents_Roles',
+                               role_name_prefix=profile_name,
                                artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
 
         self._s3_encryption_mode = None
@@ -59,9 +58,9 @@ class EMRProfileComponents(core.Construct):
             return
 
         if self._security_configuration is None:
-            name = '{}-{}-SecurityConfiguration'.format(self._profile_name, self._environment)
+            name = '{}-SecurityConfiguration'.format(self._profile_name)
             self._security_configuration = emr.CfnSecurityConfiguration(
-                self, 'TransientEMRComponents_SecurityConfiguration',
+                self, 'EMRProfileComponents_SecurityConfiguration',
                 security_configuration={}, name=name
             )
 
@@ -112,10 +111,6 @@ class EMRProfileComponents(core.Construct):
     @property
     def profile_name(self) -> str:
         return self._profile_name
-
-    @property
-    def environment(self) -> str:
-        return self._environment
 
     @property
     def vpc(self) -> ec2.Vpc:

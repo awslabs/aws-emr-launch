@@ -61,7 +61,8 @@ class EMRAutoScalingRole(iam.Role):
         super().__init__(scope, id, role_name=role_name,
                          assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
                          managed_policies=[
-                             iam.ManagedPolicy.from_aws_managed_policy_name('AmazonElasticMapReduceforAutoScalingRole')
+                             iam.ManagedPolicy.from_aws_managed_policy_name(
+                                 'service-role/AmazonElasticMapReduceforAutoScalingRole')
                          ])
 
         self.assume_role_policy.add_statements(
@@ -79,11 +80,21 @@ class EMRAutoScalingRole(iam.Role):
 
 class EMREC2InstanceRole(iam.Role):
     def __init__(self, scope: core.Construct, id: str, *, role_name: Optional[str] = None):
-        super().__init__(scope, id, role_name=role_name,
+        super().__init__(scope, id,
+                         role_name=role_name,
                          assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
                          inline_policies={
                              'emr-artifacts-policy': _emr_artifacts_policy()
                          })
+
+        self._instance_profile = iam.CfnInstanceProfile(
+            self, '{}_InstanceProfile'.format(id),
+            roles=[self.role_name],
+            instance_profile_name=self.role_name)
+
+    @property
+    def instance_profile(self) -> iam.CfnInstanceProfile:
+        return self._instance_profile
 
 
 class EMRRoles(core.Construct):
@@ -95,7 +106,7 @@ class EMRRoles(core.Construct):
             self, 'TransientEMRServiceRole', role_name='{}-ServiceRole'.format(role_name_prefix))
         self._instance_role = EMREC2InstanceRole(
             self, 'TransientEMRInstanceRole', role_name='{}-InstanceRole'.format(role_name_prefix))
-        self._autoscaling_role = EMREC2InstanceRole(
+        self._autoscaling_role = EMRAutoScalingRole(
             self, 'TransientEMRAutoScalingRole', role_name='{}-AutoScalingRole'.format(role_name_prefix))
 
         artifacts_bucket.grant_read(self._service_role)
@@ -105,13 +116,13 @@ class EMRRoles(core.Construct):
         logs_bucket.grant_read_write(self._instance_role)
 
     @property
-    def service_role(self) -> iam.Role:
+    def service_role(self) -> EMRServiceRole:
         return self._service_role
 
     @property
-    def instance_role(self) -> iam.Role:
+    def instance_role(self) -> EMREC2InstanceRole:
         return self._instance_role
 
     @property
-    def autoscaling_role(self) -> iam.Role:
+    def autoscaling_role(self) -> EMRAutoScalingRole:
         return self._autoscaling_role
