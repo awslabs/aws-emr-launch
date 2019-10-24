@@ -38,10 +38,10 @@ cluster_config = InstanceGroupConfiguration(
     profile_components=emr_components,
     auto_terminate=False)
 
-step_functions_stack = LaunchEMRConfig(
+launch_config = LaunchEMRConfig(
     stack, 'test-step-functions-stack',
     cluster_config=cluster_config,
-    success_topic=None,
-    failure_topic=None)
+    success_topic=success_topic,
+    failure_topic=failure_topic)
 
 app.synth()
