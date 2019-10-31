@@ -45,7 +45,7 @@ class BaseConfiguration(core.Construct):
             'BootstrapActions': bootstrap_actions if bootstrap_actions else [],
             'Tags': tags if tags else [],
             'Configurations': self._get_configurations(configurations, use_glue_catalog),
-            'JobFlowRole': profile_components.roles.instance_role.instance_profile.attr_arn,
+            'JobFlowRole': profile_components.roles.instance_profile_arn,
             'ServiceRole': profile_components.roles.service_role.role_arn,
             'AutoScalingRole': profile_components.roles.autoscaling_role.role_arn,
             'VisibleToAllUsers': True,
@@ -69,7 +69,7 @@ class BaseConfiguration(core.Construct):
         found_hive_site = False
         found_spark_hive_site = False
 
-        metastore_property = {
+        metastore_property = {} if not use_glue_catalog else {
             'hive.metastore.client.factory.class':
                 'com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory'
         }

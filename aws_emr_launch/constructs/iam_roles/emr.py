@@ -19,53 +19,79 @@ from aws_cdk import (
 )
 
 
-def _emr_artifacts_policy() -> iam.PolicyDocument:
-    return iam.PolicyDocument(
-        statements=[
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=[
-                    's3:GetObject*',
-                    's3:List*'
-                ],
-                resources=[
-                    'arn:aws:s3:::elasticmapreduce',
-                    'arn:aws:s3:::elasticmapreduce/*',
-                    'arn:aws:s3:::elasticmapreduce.samples',
-                    'arn:aws:s3:::elasticmapreduce.samples/*',
-                    'arn:aws:s3:::*.elasticmapreduce',
-                    'arn:aws:s3:::*.elasticmapreduce/*',
-                    'arn:aws:s3:::*.elasticmapreduce.samples',
-                    'arn:aws:s3:::*.elasticmapreduce.samples/*'
-                ]
-            )
-        ]
-    )
+class EMRRoles(core.Construct):
+    def __init__(self, scope: core.Construct, id: str, *, role_name_prefix: Optional[str] = None,
+                 artifacts_bucket: Optional[s3.Bucket] = None, logs_bucket: Optional[s3.Bucket] = None) -> None:
+        super().__init__(scope, id)
 
+        if role_name_prefix:
+            self._service_role = EMRRoles._create_service_role(
+                self, 'EMRServiceRole', role_name='{}-ServiceRole'.format(role_name_prefix))
+            self._instance_role = EMRRoles._create_instance_role(
+                self, 'EMRInstanceRole', role_name='{}-InstanceRole'.format(role_name_prefix))
+            self._autoscaling_role = EMRRoles._create_autoscaling_role(
+                self, 'EMRAutoScalingRole', role_name='{}-AutoScalingRole'.format(role_name_prefix))
 
-class EMRServiceRole(iam.Role):
+            self._instance_profile = iam.CfnInstanceProfile(
+                self, '{}_InstanceProfile'.format(id),
+                roles=[self.role_name],
+                instance_profile_name=self.role_name)
+            self._instance_profile_arn = self._instance_profile.attr_arn
 
-    def __init__(self, scope: core.Construct, id: str, *, role_name: Optional[str] = None):
-        super().__init__(scope, id, role_name=role_name,
-                         assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
-                         inline_policies={
-                             'emr-artifacts-policy': _emr_artifacts_policy()
-                         },
-                         managed_policies=[
-                             iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonElasticMapReduceRole')
-                         ])
+        if artifacts_bucket:
+            artifacts_bucket.grant_read(self._service_role)
+            artifacts_bucket.grant_read(self._instance_role)
 
+        if logs_bucket:
+            logs_bucket.grant_read_write(self._service_role)
+            logs_bucket.grant_read_write(self._instance_role)
 
-class EMRAutoScalingRole(iam.Role):
-    def __init__(self, scope: core.Construct, id: str, *, role_name: Optional[str] = None):
-        super().__init__(scope, id, role_name=role_name,
-                         assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
-                         managed_policies=[
-                             iam.ManagedPolicy.from_aws_managed_policy_name(
-                                 'service-role/AmazonElasticMapReduceforAutoScalingRole')
-                         ])
+    @staticmethod
+    def _emr_artifacts_policy() -> iam.PolicyDocument:
+        return iam.PolicyDocument(
+            statements=[
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=[
+                        's3:GetObject*',
+                        's3:List*'
+                    ],
+                    resources=[
+                        'arn:aws:s3:::elasticmapreduce',
+                        'arn:aws:s3:::elasticmapreduce/*',
+                        'arn:aws:s3:::elasticmapreduce.samples',
+                        'arn:aws:s3:::elasticmapreduce.samples/*',
+                        'arn:aws:s3:::*.elasticmapreduce',
+                        'arn:aws:s3:::*.elasticmapreduce/*',
+                        'arn:aws:s3:::*.elasticmapreduce.samples',
+                        'arn:aws:s3:::*.elasticmapreduce.samples/*'
+                    ]
+                )
+            ]
+        )
 
-        self.assume_role_policy.add_statements(
+    @staticmethod
+    def _create_service_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
+        role = iam.Role(scope, id, role_name=role_name,
+                        assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
+                        inline_policies={
+                            'emr-artifacts-policy': EMRRoles._emr_artifacts_policy()
+                        },
+                        managed_policies=[
+                            iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonElasticMapReduceRole')
+                        ])
+        return role
+
+    @staticmethod
+    def _create_autoscaling_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
+        role = iam.Role(scope, id, role_name=role_name,
+                        assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
+                        managed_policies=[
+                            iam.ManagedPolicy.from_aws_managed_policy_name(
+                                'service-role/AmazonElasticMapReduceforAutoScalingRole')
+                        ])
+
+        role.assume_role_policy.add_statements(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 principals=[
@@ -76,53 +102,41 @@ class EMRAutoScalingRole(iam.Role):
                 ]
             )
         )
+        return role
 
+    @staticmethod
+    def _create_instance_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
+        role = iam.Role(scope, id,
+                        role_name=role_name,
+                        assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
+                        inline_policies={
+                            'emr-artifacts-policy': EMRRoles._emr_artifacts_policy()
+                        })
+        return role
 
-class EMREC2InstanceRole(iam.Role):
-    def __init__(self, scope: core.Construct, id: str, *, role_name: Optional[str] = None):
-        super().__init__(scope, id,
-                         role_name=role_name,
-                         assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
-                         inline_policies={
-                             'emr-artifacts-policy': _emr_artifacts_policy()
-                         })
-
-        self._instance_profile = iam.CfnInstanceProfile(
-            self, '{}_InstanceProfile'.format(id),
-            roles=[self.role_name],
-            instance_profile_name=self.role_name)
-
-    @property
-    def instance_profile(self) -> iam.CfnInstanceProfile:
-        return self._instance_profile
-
-
-class EMRRoles(core.Construct):
-    def __init__(self, scope: core.Construct, id: str, *, role_name_prefix: str,
-                 artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket) -> None:
-        super().__init__(scope, id)
-
-        self._service_role = EMRServiceRole(
-            self, 'TransientEMRServiceRole', role_name='{}-ServiceRole'.format(role_name_prefix))
-        self._instance_role = EMREC2InstanceRole(
-            self, 'TransientEMRInstanceRole', role_name='{}-InstanceRole'.format(role_name_prefix))
-        self._autoscaling_role = EMRAutoScalingRole(
-            self, 'TransientEMRAutoScalingRole', role_name='{}-AutoScalingRole'.format(role_name_prefix))
-
-        artifacts_bucket.grant_read(self._service_role)
-        artifacts_bucket.grant_read(self._instance_role)
-
-        logs_bucket.grant_read_write(self._service_role)
-        logs_bucket.grant_read_write(self._instance_role)
+    @staticmethod
+    def from_role_arns(scope: core.Construct, id: str, service_role_arn: str,
+                       instance_role_arn: str, autoscaling_role_arn: str, mutable: Optional[bool] = None):
+        roles = EMRRoles(scope, id)
+        roles._service_role = iam.Role.from_role_arn(roles, 'EMRServiceRole', service_role_arn, mutable=mutable)
+        roles._instance_role = iam.Role.from_role_arn(roles, 'EMRInstanceRole', instance_role_arn, mutable=mutable)
+        roles._autoscaling_role = iam.Role.from_role_arn(
+            roles, 'EMRAutoScalingRole', autoscaling_role_arn, mutable=mutable)
+        roles._instance_profile_arn = roles._instance_role.role_arn.replace(':role/', ':instance-profile/')
+        return roles
 
     @property
-    def service_role(self) -> EMRServiceRole:
+    def service_role(self) -> iam.Role:
         return self._service_role
 
     @property
-    def instance_role(self) -> EMREC2InstanceRole:
+    def instance_role(self) -> iam.Role:
         return self._instance_role
 
     @property
-    def autoscaling_role(self) -> EMRAutoScalingRole:
+    def autoscaling_role(self) -> iam.Role:
         return self._autoscaling_role
+
+    @property
+    def instance_profile_arn(self) -> str:
+        return self._instance_profile_arn

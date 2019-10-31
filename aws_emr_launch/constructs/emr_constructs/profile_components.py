@@ -26,18 +26,18 @@ from ..iam_roles.emr import EMRRoles
 
 class EMRProfileComponents(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, *,
-                 profile_name: str, vpc: ec2.Vpc,
-                 artifacts_bucket: s3.Bucket, logs_bucket: s3.Bucket) -> None:
+    def __init__(self, scope: core.Construct, id: str, *, profile_name: str,
+                 vpc: Optional[ec2.Vpc] = None, artifacts_bucket: Optional[s3.Bucket] = None,
+                 logs_bucket: Optional[s3.Bucket] = None) -> None:
         super().__init__(scope, id)
 
         self._profile_name = profile_name
-        self._vpc = vpc
-        self._artifacts_bucket = artifacts_bucket
-        self._logs_bucket = logs_bucket
 
+        self._vpc = vpc
         self._security_groups = EMRSecurityGroups(self, 'EMRProfileComponents_SecurityGroups', vpc=vpc)
 
+        self._artifacts_bucket = artifacts_bucket
+        self._logs_bucket = logs_bucket
         self._roles = EMRRoles(self, 'EMRProfileComponents_Roles',
                                role_name_prefix=profile_name,
                                artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
@@ -153,8 +153,8 @@ class EMRProfileComponents(core.Construct):
         return self._tls_certificate_location
 
     @property
-    def security_configuration(self) -> emr.CfnSecurityConfiguration:
-        return self._security_configuration
+    def security_configuration_name(self) -> str:
+        return self._security_configuration_name
 
     def set_s3_encryption(self, mode: str, encryption_key: Optional[kms.Key] = None):
         if encryption_key:
