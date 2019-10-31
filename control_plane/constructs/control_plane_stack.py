@@ -38,6 +38,15 @@ class ControlPlaneStack(core.Stack):
                     string_value=f.function_arn
                 ))
 
+        for l in self._emr_utilities.shared_layers:
+            self._string_parameters.append(
+                ssm.StringParameter(
+                    self,
+                    '{}_SSMParameter'.format(l.node.id),
+                    parameter_name='/emr_launch/control_plane/layer_arns/{}'.format(l.node.id),
+                    string_value=l.layer_version_arn
+                ))
+
         self._emr_events = EMREvents(
             self,
             'EMREvents',

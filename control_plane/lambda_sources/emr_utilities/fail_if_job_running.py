@@ -28,9 +28,11 @@ def handler(event, context):
 
     try:
         LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
+        default_fail_if_job_running = parse_bool(event.get('DefaultFailIfJobRunning', False))
 
         # This will work for {"JobInput": {"FailIfJobRunning": true}} or {"FailIfJobRunning": true}
-        fail_if_job_running = parse_bool(event.get('ExecutionInput', event).get('FailIfJobRunning', False))
+        fail_if_job_running = parse_bool(
+            event.get('ExecutionInput', event).get('FailIfJobRunning', default_fail_if_job_running))
 
         # check if job flow already exists
         if fail_if_job_running:

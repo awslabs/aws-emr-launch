@@ -16,6 +16,8 @@ import json
 import logging
 import traceback
 
+from dictor import dictor
+
 from utils import *
 
 emr = boto3.client('emr')
@@ -25,16 +27,27 @@ LOGGER.setLevel(logging.INFO)
 
 
 def handler(event, context):
+    LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
+    overrides = event.get('ExecutionInput', {}).get('ClusterConfigOverrides', {})
+    cluster_config = event.get('ClusterConfig', {})
 
     try:
-        LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
-        overrides = event.get('ExecutionInput', {}).get('ClusterConfigOverrides', {})
-        cluster_config = event.get('ClusterConfig', {})
+        for path, new_value in overrides.items():
+            path_parts = path.split('.')
+            update_key = path_parts[-1]
+            path = '.'.join(path_parts[0:-1])
 
+            update_key = int(update_key) if update_key.isdigit() else update_key
+            update_attr = cluster_config \
+                if path == '' else dictor(cluster_config, path)
 
+            LOGGER.info('Path: "{}" CurrentValue: "{}" NewValue: "{}"'.format(path, update_attr[update_key], new_value))
+            update_attr[update_key] = new_value
+
+        return cluster_config
 
     except Exception as e:
         trc = traceback.format_exc()
-        s = 'Failed checking flow {}: {}\n\n{}'.format(str(event), str(e), trc)
+        s = 'Failed overriding configs {}: {}\n\n{}'.format(str(event), str(e), trc)
         LOGGER.error(s)
-        return return_message(code=1, message=s)
+        raise e

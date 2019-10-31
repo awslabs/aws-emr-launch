@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_kms as kms,
     aws_s3 as s3,
     aws_sns as sns,
+    aws_iam as iam,
     core
 )
 
@@ -41,7 +42,9 @@ cluster_config = InstanceGroupConfiguration(
 launch_config = LaunchEMRConfig(
     stack, 'test-step-functions-stack',
     cluster_config=cluster_config,
-    success_topic=success_topic,
+    success_topic=None,
     failure_topic=failure_topic)
+
+# launch_role - iam.Role()
 
 app.synth()

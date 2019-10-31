@@ -28,21 +28,33 @@ from ..emr_constructs.cluster_configurations import BaseConfiguration
 class LaunchEMRConfig(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_config: BaseConfiguration,
+                 default_fail_if_job_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
-                 failure_topic: Optional[sns.Topic] = None) -> None:
+                 failure_topic: Optional[sns.Topic] = None,
+                 override_cluster_configs_lambda: Optional[aws_lambda.Function] = None) -> None:
         super().__init__(scope, id)
+
+        override_cluster_configs_lambda = aws_lambda.Function.from_function_arn(
+            self, 'OverrideClusterConfigs',
+            ssm.StringParameter.value_for_string_parameter(
+                self,
+                '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_OverrideClusterConfigs'
+            )
+        ) if override_cluster_configs_lambda is None else override_cluster_configs_lambda
 
         fail_if_job_running_lambda = aws_lambda.Function.from_function_arn(
             self, 'FailIfJobRunningLambda',
             ssm.StringParameter.value_for_string_parameter(
-                self, '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_FailIfJobRunning'
+                self,
+                '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_FailIfJobRunning'
             )
         )
 
         run_job_flow_lambda = aws_lambda.Function.from_function_arn(
             self, 'RunJobFlowLambda',
             ssm.StringParameter.value_for_string_parameter(
-                self, '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_RunJobFlow'
+                self,
+                '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_RunJobFlow'
             )
         )
 
@@ -54,7 +66,20 @@ class LaunchEMRConfig(core.Construct):
                 fail_if_job_running_lambda,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'ClusterName': cluster_config.config['Name']
+                    'DefaultFailIfJobRunning': default_fail_if_job_running,
+                    'ClusterName': cluster_config.config.get('Name', '')
+                })
+        )
+
+        override_cluster_configs_task = sfn.Task(
+            self, 'Override Cluster Configs',
+            output_path='$',
+            result_path='$.ClusterConfig',
+            task=sfn_tasks.InvokeFunction(
+                override_cluster_configs_lambda,
+                payload={
+                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
+                    'ClusterConfig': cluster_config.config
                 })
         )
 
@@ -67,7 +92,7 @@ class LaunchEMRConfig(core.Construct):
                 integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'ClusterConfig': cluster_config.config,
+                    'ClusterConfig': sfn.TaskInput.from_data_at('ClusterConfig').value,
                     'TaskToken': sfn.Context.task_token
                 })
         )
@@ -109,6 +134,7 @@ class LaunchEMRConfig(core.Construct):
             .next(succeed) if success_topic is not None else succeed
 
         definition = fail_if_job_running_task\
+            .next(override_cluster_configs_task)\
             .next(sfn.Choice(self, 'Continue?')
                   .when(sfn.Condition.not_(sfn.Condition.number_equals('$.Result.Code', 0)), failure_chain)
                   .otherwise(run_job_flow_task

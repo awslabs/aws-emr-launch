@@ -30,6 +30,7 @@ class EMRUtilities(core.Construct):
         code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
 
         self._shared_functions = []
+        self._shared_layers = []
 
         self._shared_functions.append(aws_lambda.Function(
             self,
@@ -92,6 +93,29 @@ class EMRUtilities(core.Construct):
             ]
         ))
 
+        emr_config_utils_layer = aws_lambda.LayerVersion(
+            self,
+            'EMRConfigUtilsLayer',
+            layer_version_name='EMRLaunch_EMRUtilities_EMRConfigUtilsLayer',
+            code=aws_lambda.Code.asset(_lambda_path('layers/emr_config_utils')),
+            compatible_runtimes=[
+                aws_lambda.Runtime.PYTHON_3_7
+            ],
+            description='EMR configuration utility functions'
+        )
+        self._shared_layers.append(emr_config_utils_layer)
+
+        self._shared_functions.append(aws_lambda.Function(
+            self,
+            'OverrideClusterConfigs',
+            function_name='EMRLaunch_EMRUtilities_OverrideClusterConfigs',
+            code=code,
+            handler='override_cluster_configs.handler',
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            timeout=core.Duration.minutes(1),
+            layers=[emr_config_utils_layer]
+        ))
+
         self._cluster_state_change_event = aws_lambda.Function(
             self,
             'ClusterStateChangeEvent',
@@ -118,6 +142,10 @@ class EMRUtilities(core.Construct):
     @property
     def shared_functions(self) -> List[aws_lambda.Function]:
         return self._shared_functions
+
+    @property
+    def shared_layers(self) -> List[aws_lambda.LayerVersion]:
+        return self._shared_layers
 
     @property
     def cluster_state_change_event(self) -> aws_lambda.Function:
