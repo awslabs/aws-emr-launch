@@ -11,8 +11,8 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from .profile_components import (
-    EMRProfileComponents,
+from .emr_profile import (
+    EMRProfile,
 )
 
 from .cluster_configurations import (

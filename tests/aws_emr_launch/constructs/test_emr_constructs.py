@@ -19,7 +19,7 @@ from aws_cdk import (
 )
 
 from aws_emr_launch.constructs.emr_constructs import (
-    EMRProfileComponents,
+    EMRProfile,
     InstanceGroupConfiguration
 )
 
@@ -36,7 +36,7 @@ def test_profile_components():
     s3_key = kms.Key(stack, 'test-s3-key')
     local_disk_key = kms.Key(stack, 'test-local-disk-key')
 
-    emr_components = EMRProfileComponents(
+    emr_components = EMRProfile(
         stack, 'test-emr-components',
         profile_name='TestCluster',
         vpc=vpc,
@@ -67,7 +67,7 @@ def test_cluster_configurations():
     artifacts_bucket = s3.Bucket(stack, 'test-artifacts-bucket')
     logs_bucket = s3.Bucket(stack, 'test-logs-bucket')
 
-    emr_components = EMRProfileComponents(
+    emr_components = EMRProfile(
         stack, 'test-emr-components',
         profile_name='TestCluster',
         vpc=vpc,

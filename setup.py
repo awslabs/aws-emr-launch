@@ -21,6 +21,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
 
     install_requires=[
+        "boto3",
         "aws-cdk.core",
         "aws-cdk-aws.iam",
         "aws-cdk-aws.s3",

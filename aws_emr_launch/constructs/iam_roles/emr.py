@@ -34,8 +34,8 @@ class EMRRoles(core.Construct):
 
             self._instance_profile = iam.CfnInstanceProfile(
                 self, '{}_InstanceProfile'.format(id),
-                roles=[self.role_name],
-                instance_profile_name=self.role_name)
+                roles=[self._instance_role.role_name],
+                instance_profile_name=self._instance_role.role_name)
             self._instance_profile_arn = self._instance_profile.attr_arn
 
         if artifacts_bucket:

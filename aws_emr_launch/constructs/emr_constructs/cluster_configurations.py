@@ -17,14 +17,14 @@ from aws_cdk import (
     core
 )
 
-from .profile_components import EMRProfileComponents
+from .emr_profile import EMRProfile
 
 
 class BaseConfiguration(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_name: str,
-                 profile_components: EMRProfileComponents,
+                 profile_components: EMRProfile,
                  release_label: Optional[str] = 'emr-5.27.0',
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[dict]] = None,
@@ -57,8 +57,8 @@ class BaseConfiguration(core.Construct):
                 'KeepJobFlowAliveWhenNoSteps': not auto_terminate
             }
         }
-        if profile_components.security_configuration:
-            self._config['SecurityConfiguration'] = profile_components.security_configuration.name
+        if profile_components.security_configuration_name:
+            self._config['SecurityConfiguration'] = profile_components.security_configuration_name
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -98,7 +98,7 @@ class BaseConfiguration(core.Construct):
         return configurations
 
     @property
-    def profile_components(self) -> EMRProfileComponents:
+    def profile_components(self) -> EMRProfile:
         return self._profile_components
 
     @property
@@ -110,7 +110,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_name: str,
-                 profile_components: EMRProfileComponents,
+                 profile_components: EMRProfile,
                  release_label: Optional[str] = 'emr-5.27.0',
                  subnet: Optional[ec2.Subnet] = None,
                  master_instance_type: Optional[str] = 'm5.2xlarge',
