@@ -42,8 +42,10 @@ cluster_config = InstanceGroupConfiguration(
 launch_config = LaunchEMRConfig(
     stack, 'test-step-functions-stack',
     cluster_config=cluster_config,
-    success_topic=None,
+    success_topic=success_topic,
     failure_topic=failure_topic)
+
+print(len(stack.emr_profiles))
 
 # launch_role - iam.Role()
 

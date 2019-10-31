@@ -92,7 +92,7 @@ class LaunchEMRConfig(core.Construct):
                 integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'ClusterConfig': sfn.TaskInput.from_data_at('ClusterConfig').value,
+                    'ClusterConfig': sfn.TaskInput.from_data_at('$.ClusterConfig').value,
                     'TaskToken': sfn.Context.task_token
                 })
         )
