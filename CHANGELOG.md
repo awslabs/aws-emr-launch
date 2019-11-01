@@ -4,6 +4,14 @@ Changelog for emr-launch
 0.1.1 (unreleased)
 ------------------
 
+- Store EMR Cluster Configs
+
+- Store and rehydrate EMR Profiles
+
+- EMR state change CloudWatch Event Rules
+
+- removed EMR API polling
+
 - InstanceGroup launch lambda
 
 - cluster_configuration tests
