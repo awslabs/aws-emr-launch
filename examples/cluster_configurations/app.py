@@ -38,6 +38,7 @@ cluster_config = InstanceGroupConfiguration(
 
 launch_config = LaunchEMRConfig(
     stack, 'test-step-functions-stack',
+    launch_config_name='test-cluster-launch',
     cluster_config=cluster_config,
     success_topic=success_topic,
     failure_topic=failure_topic)
