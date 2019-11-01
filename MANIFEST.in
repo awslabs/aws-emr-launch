@@ -14,3 +14,8 @@ include Config
 include Pipfile
 recursive-include src *.py
 include tox.ini
+recursive-include control_plane *.json
+recursive-include control_plane *.md
+recursive-include control_plane *.py
+recursive-include control_plane *.txt
+recursive-include examples *.json
