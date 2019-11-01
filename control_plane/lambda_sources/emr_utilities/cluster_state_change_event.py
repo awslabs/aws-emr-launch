@@ -29,29 +29,31 @@ LOGGER.setLevel(logging.INFO)
 
 def handler(event, context):
 
+    LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
+    cluster_id = event['detail']['clusterId']
+    state = event['detail']['state']
+    state_change_reason = json.loads(event['detail']['stateChangeReason'])
+
+    parameter_name = ClusterEventParameterUtil.cluster_state_change_key(cluster_id)
+    LOGGER.info('Getting TaskToken from Parameter Store: {}'.format(parameter_name))
     try:
-        LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
-        cluster_id = event['detail']['clusterId']
-        state = event['detail']['state']
-        state_change_reason = json.loads(event['detail']['stateChangeReason'])
+        task_token = ssm.get_parameter(Name=parameter_name)['Parameter']['Value']
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ParameterNotFound':
+            task_token = None
+        else:
+            raise e
 
-        parameter_name = ClusterEventParameterUtil.cluster_state_change_key(cluster_id)
-        LOGGER.info('Getting TaskToken from Parameter Store: {}'.format(parameter_name))
-        try:
-            task_token = ssm.get_parameter(Name=parameter_name)['Parameter']['Value']
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ParameterNotFound':
-                task_token = None
-            else:
-                raise e
-
+    try:
         if task_token is None:
             LOGGER.info('No {} Parameter found'.format(parameter_name))
             return
 
         if state in ['WAITING', 'TERMINATED']:
+            success = True
             message = return_message(code=0, cluster_id=cluster_id, message='ClusterState: {}'.format(state))
         elif state == 'TERMINATED_WITH_ERRORS':
+            success = False
             message = return_message(code=1, cluster_id=cluster_id, message='ClusterState: {} StateChangeReason: {}'
                                      .format(state, state_change_reason))
         else:
@@ -62,11 +64,17 @@ def handler(event, context):
         LOGGER.info('Removing TaskToken Parameter: {}'.format(parameter_name))
         ssm.delete_parameter(Name=parameter_name)
 
-        LOGGER.info('Sending Task Success, TaskToken: {}, Output: {}'.format(task_token, message))
-        sfn.send_task_success(taskToken=task_token, output=json.dumps(message))
+        if success:
+            LOGGER.info('Sending Task Success, TaskToken: {}, Output: {}'.format(task_token, message))
+            sfn.send_task_success(taskToken=task_token, output=json.dumps(message))
+        else:
+            LOGGER.info('Sending Task Failure, TaskToken: {}, Output: {}'.format(task_token, message))
+            sfn.send_task_failure(taskToken=task_token, error='ClusterFailedError', cause=json.dumps(message))
 
     except Exception as e:
         trc = traceback.format_exc()
         s = 'Failed handling state change {}: {}\n\n{}'.format(str(event), str(e), trc)
         LOGGER.error(s)
+        if task_token:
+            sfn.send_task_failure(taskToken=task_token, error=str(e), cause=s)
         raise e

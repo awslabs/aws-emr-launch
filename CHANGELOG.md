@@ -4,7 +4,9 @@ Changelog for emr-launch
 0.1.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Named Launch Configs (optional)
+
+- Cleaned Step Function execution chain
 
 
 0.1.1 (2019-11-01)

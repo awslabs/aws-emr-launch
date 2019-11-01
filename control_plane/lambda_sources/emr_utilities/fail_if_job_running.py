@@ -24,6 +24,10 @@ LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
 
+class ClusterRunningError(Exception):
+    pass
+
+
 def handler(event, context):
 
     try:
@@ -36,12 +40,13 @@ def handler(event, context):
 
         # check if job flow already exists
         if fail_if_job_running:
-            cluster_name = event.get('ClusterName', '')
+            cluster_name = event.get('ClusterConfig', {}).get('Name', '')
             job_is_running = False
             LOGGER.info('Checking if job flow {} is running already'.format(cluster_name))
             response = emr.list_clusters(ClusterStates=['STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING'])
             for job_flow_running in response['Clusters']:
                 jf_name = job_flow_running['Name']
+                cluster_id = job_flow_running['Id']
                 if jf_name == cluster_name:
                     LOGGER.info('Job flow {} is already running: terminate? {}'
                                 .format(cluster_name, str(fail_if_job_running)))
@@ -49,15 +54,15 @@ def handler(event, context):
                     break
 
             if job_is_running and fail_if_job_running:
-                return return_message(code=2, message='Job Flow already running')
+                raise ClusterRunningError(jf_name, cluster_id)
             else:
-                return return_message(code=0, message='Job Flow is not running')
+                return event
 
         else:
-            return return_message(code=0, message='FailIfJobRunning is: {}'.format(fail_if_job_running))
+            return event
 
     except Exception as e:
         trc = traceback.format_exc()
         s = 'Failed checking flow {}: {}\n\n{}'.format(str(event), str(e), trc)
         LOGGER.error(s)
-        return return_message(code=1, message=s)
+        raise e
