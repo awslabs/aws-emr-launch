@@ -119,8 +119,8 @@ class InstanceGroupConfiguration(BaseConfiguration):
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_name: str,
                  profile_components: EMRProfile,
+                 subnet: ec2.Subnet,
                  release_label: Optional[str] = 'emr-5.27.0',
-                 subnet: Optional[ec2.Subnet] = None,
                  master_instance_type: Optional[str] = 'm5.2xlarge',
                  master_instance_market: Optional[str] = 'ON_DEMAND',
                  core_instance_type: Optional[str] = 'm5.2xlarge',
@@ -138,7 +138,6 @@ class InstanceGroupConfiguration(BaseConfiguration):
                          bootstrap_actions=bootstrap_actions, configurations=configurations,
                          tags=tags, use_glue_catalog=use_glue_catalog, auto_terminate=auto_terminate)
 
-        subnet = profile_components.vpc.private_subnets[0] if subnet is None else subnet
         self.config['Instances']['Ec2SubnetId'] = subnet.subnet_id
         self.config['Instances']['InstanceGroups'] = [
             {

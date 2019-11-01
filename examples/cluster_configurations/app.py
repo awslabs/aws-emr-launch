@@ -28,13 +28,12 @@ emr_profile.roles.instance_role.add_to_policy(
     )
 )
 
-subnet = emr_profile.vpc.public_subnets[0]
+subnet = emr_profile.vpc.private_subnets[0]
 
 cluster_config = InstanceGroupConfiguration(
     stack, 'test-instance-group-config',
     cluster_name='test-cluster',
     profile_components=emr_profile,
-    auto_terminate=False,
     subnet=subnet)
 
 launch_config = LaunchEMRConfig(

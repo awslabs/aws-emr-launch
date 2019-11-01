@@ -113,7 +113,7 @@ class LaunchEMRConfig(core.Construct):
                     message=sfn.TaskInput.from_data_at('$.Result.Message'),
                     subject='Launch EMR Config Failure'
                 )
-            )\
+            ) \
             .next(fail) if failure_topic is not None else fail
 
         succeed = sfn.Succeed(
@@ -133,14 +133,15 @@ class LaunchEMRConfig(core.Construct):
             )\
             .next(succeed) if success_topic is not None else succeed
 
-        definition = fail_if_job_running_task\
-            .next(override_cluster_configs_task)\
-            .next(sfn.Choice(self, 'Continue?')
-                  .when(sfn.Condition.not_(sfn.Condition.number_equals('$.Result.Code', 0)), failure_chain)
-                  .otherwise(run_job_flow_task
-                             .next(sfn.Choice(self, 'Job Started?')
-                                   .when(sfn.Condition.not_(
-                                         sfn.Condition.number_equals('$.Result.Code', 0)), failure_chain)
-                                   .otherwise(success_chain))))
+        definition = fail_if_job_running_task \
+            .next(override_cluster_configs_task) \
+            .next(
+                sfn.Choice(self, 'Continue?')
+                .when(sfn.Condition.number_equals('$.Result.Code', 0), run_job_flow_task
+                      .next(
+                          sfn.Choice(self, 'Job Started?')
+                          .when(sfn.Condition.number_equals('$.Result.Code', 0), success_chain)
+                          .otherwise(failure_chain)))
+                .otherwise(failure_chain))
 
         self._state_machine = sfn.StateMachine(self, 'StateMachine', definition=definition)

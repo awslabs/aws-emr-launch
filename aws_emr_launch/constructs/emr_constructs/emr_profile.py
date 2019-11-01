@@ -232,7 +232,7 @@ class EMRProfile(core.Construct):
     @property
     def mutable_security_groups(self) -> bool:
         return self._mutable_security_groups
-    
+
     @property
     def vpc(self) -> ec2.Vpc:
         return self._vpc
@@ -350,7 +350,7 @@ class EMRProfile(core.Construct):
     @staticmethod
     def from_stored_profile(scope: core.Construct, id: str, profile_name: str):
         try:
-            profile_json = boto3.client('ssm').get_parameter(
+            profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
                 Name='/emr_launch/control_plane/emr_profiles/{}'.format(profile_name))['Parameter']['Value']
             profile = EMRProfile(scope, id)
             return profile._property_values_from_json(profile_json)

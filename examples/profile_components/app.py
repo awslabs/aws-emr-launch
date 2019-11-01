@@ -10,7 +10,11 @@ from aws_emr_launch.constructs.emr_constructs import EMRProfile
 
 app = core.App()
 stack = core.Stack(app, 'test-profile-stack', env=core.Environment(account='876929970656', region='us-west-2'))
-vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_id='vpc-55fb752d')
+
+# vpc_stack = core.Stack(app, 'full-vpc-stack')
+# new_vpc = ec2.Vpc(vpc_stack, 'full-vpc')
+
+vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_id='vpc-01c3cc44009934845')
 
 artifacts_bucket = s3.Bucket.from_bucket_name(stack, 'ArtifactsBucket', 'chamcca-emr-launch-artifacts-uw2')
 logs_bucket = s3.Bucket.from_bucket_name(stack, 'LogsBucket', 'chamcca-emr-launch-logs-uw2')
