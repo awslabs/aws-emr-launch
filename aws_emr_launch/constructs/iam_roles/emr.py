@@ -118,10 +118,10 @@ class EMRRoles(core.Construct):
     def from_role_arns(scope: core.Construct, id: str, service_role_arn: str,
                        instance_role_arn: str, autoscaling_role_arn: str, mutable: Optional[bool] = None):
         roles = EMRRoles(scope, id)
-        roles._service_role = iam.Role.from_role_arn(roles, 'EMRServiceRole', service_role_arn, mutable=mutable)
+        roles._service_role = iam.Role.from_role_arn(roles, 'EMRServiceRole', service_role_arn, mutable=False)
         roles._instance_role = iam.Role.from_role_arn(roles, 'EMRInstanceRole', instance_role_arn, mutable=mutable)
         roles._autoscaling_role = iam.Role.from_role_arn(
-            roles, 'EMRAutoScalingRole', autoscaling_role_arn, mutable=mutable)
+            roles, 'EMRAutoScalingRole', autoscaling_role_arn, mutable=False)
         roles._instance_profile_arn = roles._instance_role.role_arn.replace(':role/', ':instance-profile/')
         return roles
 

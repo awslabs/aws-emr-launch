@@ -9,8 +9,9 @@ from aws_cdk import (
 from aws_emr_launch.constructs.emr_constructs import EMRProfile
 
 app = core.App()
-stack = core.Stack(app, 'test-stack', env=core.Environment(account='876929970656', region='us-west-2'))
-vpc = ec2.Vpc(stack, 'ExampleVPC')
+stack = core.Stack(app, 'test-profile-stack', env=core.Environment(account='876929970656', region='us-west-2'))
+vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_id='vpc-55fb752d')
+
 artifacts_bucket = s3.Bucket.from_bucket_name(stack, 'ArtifactsBucket', 'chamcca-emr-launch-artifacts-uw2')
 logs_bucket = s3.Bucket.from_bucket_name(stack, 'LogsBucket', 'chamcca-emr-launch-logs-uw2')
 data_bucket = s3.Bucket.from_bucket_name(stack, 'DataBucket', 'chamcca-emr-launch-data-uw2')

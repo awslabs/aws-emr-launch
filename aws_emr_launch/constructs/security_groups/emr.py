@@ -54,12 +54,12 @@ class EMRSecurityGroups(core.Construct):
     def from_security_group_ids(scope: core.Construct, id: str, master_group_id: str, workers_group_id: str,
                                 service_group_id: str, mutable: Optional[bool] = None):
         security_groups = EMRSecurityGroups(scope, id)
-        security_groups._master_group = ec2.SecurityGroup.from_security_group_id(security_groups, 'MasterGroup',
-                                                                                 master_group_id, mutable=mutable)
-        security_groups._workers_group = ec2.SecurityGroup.from_security_group_id(security_groups, 'WorkersGroup',
-                                                                                  workers_group_id, mutable=mutable)
-        security_groups._service_group = ec2.SecurityGroup.from_security_group_id(security_groups, 'ServiceGroup',
-                                                                                  service_group_id, mutable=mutable)
+        security_groups._master_group = ec2.SecurityGroup.from_security_group_id(
+            security_groups, 'MasterGroup', master_group_id, mutable=mutable)
+        security_groups._workers_group = ec2.SecurityGroup.from_security_group_id(
+            security_groups, 'WorkersGroup', workers_group_id, mutable=mutable)
+        security_groups._service_group = ec2.SecurityGroup.from_security_group_id(
+            security_groups, 'ServiceGroup', service_group_id, mutable=False)
         return security_groups
 
     @property

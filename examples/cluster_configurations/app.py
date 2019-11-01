@@ -2,6 +2,8 @@
 
 from aws_cdk import (
     aws_sns as sns,
+    aws_ec2 as ec2,
+    aws_iam as iam,
     core
 )
 
@@ -14,20 +16,31 @@ stack = core.Stack(app, 'test-configs-stack', env=core.Environment(account='8769
 success_topic = sns.Topic(stack, 'SuccessTopic')
 failure_topic = sns.Topic(stack, 'FailureTopic')
 
-emr_components = EMRProfile.from_stored_profile(
+emr_profile = EMRProfile.from_stored_profile(
     stack, 'test-emr-components',
     profile_name='TestCluster')
+
+emr_profile.roles.instance_role.add_to_policy(
+    iam.PolicyStatement(
+        effect=iam.Effect.ALLOW,
+        actions=['s3:*'],
+        resources=['*']
+    )
+)
+
+subnet = emr_profile.vpc.public_subnets[0]
 
 cluster_config = InstanceGroupConfiguration(
     stack, 'test-instance-group-config',
     cluster_name='test-cluster',
-    profile_components=emr_components,
-    auto_terminate=False)
+    profile_components=emr_profile,
+    auto_terminate=False,
+    subnet=subnet)
 
 launch_config = LaunchEMRConfig(
     stack, 'test-step-functions-stack',
     cluster_config=cluster_config,
-    success_topic=None,
+    success_topic=success_topic,
     failure_topic=failure_topic)
 
 # launch_role - iam.Role()

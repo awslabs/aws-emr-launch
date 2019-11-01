@@ -11,9 +11,12 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import json
+
 from typing import Optional, List
 from aws_cdk import (
     aws_ec2 as ec2,
+    aws_ssm as ssm,
     core
 )
 
@@ -59,6 +62,11 @@ class BaseConfiguration(core.Construct):
         }
         if profile_components.security_configuration_name:
             self._config['SecurityConfiguration'] = profile_components.security_configuration_name
+
+        self._ssm_parameter = ssm.StringParameter(
+            self, 'SSMParameter',
+            string_value=json.dumps(self._config),
+            parameter_name='/emr/emr_launch/control_plane/cluster_configs/{}'.format(cluster_name))
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
