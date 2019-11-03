@@ -22,6 +22,7 @@ from aws_cdk import (
     core
 )
 
+from .fragments import *
 from ..emr_constructs.cluster_configurations import BaseConfiguration
 
 
@@ -98,56 +99,23 @@ class LaunchEMRConfig(core.Construct):
                 })
         )
 
-        failure_chain = self._construct_failure_chain(failure_topic)
-        success_chain = self._construct_success_chain(success_topic)
+        fail = FailFragment(
+            self, 'FailFragment',
+            message=sfn.TaskInput.from_data_at('$.Error'),
+            subject='Launch EMR Config Failure',
+            topic=failure_topic)
+        success = SuccessFragment(
+            self, 'SuccessFragment',
+            message=sfn.TaskInput.from_data_at('$.Result'),
+            subject='Launch EMR Config Succeeded',
+            topic=success_topic)
 
         definition = \
-            override_cluster_configs_task.add_catch(failure_chain, errors=['States.ALL'], result_path='$.Error') \
-            .next(fail_if_job_running_task.add_catch(failure_chain, errors=['States.ALL'], result_path='$.Error')) \
-            .next(run_job_flow_task.add_catch(failure_chain, errors=['States.ALL'], result_path='$.Error')) \
-            .next(success_chain)
+            override_cluster_configs_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error') \
+            .next(fail_if_job_running_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')) \
+            .next(run_job_flow_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')) \
+            .next(success)
 
         self._state_machine = sfn.StateMachine(
             self, 'StateMachine',
             state_machine_name=launch_config_name, definition=definition)
-
-    def _construct_failure_chain(self, failure_topic: Optional[sns.Topic] = None):
-        fail = sfn.Fail(
-            self, 'Execution Failed',
-            cause='Execution failed, check JSON output for more details'
-        )
-
-        failure_chain = \
-            sfn.Task(
-                self, 'Failure Notification',
-                input_path='$',
-                output_path='$',
-                result_path='$.PublishResult',
-                task=sfn_tasks.PublishToTopic(
-                    failure_topic,
-                    message=sfn.TaskInput.from_data_at('$.Error'),
-                    subject='Launch EMR Config Failure'
-                )
-            ) \
-            .next(fail) if failure_topic is not None else fail
-        return failure_chain
-
-    def _construct_success_chain(self, success_topic: Optional[sns.Topic] = None):
-        succeed = sfn.Succeed(
-            self, 'Succeeded'
-        )
-
-        success_chain = \
-            sfn.Task(
-                self, 'Succeeded Notification',
-                input_path='$',
-                output_path='$',
-                result_path='$.PublishResult',
-                task=sfn_tasks.PublishToTopic(
-                    success_topic,
-                    message=sfn.TaskInput.from_data_at('$.Result'),
-                    subject='Launch EMR Config Succeeded'
-                )
-            ) \
-            .next(succeed) if success_topic is not None else succeed
-        return success_chain
