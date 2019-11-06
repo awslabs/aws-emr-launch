@@ -22,7 +22,7 @@ from aws_cdk import (
     core
 )
 
-from .fragments import *
+from .emr_fragments import EMRFragments
 from ..emr_constructs.cluster_configurations import BaseConfiguration
 
 
@@ -33,79 +33,26 @@ class LaunchEMRConfig(core.Construct):
                  default_fail_if_job_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
                  failure_topic: Optional[sns.Topic] = None,
-                 override_cluster_configs_lambda: Optional[aws_lambda.Function] = None) -> None:
+                 override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,) -> None:
         super().__init__(scope, id)
 
-        override_cluster_configs_lambda = aws_lambda.Function.from_function_arn(
-            self, 'OverrideClusterConfigs',
-            ssm.StringParameter.value_for_string_parameter(
-                self,
-                '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_OverrideClusterConfigs'
-            )
-        ) if override_cluster_configs_lambda is None else override_cluster_configs_lambda
+        override_cluster_configs_task = EMRFragments.override_cluster_configs_task(
+            self, cluster_config=cluster_config.config,
+            override_cluster_configs_lambda=override_cluster_configs_lambda)
 
-        fail_if_job_running_lambda = aws_lambda.Function.from_function_arn(
-            self, 'FailIfJobRunningLambda',
-            ssm.StringParameter.value_for_string_parameter(
-                self,
-                '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_FailIfJobRunning'
-            )
-        )
+        fail_if_job_running_task = EMRFragments.fail_if_job_running_task(
+            self, default_fail_if_job_running=default_fail_if_job_running)
 
-        run_job_flow_lambda = aws_lambda.Function.from_function_arn(
-            self, 'RunJobFlowLambda',
-            ssm.StringParameter.value_for_string_parameter(
-                self,
-                '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_RunJobFlow'
-            )
-        )
+        run_job_flow_task = EMRFragments.run_job_flow_task(self)
 
-        override_cluster_configs_task = sfn.Task(
-            self, 'Override Cluster Configs',
-            output_path='$',
-            result_path='$.ClusterConfig',
-            task=sfn_tasks.InvokeFunction(
-                override_cluster_configs_lambda,
-                payload={
-                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'ClusterConfig': cluster_config.config
-                })
-        )
-
-        fail_if_job_running_task = sfn.Task(
-            self, 'Fail If Job Running',
-            output_path='$',
-            result_path='$',
-            task=sfn_tasks.InvokeFunction(
-                fail_if_job_running_lambda,
-                payload={
-                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'DefaultFailIfJobRunning': default_fail_if_job_running,
-                    'ClusterConfig': sfn.TaskInput.from_data_at('$.ClusterConfig').value
-                })
-        )
-
-        run_job_flow_task = sfn.Task(
-            self, 'Start EMR Cluster',
-            output_path='$',
-            result_path='$.Result',
-            task=sfn_tasks.RunLambdaTask(
-                run_job_flow_lambda,
-                integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
-                payload={
-                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'ClusterConfig': sfn.TaskInput.from_data_at('$.ClusterConfig').value,
-                    'TaskToken': sfn.Context.task_token
-                })
-        )
-
-        fail = FailFragment(
-            self, 'FailFragment',
+        fail = EMRFragments.fail_fragment(
+            self,
             message=sfn.TaskInput.from_data_at('$.Error'),
             subject='Launch EMR Config Failure',
             topic=failure_topic)
-        success = SuccessFragment(
-            self, 'SuccessFragment',
+
+        success = EMRFragments.success_fragment(
+            self,
             message=sfn.TaskInput.from_data_at('$.Result'),
             subject='Launch EMR Config Succeeded',
             topic=success_topic)
