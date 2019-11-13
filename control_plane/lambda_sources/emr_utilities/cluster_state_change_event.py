@@ -51,11 +51,18 @@ def handler(event, context):
 
         if state in ['WAITING', 'TERMINATED']:
             success = True
-            message = return_message(code=0, cluster_id=cluster_id, message='ClusterState: {}'.format(state))
+            message = {
+                'ClusterId': cluster_id,
+                'ClusterState': state,
+                'StateChangeReason': state_change_reason
+            }
         elif state == 'TERMINATED_WITH_ERRORS':
             success = False
-            message = return_message(code=1, cluster_id=cluster_id, message='ClusterState: {} StateChangeReason: {}'
-                                     .format(state, state_change_reason))
+            message = {
+                'ClusterId': cluster_id,
+                'ClusterState': state,
+                'StateChangeReason': state_change_reason
+            }
         else:
             LOGGER.info('Sending Task Heartbeat, TaskToken: {}, ClusterState: {}'.format(task_token, state))
             sfn.send_task_heartbeat(taskToken=task_token)
