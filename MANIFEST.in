@@ -1,32 +1,33 @@
 include VERSION
 include *.md
 include *.txt
-recursive-include examples *.py
-recursive-include tests *.py
 include *.in
 include *.sh
 include *.yaml
-recursive-include scripts *.sh
-recursive-include examples *.md
-recursive-include examples *.sh
-recursive-include examples *.json
 include *.lock
 include Config
 include Pipfile
 include tox.ini
-recursive-include control_plane *.json
-recursive-include control_plane *.md
-recursive-include control_plane *.py
-recursive-include control_plane *.txt
-recursive-include control_plane *
+
+recursive-include aws_emr_launch *
+recursive-include tests *.py
+
+recursive-include scripts *.sh
+recursive-include examples *.py
+recursive-include examples *.md
+recursive-include examples *.sh
+recursive-include examples *.json
+
 recursive-exclude examples cluster_configurations/.env/*
 recursive-exclude examples cluster_configurations/cdk.out/*
 recursive-exclude examples profile_components/.env/*
 recursive-exclude examples profile_components/cdk.out/*
 recursive-exclude examples control_plane/.env/*
 recursive-exclude examples control_plane/cdk.out/*
+
 exclude .env
 exclude cdk.out
 exclude cdk.context.json
+
 global-exclude *.pyc
 global-exclude __pycache__
