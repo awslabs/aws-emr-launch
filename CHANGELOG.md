@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.1.2 (unreleased)
 ------------------
 
+- state machine fragments
+
 - Named Launch Configs (optional)
 
 - Cleaned Step Function execution chain
