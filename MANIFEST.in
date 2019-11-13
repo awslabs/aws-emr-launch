@@ -9,6 +9,7 @@ include *.yaml
 recursive-include scripts *.sh
 recursive-include examples *.md
 recursive-include examples *.sh
+recursive-include examples *.json
 include *.lock
 include Config
 include Pipfile
@@ -18,13 +19,12 @@ recursive-include control_plane *.md
 recursive-include control_plane *.py
 recursive-include control_plane *.txt
 recursive-include control_plane *
-recursive-include examples *.json
 recursive-exclude examples cluster_configurations/.env/*
 recursive-exclude examples cluster_configurations/cdk.out/*
 recursive-exclude examples profile_components/.env/*
 recursive-exclude examples profile_components/cdk.out/*
-recursive-exclude control_plane .env/*
-recursive-exclude control_plane cdk.out/*
+recursive-exclude examples control_plane/.env/*
+recursive-exclude examples control_plane/cdk.out/*
 exclude .env
 exclude cdk.out
 exclude cdk.context.json
