@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.1.2 (unreleased)
+0.1.2 (2019-11-13)
 ------------------
 
 - state machine fragments
