@@ -10,8 +10,8 @@
 # on an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
-import typing
-from typing import Optional, List
+
+from typing import Optional, Mapping
 
 from aws_cdk import (
     aws_lambda,
@@ -21,8 +21,6 @@ from aws_cdk import (
     aws_ssm as ssm,
     core
 )
-
-from ..emr_constructs.cluster_configurations import BaseConfiguration
 
 
 # class SuccessFragment(sfn.StateMachineFragment):
@@ -143,8 +141,10 @@ class EMRFragments:
             scope: core.Construct, *,
             cluster_config: dict,
             override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
+            allowed_cluster_config_overrides: Optional[Mapping[str, str]] = None,
             output_path: str = '$',
             result_path: str = '$.ClusterConfig') -> sfn.IChainable:
+
         aws_lambda.Function.from_function_arn(
             scope, 'OverrideClusterConfigs',
             ssm.StringParameter.value_for_string_parameter(

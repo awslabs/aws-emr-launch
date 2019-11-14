@@ -11,14 +11,12 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from typing import Optional
+from typing import Optional, Mapping
 
 from aws_cdk import (
     aws_lambda,
     aws_sns as sns,
     aws_stepfunctions as sfn,
-    aws_stepfunctions_tasks as sfn_tasks,
-    aws_ssm as ssm,
     core
 )
 
@@ -33,12 +31,14 @@ class LaunchEMRConfig(core.Construct):
                  default_fail_if_job_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
                  failure_topic: Optional[sns.Topic] = None,
-                 override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,) -> None:
+                 override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
+                 allowed_cluster_config_overrides: Optional[Mapping[str, str]] = None) -> None:
         super().__init__(scope, id)
 
         override_cluster_configs_task = EMRFragments.override_cluster_configs_task(
             self, cluster_config=cluster_config.config,
-            override_cluster_configs_lambda=override_cluster_configs_lambda)
+            override_cluster_configs_lambda=override_cluster_configs_lambda,
+            allowed_cluster_config_overrides=allowed_cluster_config_overrides)
 
         fail_if_job_running_task = EMRFragments.fail_if_job_running_task(
             self, default_fail_if_job_running=default_fail_if_job_running)
@@ -66,3 +66,7 @@ class LaunchEMRConfig(core.Construct):
         self._state_machine = sfn.StateMachine(
             self, 'StateMachine',
             state_machine_name=launch_config_name, definition=definition)
+
+    @property
+    def state_machine(self) -> sfn.StateMachine:
+        return self._state_machine
