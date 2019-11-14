@@ -11,7 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from typing import List
+from typing import Mapping
 
 from aws_cdk import (
     aws_lambda,
@@ -29,10 +29,10 @@ class EMRUtilities(core.Construct):
 
         code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
 
-        self._shared_functions = []
-        self._shared_layers = []
+        self._shared_functions = {}
+        self._shared_layers = {}
 
-        self._shared_functions.append(aws_lambda.Function(
+        self._shared_functions['EMRLaunch_EMRUtilities_FailIfJobRunning'] = aws_lambda.Function(
             self,
             'FailIfJobRunning',
             function_name='EMRLaunch_EMRUtilities_FailIfJobRunning',
@@ -49,9 +49,9 @@ class EMRUtilities(core.Construct):
                     resources=['*']
                 )
             ]
-        ))
+        )
 
-        self._shared_functions.append(aws_lambda.Function(
+        self._shared_functions['EMRLaunch_EMRUtilities_RunJobFlow'] = aws_lambda.Function(
             self,
             'AddJobFlow',
             function_name='EMRLaunch_EMRUtilities_RunJobFlow',
@@ -70,9 +70,9 @@ class EMRUtilities(core.Construct):
                     resources=['*']
                 )
             ]
-        ))
+        )
 
-        self._shared_functions.append(aws_lambda.Function(
+        self._shared_functions['EMRLaunch_EMRUtilities_AddJobFlowSteps'] = aws_lambda.Function(
             self,
             'AddJobFlowSteps',
             function_name='EMRLaunch_EMRUtilities_AddJobFlowSteps',
@@ -91,7 +91,7 @@ class EMRUtilities(core.Construct):
                     resources=['*']
                 )
             ]
-        ))
+        )
 
         emr_config_utils_layer = aws_lambda.LayerVersion(
             self,
@@ -103,9 +103,9 @@ class EMRUtilities(core.Construct):
             ],
             description='EMR configuration utility functions'
         )
-        self._shared_layers.append(emr_config_utils_layer)
+        self._shared_layers['EMRLaunch_EMRUtilities_EMRConfigUtilsLayer'] = emr_config_utils_layer
 
-        self._shared_functions.append(aws_lambda.Function(
+        self._shared_functions['EMRLaunch_EMRUtilities_OverrideClusterConfigs'] = aws_lambda.Function(
             self,
             'OverrideClusterConfigs',
             function_name='EMRLaunch_EMRUtilities_OverrideClusterConfigs',
@@ -114,7 +114,7 @@ class EMRUtilities(core.Construct):
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             timeout=core.Duration.minutes(1),
             layers=[emr_config_utils_layer]
-        ))
+        )
 
         self._cluster_state_change_event = aws_lambda.Function(
             self,
@@ -140,11 +140,11 @@ class EMRUtilities(core.Construct):
         )
 
     @property
-    def shared_functions(self) -> List[aws_lambda.Function]:
+    def shared_functions(self) -> Mapping[str, aws_lambda.Function]:
         return self._shared_functions
 
     @property
-    def shared_layers(self) -> List[aws_lambda.LayerVersion]:
+    def shared_layers(self) -> Mapping[str, aws_lambda.Function]:
         return self._shared_layers
 
     @property

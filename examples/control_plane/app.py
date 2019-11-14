@@ -2,7 +2,7 @@
 
 from aws_cdk import core
 
-from constructs.control_plane_stack import ControlPlaneStack
+from aws_emr_launch.control_plane import ControlPlaneStack
 
 app = core.App()
 ControlPlaneStack(app)

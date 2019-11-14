@@ -29,16 +29,16 @@ class ControlPlaneStack(core.Stack):
         self._emr_utilities = EMRUtilities(self, 'EMRUtilities')
 
         self._string_parameters = []
-        for f in self._emr_utilities.shared_functions:
+        for function_name, f in self._emr_utilities.shared_functions.items():
             self._string_parameters.append(
                 ssm.StringParameter(
                     self,
                     '{}_SSMParameter'.format(f.node.id),
-                    parameter_name='/emr_launch/control_plane/lambda_arns/emr_utilities/{}'.format(f.function_name),
+                    parameter_name='/emr_launch/control_plane/lambda_arns/emr_utilities/{}'.format(function_name),
                     string_value=f.function_arn
                 ))
 
-        for l in self._emr_utilities.shared_layers:
+        for layer_name, l in self._emr_utilities.shared_layers.items():
             self._string_parameters.append(
                 ssm.StringParameter(
                     self,

@@ -40,6 +40,8 @@ setuptools.setup(
         f'aws-cdk-aws.events-targets=={cdk_version}'
     ],
 
+    include_package_data=True,
+
     python_requires='>=3.6',
 
     classifiers=[
