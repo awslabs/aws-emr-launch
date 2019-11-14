@@ -23,7 +23,7 @@ from .events.emr_events import EMREvents
 
 
 class ControlPlaneStack(core.Stack):
-    def __init__(self, app: core.App, name: str, **kwargs):
+    def __init__(self, app: core.App, name: str = 'aws-emr', **kwargs):
         super().__init__(app, name, **kwargs)
 
         self._emr_utilities = EMRUtilities(self, 'EMRUtilities')
