@@ -4,7 +4,9 @@ Changelog for emr-launch
 0.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- refactor control_plane into .egg
+
+- Lock releases to setup.py
 
 
 0.1.2 (2019-11-13)
