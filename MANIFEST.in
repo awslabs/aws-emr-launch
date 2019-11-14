@@ -18,11 +18,10 @@ recursive-include examples *.md
 recursive-include examples *.sh
 recursive-include examples *.json
 
-recursive-exclude examples cluster_configurations/.env/*
+recursive-exclude examples .env/*
+
 recursive-exclude examples cluster_configurations/cdk.out/*
-recursive-exclude examples profile_components/.env/*
 recursive-exclude examples profile_components/cdk.out/*
-recursive-exclude examples control_plane/.env/*
 recursive-exclude examples control_plane/cdk.out/*
 
 exclude .env

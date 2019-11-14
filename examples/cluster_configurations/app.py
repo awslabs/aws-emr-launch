@@ -41,8 +41,10 @@ launch_config = LaunchEMRConfig(
     launch_config_name='test-cluster-launch',
     cluster_config=cluster_config,
     success_topic=success_topic,
-    failure_topic=failure_topic)
-
-# launch_role - iam.Role()
+    failure_topic=failure_topic,
+    allowed_cluster_config_overrides={
+        'Name': 'Name',
+        'Instances.InstanceGroups.1.InstanceCount': 'CoreNodes'
+    })
 
 app.synth()

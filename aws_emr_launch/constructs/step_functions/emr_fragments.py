@@ -161,7 +161,8 @@ class EMRFragments:
                 override_cluster_configs_lambda,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'ClusterConfig': cluster_config
+                    'ClusterConfig': cluster_config,
+                    'AllowedClusterConfigOverrides': allowed_cluster_config_overrides
                 })
         )
         return override_cluster_configs_task

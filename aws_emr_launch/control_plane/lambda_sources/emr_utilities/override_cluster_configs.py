@@ -29,10 +29,16 @@ LOGGER.setLevel(logging.INFO)
 def handler(event, context):
     LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
     overrides = event.get('ExecutionInput', {}).get('ClusterConfigOverrides', {})
+    allowed_overrides = event.get('AllowedClusterConfigOverrides', None)
     cluster_config = event.get('ClusterConfig', {})
 
     try:
         for path, new_value in overrides.items():
+            if allowed_overrides:
+                path = allowed_overrides.get(path, None)
+                if path is None:
+                    continue
+
             path_parts = path.split('.')
             update_key = path_parts[-1]
             path = '.'.join(path_parts[0:-1])

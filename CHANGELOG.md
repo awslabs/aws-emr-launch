@@ -4,7 +4,7 @@ Changelog for emr-launch
 0.2.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- enabled AllowedClusterConfigOverrides
 
 
 0.2.0 (unreleased)
