@@ -11,10 +11,16 @@ npm install -g aws-cdk
 
 Install [pipenv](https://github.com/pypa/pipenv)
 
-Then install this project's dependencies using
+Then install this project's development dependencies using
 
 ```
 $ pipenv install --dev
+```
+
+Then install this project's dependencies using
+
+```
+$ pipenv install '-e .'
 ```
 
 ## Writing Code
