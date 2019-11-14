@@ -145,7 +145,7 @@ class EMRFragments:
             override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
             output_path: str = '$',
             result_path: str = '$.ClusterConfig') -> sfn.IChainable:
-        aws_lambda.Function.from_function_arn(
+        override_cluster_configs_lambda = aws_lambda.Function.from_function_arn(
             scope, 'OverrideClusterConfigs',
             ssm.StringParameter.value_for_string_parameter(
                 scope,

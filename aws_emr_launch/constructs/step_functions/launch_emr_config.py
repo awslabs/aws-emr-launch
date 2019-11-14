@@ -33,7 +33,7 @@ class LaunchEMRConfig(core.Construct):
                  default_fail_if_job_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
                  failure_topic: Optional[sns.Topic] = None,
-                 override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,) -> None:
+                 override_cluster_configs_lambda: Optional[aws_lambda.Function] = None) -> None:
         super().__init__(scope, id)
 
         override_cluster_configs_task = EMRFragments.override_cluster_configs_task(
