@@ -4,7 +4,7 @@ phases:
     runtime-versions:
       python: 3.7
     commands:
-      - sudo apt install pipenv
+      - apt install pipenv
   build:
     commands:
       - pipenv install
