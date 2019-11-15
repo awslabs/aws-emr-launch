@@ -111,7 +111,6 @@ class EMRFragments:
             .next(succeed) if topic is not None else succeed
         return chain
 
-
     @staticmethod
     def fail_fragment(scope: core.Construct, *,
                       message: sfn.TaskInput, subject: Optional[str] = None,
@@ -215,4 +214,3 @@ class EMRFragments:
                 })
         )
         return run_job_flow_task
-

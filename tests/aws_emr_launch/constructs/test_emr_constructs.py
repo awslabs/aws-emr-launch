@@ -57,7 +57,6 @@ def test_profile_components():
     assert emr_components.local_disk_encryption_key
     assert emr_components.ebs_encryption
     assert emr_components.tls_certificate_location
-    assert emr_components.security_configuration
 
 
 def test_cluster_configurations():
@@ -76,6 +75,8 @@ def test_cluster_configurations():
 
     cluster_config = InstanceGroupConfiguration(
         stack, 'test-instance-group-config',
-        cluster_name='test-cluster', profile_components=emr_components)
+        cluster_name='test-cluster',
+        profile_components=emr_components,
+        subnet=vpc.private_subnets[0])
 
     assert cluster_config.config
