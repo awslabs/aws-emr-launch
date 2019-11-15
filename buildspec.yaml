@@ -9,9 +9,7 @@ phases:
     commands:
       - pipenv install
       - pipenv run python setup.py bdist_wheel
-      - mkdir AWSProServe_project_EMRLaunch
-      - cp dist/* AWSProServe_project_EMRLaunch/
 artifacts:
   files:
-    - AWSProServe_project_EMRLaunch/**/*
-  discard-paths: yes
+    - dist/**/*
+  discard-paths: no
