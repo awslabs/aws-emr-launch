@@ -4,12 +4,14 @@ phases:
     runtime-versions:
       python: 3.7
     commands:
-      - apt install pipenv
+      - python3 -m pip install --user pipenv
   build:
     commands:
       - pipenv install
       - pipenv run python setup.py bdist_wheel
+      - mkdir AWSProServe_project_EMRLaunch
+      - cp dist/* AWSProServe_project_EMRLaunch/
 artifacts:
   files:
-    - dist/**/*
+    - AWSProServe_project_EMRLaunch/**/*
   discard-paths: yes
