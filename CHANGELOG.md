@@ -7,7 +7,7 @@ Changelog for emr-launch
 - enabled AllowedClusterConfigOverrides
 
 
-0.2.0 (unreleased)
+0.2.0 (2019-11-14)
 ------------------
 
 - refactor control_plane into .egg
