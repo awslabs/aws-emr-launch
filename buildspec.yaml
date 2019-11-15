@@ -5,9 +5,13 @@ phases:
       python: 3.7
     commands:
       - python3 -m pip install --user pipenv
+      - pipenv install --dev
+      - pipenv install '-e .'
+  pre_build:
+    commands:
+      - pipenv run pytest
   build:
     commands:
-      - pipenv install
       - pipenv run python setup.py bdist_wheel
 artifacts:
   files:
