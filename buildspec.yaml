@@ -1,0 +1,15 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - python3 -m pip install --user pipenv
+  build:
+    commands:
+      - pipenv install
+      - pipenv run python setup.py bdist_wheel
+artifacts:
+  files:
+    - dist/**/*
+  discard-paths: yes
