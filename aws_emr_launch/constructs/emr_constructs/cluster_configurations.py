@@ -35,13 +35,14 @@ class BaseConfiguration(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_name: str,
                  profile_components: Optional[EMRProfile] = None,
-                 release_label: Optional[str] = 'emr-5.27.0',
+                 release_label: Optional[str] = 'emr-5.28.0',
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[dict]] = None,
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
-                 auto_terminate: Optional[bool] = False):
+                 auto_terminate: Optional[bool] = False,
+                 step_concurrency_level: Optional[int] = 1):
 
         super().__init__(scope, id)
 
@@ -68,7 +69,8 @@ class BaseConfiguration(core.Construct):
                 'ServiceAccessSecurityGroup': profile_components.security_groups.service_group.security_group_id,
                 'TerminationProtected': False,
                 'KeepJobFlowAliveWhenNoSteps': not auto_terminate
-            }
+            },
+            'StepConcurrencyLevel': step_concurrency_level
         }
         if profile_components.security_configuration_name:
             self._config['SecurityConfiguration'] = profile_components.security_configuration_name
@@ -148,7 +150,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  cluster_name: str,
                  profile_components: EMRProfile,
                  subnet: ec2.Subnet,
-                 release_label: Optional[str] = 'emr-5.27.0',
+                 release_label: Optional[str] = 'emr-5.28.0',
                  master_instance_type: Optional[str] = 'm5.2xlarge',
                  master_instance_market: Optional[str] = 'ON_DEMAND',
                  core_instance_type: Optional[str] = 'm5.2xlarge',
@@ -159,12 +161,14 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
-                 auto_terminate: Optional[bool] = False):
+                 auto_terminate: Optional[bool] = False,
+                 step_concurrent_level: Optional[int] = 1):
 
         super().__init__(scope, id, cluster_name=cluster_name, profile_components=profile_components,
                          release_label=release_label, applications=applications,
                          bootstrap_actions=bootstrap_actions, configurations=configurations,
-                         tags=tags, use_glue_catalog=use_glue_catalog, auto_terminate=auto_terminate)
+                         tags=tags, use_glue_catalog=use_glue_catalog, auto_terminate=auto_terminate,
+                         step_concurrency_level=step_concurrent_level)
 
         self.config['Instances']['Ec2SubnetId'] = subnet.subnet_id
         self.config['Instances']['InstanceGroups'] = [
