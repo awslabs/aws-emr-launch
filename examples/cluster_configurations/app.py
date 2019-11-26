@@ -20,14 +20,6 @@ emr_profile = EMRProfile.from_stored_profile(
     stack, 'test-emr-components',
     profile_name='TestCluster')
 
-emr_profile.roles.instance_role.add_to_policy(
-    iam.PolicyStatement(
-        effect=iam.Effect.ALLOW,
-        actions=['s3:*'],
-        resources=['*']
-    )
-)
-
 subnet = emr_profile.vpc.private_subnets[0]
 
 cluster_config = InstanceGroupConfiguration(
