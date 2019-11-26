@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.2.1 (unreleased)
 ------------------
 
+- Refactor launch_config
+
 - enabled AllowedClusterConfigOverrides
 
 
