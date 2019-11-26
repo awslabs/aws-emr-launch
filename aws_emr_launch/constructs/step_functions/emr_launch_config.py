@@ -24,7 +24,7 @@ from .emr_fragments import EMRFragments
 from ..emr_constructs.cluster_configurations import BaseConfiguration
 
 
-class LaunchEMRConfig(core.Construct):
+class EMRLaunchConfig(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_config: BaseConfiguration,
                  launch_config_name: Optional[str] = None,

@@ -15,7 +15,7 @@ from aws_cdk import (
     core
 )
 
-from aws_emr_launch.constructs.step_functions.launch_emr_config import LaunchEMRConfig
+from aws_emr_launch.constructs.step_functions.emr_launch_config import EMRLaunchConfig
 
 
 def test_emr_lambdas():
