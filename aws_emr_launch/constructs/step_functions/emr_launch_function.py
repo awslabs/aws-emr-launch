@@ -103,7 +103,8 @@ class EMRLaunchFunction(core.Construct):
     def from_stored_config(scope: core.Construct, id: str, launch_function_name: str):
         try:
             function_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name='/emr_launch/control_plane/emr_launch_functions/{}'.format(launch_function_name))['Parameter']['Value']
+                Name='/emr_launch/control_plane/emr_launch_functions/{}'.format(
+                    launch_function_name))['Parameter']['Value']
             launch_function = EMRLaunchFunction(scope, id)
             stored_config = json.loads(function_json)
             launch_function._allowed_cluster_config_overrides = stored_config['AllowedClusterConfigOverrides']
