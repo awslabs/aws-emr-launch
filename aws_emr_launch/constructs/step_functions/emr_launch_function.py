@@ -35,7 +35,7 @@ class EMRLaunchFunctionNotFoundError(Exception):
 
 class EMRLaunchFunction(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
-                 cluster_config: Optional[BaseConfiguration],
+                 cluster_config: Optional[BaseConfiguration] = None,
                  launch_function_name: Optional[str] = None,
                  default_fail_if_job_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
@@ -107,7 +107,8 @@ class EMRLaunchFunction(core.Construct):
             launch_function = EMRLaunchFunction(scope, id)
             stored_config = json.loads(function_json)
             launch_function._allowed_cluster_config_overrides = stored_config['AllowedClusterConfigOverrides']
-            launch_function._state_machine = sfn.StateMachine.from_state_machine_arn(stored_config['FunctionArn'])
+            launch_function._state_machine = sfn.StateMachine.from_state_machine_arn(
+                launch_function, 'StateMachine', stored_config['FunctionArn'])
             return launch_function
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
