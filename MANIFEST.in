@@ -19,10 +19,7 @@ recursive-include examples *.sh
 recursive-include examples *.json
 
 recursive-exclude examples .env/*
-
-recursive-exclude examples cluster_configurations/cdk.out/*
-recursive-exclude examples profile_components/cdk.out/*
-recursive-exclude examples control_plane/cdk.out/*
+recursive-exclude examples **/cdk.out/*
 
 exclude .env
 exclude cdk.out
