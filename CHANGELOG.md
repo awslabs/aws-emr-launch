@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.2.2 (unreleased)
+0.3.0 (unreleased)
 ------------------
 
 - Nothing changed yet.

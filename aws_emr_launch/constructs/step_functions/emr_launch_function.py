@@ -57,7 +57,7 @@ class EMRLaunchFunction(core.Construct):
         fail_if_job_running_task = EMRFragments.fail_if_job_running_task(
             self, default_fail_if_job_running=default_fail_if_job_running)
 
-        run_job_flow_task = EMRFragments.run_job_flow_task(self)
+        create_cluster_task = EMRFragments.create_cluster_task(self)
 
         fail = EMRFragments.fail_fragment(
             self,
@@ -74,7 +74,7 @@ class EMRLaunchFunction(core.Construct):
         definition = \
             override_cluster_configs_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error') \
             .next(fail_if_job_running_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')) \
-            .next(run_job_flow_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')) \
+            .next(create_cluster_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')) \
             .next(success)
 
         self._state_machine = sfn.StateMachine(

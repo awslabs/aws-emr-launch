@@ -171,7 +171,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
         self.config['Instances']['Ec2SubnetId'] = subnet.subnet_id
         self.config['Instances']['InstanceGroups'] = [
             {
-                'Name': 'Master - 1',
+                'Name': 'Master',
                 'InstanceRole': 'MASTER',
                 'InstanceType': master_instance_type,
                 'Market': master_instance_market,
@@ -188,7 +188,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
                 }
             },
             {
-                'Name': 'Core - 2',
+                'Name': 'Core',
                 'InstanceRole': 'CORE',
                 'InstanceType': core_instance_type,
                 'Market': core_instance_market,

@@ -22,6 +22,7 @@ from aws_cdk import (
     core
 )
 
+from ..lambdas.emr_utilities import *
 
 # class SuccessFragment(sfn.StateMachineFragment):
 #     def __init__(self, scope: core.Construct, id: str, *,
@@ -78,6 +79,9 @@ from aws_cdk import (
 #                 )
 #             ) \
 #             .next(self._fail) if topic is not None else self._fail
+#
+#         self.start_state = self._chain
+#         self.end_states = [self._fail]
 #
 #     @property
 #     def start_state(self) -> sfn.State:
@@ -143,13 +147,10 @@ class EMRFragments:
             allowed_cluster_config_overrides: Optional[Mapping[str, str]] = None,
             output_path: str = '$',
             result_path: str = '$.ClusterConfig') -> sfn.IChainable:
-        override_cluster_configs_lambda = aws_lambda.Function.from_function_arn(
-            scope, 'OverrideClusterConfigs',
-            ssm.StringParameter.value_for_string_parameter(
-                scope,
-                '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_OverrideClusterConfigs'
-            )
-        ) if override_cluster_configs_lambda is None else override_cluster_configs_lambda
+        override_cluster_configs_lambda = \
+            OverrideClusterConfigs(scope, 'OverrideClusterConfigs').lambda_function \
+                if override_cluster_configs_lambda is None \
+                else override_cluster_configs_lambda
 
         override_cluster_configs_task = sfn.Task(
             scope, 'Override Cluster Configs',
@@ -168,13 +169,7 @@ class EMRFragments:
     @staticmethod
     def fail_if_job_running_task(
             scope: core.Construct, *, default_fail_if_job_running: bool) -> sfn.IChainable:
-        fail_if_job_running_lambda = aws_lambda.Function.from_function_arn(
-            scope, 'FailIfJobRunningLambda',
-            ssm.StringParameter.value_for_string_parameter(
-                scope,
-                '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_FailIfJobRunning'
-            )
-        )
+        fail_if_job_running_lambda = FailIfJobRunning(scope, 'FailIfJobRunning').lambda_function
 
         fail_if_job_running_task = sfn.Task(
             scope, 'Fail If Job Running',
@@ -191,7 +186,7 @@ class EMRFragments:
         return fail_if_job_running_task
 
     @staticmethod
-    def run_job_flow_task(scope: core.Construct, *, result_path: str = '$.Result'):
+    def create_cluster_task(scope: core.Construct, *, result_path: str = '$.Result'):
         run_job_flow_lambda = aws_lambda.Function.from_function_arn(
             scope, 'RunJobFlowLambda',
             ssm.StringParameter.value_for_string_parameter(
