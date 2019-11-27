@@ -81,14 +81,15 @@ class EMRLaunchFunction(core.Construct):
             self, 'StateMachine',
             state_machine_name=launch_function_name, definition=definition)
 
-        self._ssm_parameter = ssm.StringParameter(
-            self, 'SSMParameter',
-            string_value=json.dumps({
-                'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
-                'FunctionArn': self._state_machine.state_machine_arn
-            }),
-            parameter_name='/emr_launch/control_plane/emr_launch_functions/{}'.format(
-                self._state_machine.state_machine_arn))
+        if launch_function_name is not None:
+            self._ssm_parameter = ssm.StringParameter(
+                self, 'SSMParameter',
+                string_value=json.dumps({
+                    'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
+                    'FunctionArn': self._state_machine.state_machine_arn
+                }),
+                parameter_name='/emr_launch/control_plane/emr_launch_functions/{}'.format(
+                    launch_function_name))
 
     @property
     def allowed_cluster_config_overrides(self) -> Mapping[str, str]:
@@ -99,14 +100,14 @@ class EMRLaunchFunction(core.Construct):
         return self._state_machine
 
     @staticmethod
-    def from_stored_config(scope: core.Construct, id: str, function_arn: str):
+    def from_stored_config(scope: core.Construct, id: str, launch_function_name: str):
         try:
             function_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name='/emr_launch/control_plane/emr_launch_functions/{}'.format(function_arn))['Parameter']['Value']
+                Name='/emr_launch/control_plane/emr_launch_functions/{}'.format(launch_function_name))['Parameter']['Value']
             launch_function = EMRLaunchFunction(scope, id)
             stored_config = json.loads(function_json)
             launch_function._allowed_cluster_config_overrides = stored_config['AllowedClusterConfigOverrides']
-            launch_function._state_machine = sfn.StateMachine.from_state_machine_arn(function_arn)
+            launch_function._state_machine = sfn.StateMachine.from_state_machine_arn(stored_config['FunctionArn'])
             return launch_function
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
