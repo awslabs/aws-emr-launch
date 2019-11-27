@@ -41,7 +41,6 @@ class BaseConfiguration(core.Construct):
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
-                 auto_terminate: Optional[bool] = False,
                  step_concurrency_level: Optional[int] = 1):
 
         super().__init__(scope, id)
@@ -68,7 +67,7 @@ class BaseConfiguration(core.Construct):
                 'EmrManagedSlaveSecurityGroup': profile_components.security_groups.workers_group.security_group_id,
                 'ServiceAccessSecurityGroup': profile_components.security_groups.service_group.security_group_id,
                 'TerminationProtected': False,
-                'KeepJobFlowAliveWhenNoSteps': not auto_terminate
+                'KeepJobFlowAliveWhenNoSteps': True
             },
             'StepConcurrencyLevel': step_concurrency_level
         }
@@ -161,7 +160,6 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
-                 auto_terminate: Optional[bool] = False,
                  step_concurrency_level: Optional[int] = 1):
 
         super().__init__(scope, id, cluster_name=cluster_name, profile_components=profile_components,
