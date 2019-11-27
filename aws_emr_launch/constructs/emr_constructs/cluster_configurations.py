@@ -162,13 +162,13 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
                  auto_terminate: Optional[bool] = False,
-                 step_concurrent_level: Optional[int] = 1):
+                 step_concurrency_level: Optional[int] = 1):
 
         super().__init__(scope, id, cluster_name=cluster_name, profile_components=profile_components,
                          release_label=release_label, applications=applications,
                          bootstrap_actions=bootstrap_actions, configurations=configurations,
                          tags=tags, use_glue_catalog=use_glue_catalog, auto_terminate=auto_terminate,
-                         step_concurrency_level=step_concurrent_level)
+                         step_concurrency_level=step_concurrency_level)
 
         self.config['Instances']['Ec2SubnetId'] = subnet.subnet_id
         self.config['Instances']['InstanceGroups'] = [

@@ -8,7 +8,7 @@ from aws_cdk import (
 )
 
 from aws_emr_launch.constructs.emr_constructs import EMRProfile, InstanceGroupConfiguration
-from aws_emr_launch.constructs.step_functions.emr_launch_config import EMRLaunchConfig
+from aws_emr_launch.constructs.step_functions.emr_launch_function import EMRLaunchFunction
 
 app = core.App()
 stack = core.Stack(app, 'test-configs-stack', env=core.Environment(account='876929970656', region='us-west-2'))
@@ -28,9 +28,9 @@ cluster_config = InstanceGroupConfiguration(
     profile_components=emr_profile,
     subnet=subnet)
 
-launch_config = EMRLaunchConfig(
+launch_config = EMRLaunchFunction(
     stack, 'test-step-functions-stack',
-    launch_config_name='test-cluster-launch',
+    launch_function_name='test-cluster-launch',
     cluster_config=cluster_config,
     success_topic=success_topic,
     failure_topic=failure_topic,

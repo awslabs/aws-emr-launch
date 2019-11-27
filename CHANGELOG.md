@@ -4,7 +4,9 @@ Changelog for emr-launch
 0.2.1 (unreleased)
 ------------------
 
-- Refactor launch_config
+- Refactor launch_config -> launch_function
+
+- enabled StepConcurrencyLevel
 
 - enabled AllowedClusterConfigOverrides
 
@@ -12,7 +14,7 @@ Changelog for emr-launch
 0.2.0 (2019-11-14)
 ------------------
 
-- refactor control_plane into .egg
+- refactor control_plane into .wheel
 
 - Lock releases to setup.py
 

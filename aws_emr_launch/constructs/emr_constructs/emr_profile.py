@@ -40,9 +40,12 @@ class EMRProfileNotFoundError(Exception):
 
 class EMRProfile(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, *, profile_name: Optional[str] = None,
-                 vpc: Optional[ec2.Vpc] = None, artifacts_bucket: Optional[s3.Bucket] = None,
-                 logs_bucket: Optional[s3.Bucket] = None, mutable_instance_role: bool = False,
+    def __init__(self, scope: core.Construct, id: str, *,
+                 profile_name: Optional[str] = None,
+                 vpc: Optional[ec2.Vpc] = None,
+                 artifacts_bucket: Optional[s3.Bucket] = None,
+                 logs_bucket: Optional[s3.Bucket] = None,
+                 mutable_instance_role: bool = False,
                  mutable_security_groups: bool = False) -> None:
         super().__init__(scope, id)
 

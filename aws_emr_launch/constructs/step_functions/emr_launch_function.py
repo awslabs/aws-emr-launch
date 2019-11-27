@@ -11,11 +11,16 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import json
+import boto3
+
 from typing import Optional, Mapping
+from botocore.exceptions import ClientError
 
 from aws_cdk import (
     aws_lambda,
     aws_sns as sns,
+    aws_ssm as ssm,
     aws_stepfunctions as sfn,
     core
 )
@@ -24,16 +29,25 @@ from .emr_fragments import EMRFragments
 from ..emr_constructs.cluster_configurations import BaseConfiguration
 
 
-class EMRLaunchConfig(core.Construct):
+class EMRLaunchFunctionNotFoundError(Exception):
+    pass
+
+
+class EMRLaunchFunction(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
-                 cluster_config: BaseConfiguration,
-                 launch_config_name: Optional[str] = None,
+                 cluster_config: Optional[BaseConfiguration],
+                 launch_function_name: Optional[str] = None,
                  default_fail_if_job_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
                  failure_topic: Optional[sns.Topic] = None,
                  override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
                  allowed_cluster_config_overrides: Optional[Mapping[str, str]] = None) -> None:
         super().__init__(scope, id)
+
+        if cluster_config is None:
+            return
+
+        self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
 
         override_cluster_configs_task = EMRFragments.override_cluster_configs_task(
             self, cluster_config=cluster_config.config,
@@ -65,8 +79,35 @@ class EMRLaunchConfig(core.Construct):
 
         self._state_machine = sfn.StateMachine(
             self, 'StateMachine',
-            state_machine_name=launch_config_name, definition=definition)
+            state_machine_name=launch_function_name, definition=definition)
+
+        self._ssm_parameter = ssm.StringParameter(
+            self, 'SSMParameter',
+            string_value=json.dumps({
+                'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
+                'FunctionArn': self._state_machine.state_machine_arn
+            }),
+            parameter_name='/emr_launch/control_plane/emr_launch_functions/{}'.format(
+                self._state_machine.state_machine_arn))
+
+    @property
+    def allowed_cluster_config_overrides(self) -> Mapping[str, str]:
+        return self._allowed_cluster_config_overrides
 
     @property
     def state_machine(self) -> sfn.StateMachine:
         return self._state_machine
+
+    @staticmethod
+    def from_stored_config(scope: core.Construct, id: str, function_arn: str):
+        try:
+            function_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
+                Name='/emr_launch/control_plane/emr_launch_functions/{}'.format(function_arn))['Parameter']['Value']
+            launch_function = EMRLaunchFunction(scope, id)
+            stored_config = json.loads(function_json)
+            launch_function._allowed_cluster_config_overrides = stored_config['AllowedClusterConfigOverrides']
+            launch_function._state_machine = sfn.StateMachine.from_state_machine_arn(function_arn)
+            return launch_function
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ParameterNotFound':
+                raise EMRLaunchFunctionNotFoundError()
