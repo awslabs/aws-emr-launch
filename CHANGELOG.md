@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.2.1 (unreleased)
+0.2.1 (2019-11-26)
 ------------------
 
 - Refactor launch_config -> launch_function
