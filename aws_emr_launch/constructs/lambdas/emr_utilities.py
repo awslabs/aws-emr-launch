@@ -83,3 +83,67 @@ class OverrideClusterConfigs(core.Construct):
     @property
     def lambda_function(self) -> aws_lambda.Function:
         return self._lambda_function
+
+
+class RunJobFlow(core.Construct):
+    def __init__(self, scope: core.Construct, id: str) -> None:
+        super().__init__(scope, id)
+
+        code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
+
+        self._lambda_function = aws_lambda.Function(
+            self,
+            'RunJobFlow',
+            code=code,
+            handler='run_job_flow.handler',
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            timeout=core.Duration.minutes(1),
+            initial_policy=[
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=[
+                        'elasticmapreduce:RunJobFlow',
+                        'iam:PassRole',
+                        'ssm:PutParameter'
+                    ],
+                    resources=['*']
+                )
+            ]
+        )
+
+    @property
+    def lambda_function(self) -> aws_lambda.Function:
+        return self._lambda_function
+
+
+class AddJobFlowSteps(core.Construct):
+    def __init__(self, scope: core.Construct, id: str) -> None:
+        super().__init__(scope, id)
+
+        code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
+
+        self._lambda_function = aws_lambda.Function(
+            self,
+            'AddJobFlowSteps',
+            code=code,
+            handler='add_job_flow_steps.handler',
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            timeout=core.Duration.minutes(1),
+            initial_policy=[
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=[
+                        'elasticmapreduce:DescribeCluster',
+                        'elasticmapreduce:AddTags',
+                        'elasticmapreduce:AddJobFlowSteps'
+                    ],
+                    resources=['*']
+                )
+            ]
+        )
+
+    @property
+    def lambda_function(self) -> aws_lambda.Function:
+        return self._lambda_function
+
+
