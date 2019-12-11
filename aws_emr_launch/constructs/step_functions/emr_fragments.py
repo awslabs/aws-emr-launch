@@ -187,15 +187,9 @@ class EMRFragments:
 
     @staticmethod
     def create_cluster_task(scope: core.Construct, *, result_path: str = '$.Result'):
-        run_job_flow_lambda = aws_lambda.Function.from_function_arn(
-            scope, 'RunJobFlowLambda',
-            ssm.StringParameter.value_for_string_parameter(
-                scope,
-                '/emr_launch/control_plane/lambda_arns/emr_utilities/EMRLaunch_EMRUtilities_RunJobFlow'
-            )
-        )
+        run_job_flow_lambda = RunJobFlow(scope, 'RunJobFlow').lambda_function
 
-        run_job_flow_task = sfn.Task(
+        create_cluster_task = sfn.Task(
             scope, 'Start EMR Cluster',
             output_path='$',
             result_path=result_path,
@@ -208,4 +202,4 @@ class EMRFragments:
                     'TaskToken': sfn.Context.task_token
                 })
         )
-        return run_job_flow_task
+        return create_cluster_task
