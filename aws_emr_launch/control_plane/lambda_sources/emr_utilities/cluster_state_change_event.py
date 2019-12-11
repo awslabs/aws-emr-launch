@@ -18,13 +18,21 @@ import traceback
 
 from botocore.exceptions import ClientError
 
-from utils import *
-
 ssm = boto3.client('ssm')
 sfn = boto3.client('stepfunctions')
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
+
+PARAMETER_STORE_PREFIX = '/emr_launch/control_plane/task_tokens/emr_utilities/{}/{}'
+
+
+def cluster_state_change_key(cluster_id):
+    return PARAMETER_STORE_PREFIX.format('cluster_state', cluster_id)
+
+
+def step_state_change_key(step_id):
+    return PARAMETER_STORE_PREFIX.format('step_state', step_id)
 
 
 def handler(event, context):
@@ -34,7 +42,7 @@ def handler(event, context):
     state = event['detail']['state']
     state_change_reason = json.loads(event['detail']['stateChangeReason'])
 
-    parameter_name = ClusterEventParameterUtil.cluster_state_change_key(cluster_id)
+    parameter_name = cluster_state_change_key(cluster_id)
     LOGGER.info('Getting TaskToken from Parameter Store: {}'.format(parameter_name))
     try:
         task_token = ssm.get_parameter(Name=parameter_name)['Parameter']['Value']
