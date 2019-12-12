@@ -15,8 +15,8 @@ success_topic = sns.Topic(stack, 'SuccessTopic')
 failure_topic = sns.Topic(stack, 'FailureTopic')
 
 emr_profile = EMRProfile.from_stored_profile(
-    stack, 'test-emr-components',
-    profile_name='TestCluster')
+    stack, 'test-emr-profile',
+    profile_name='test-emr-profile')
 
 subnet = emr_profile.vpc.private_subnets[0]
 
@@ -27,14 +27,26 @@ cluster_config = InstanceGroupConfiguration(
     subnet=subnet)
 
 launch_config = EMRLaunchFunction(
-    stack, 'test-step-functions-stack',
+    stack, 'test-launch-function',
     launch_function_name='test-cluster-launch',
     cluster_config=cluster_config,
     success_topic=success_topic,
     failure_topic=failure_topic,
     allowed_cluster_config_overrides={
         'Name': 'Name',
-        'Instances.InstanceGroups.1.InstanceCount': 'CoreNodes'
+        'Instances.InstanceGroups.1.InstanceCount': 'CoreInstanceCount'
+    })
+
+launch_config2 = EMRLaunchFunction(
+    stack, 'test-launch-function-2',
+    launch_function_name='test-cluster-launch-2',
+    cluster_config=cluster_config,
+    success_topic=success_topic,
+    failure_topic=failure_topic,
+    allowed_cluster_config_overrides={
+        'Name': 'Name',
+        'Instances.InstanceGroups.1.InstanceCount': 'CoreInstanceCount',
+        'Instances.InstanceGroups.1.InstanceType': 'CoreInstanceType'
     })
 
 app.synth()

@@ -1,6 +1,22 @@
 Changelog for emr-launch
 =============================
 
+0.3.0 (2019-12-12)
+------------------
+
+- get individual/all profiles, conifurations, and launch_functions
+
+- cleaned up stored profiles, configurations, and functions
+
+- refactor examples
+
+- add namespace to profiles, configs, functions
+
+- single emr_utilities lambdas and layers per stack
+
+- reduce control_plane footprint
+
+
 0.2.1 (2019-11-26)
 ------------------
 

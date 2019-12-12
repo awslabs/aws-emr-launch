@@ -18,8 +18,6 @@ import traceback
 
 from dictor import dictor
 
-from utils import *
-
 emr = boto3.client('emr')
 
 LOGGER = logging.getLogger()

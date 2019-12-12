@@ -14,6 +14,7 @@
 import json
 import boto3
 
+from typing import Mapping
 from botocore.exceptions import ClientError
 
 from typing import Optional, List
@@ -29,6 +30,8 @@ from aws_cdk import (
 from ..security_groups.emr import EMRSecurityGroups
 from ..iam_roles.emr import EMRRoles
 
+SSM_PARAMETER_PREFIX = '/emr_launch/emr_profiles'
+
 
 class ReadOnlyEMRProfileError(Exception):
     pass
@@ -42,6 +45,7 @@ class EMRProfile(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  profile_name: Optional[str] = None,
+                 namespace: str = 'default',
                  vpc: Optional[ec2.Vpc] = None,
                  artifacts_bucket: Optional[s3.Bucket] = None,
                  logs_bucket: Optional[s3.Bucket] = None,
@@ -76,22 +80,22 @@ class EMRProfile(core.Construct):
             self, 'SSMParameter',
             type='String',
             value=self._property_values_to_json(),
-            name='/emr_launch/control_plane/emr_profiles/{}'.format(profile_name))
+            name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')
 
         self._rehydrated = False
 
     def _property_values_to_json(self):
         property_values = {
             'ProfileName': self._profile_name,
-            'VpcId': self._vpc.vpc_id if self._vpc is not None else None,
+            'Vpc': self._vpc.vpc_id if self._vpc is not None else None,
             'MutableInstanceRole': self._mutable_instance_role,
             'MutableSecurityGroups': self._mutable_security_groups,
-            'SecurityGroupIds': {
+            'SecurityGroups': {
                 'MasterGroup': self._security_groups.master_group.security_group_id,
                 'WorkersGroup': self._security_groups.workers_group.security_group_id,
                 'ServiceGroup': self._security_groups.service_group.security_group_id
             },
-            'RoleArns': {
+            'Roles': {
                 'ServiceRole': self._roles.service_role.role_arn,
                 'InstanceRole': self._roles.instance_role.role_arn,
                 'AutoScalingRole': self._roles.autoscaling_role.role_arn
@@ -99,8 +103,8 @@ class EMRProfile(core.Construct):
             'ArtifactsBucket': self._artifacts_bucket.bucket_name if self._artifacts_bucket else None,
             'LogsBucket': self._logs_bucket.bucket_name if self._logs_bucket else None,
             'S3EncryptionMode': self._s3_encryption_mode,
-            'S3EncryptionKeyArn': self._s3_encryption_key.key_arn if self._s3_encryption_key else None,
-            'LocalDiskEncryptionKeyArn':
+            'S3EncryptionKey': self._s3_encryption_key.key_arn if self._s3_encryption_key else None,
+            'LocalDiskEncryptionKey':
                 self._local_disk_encryption_key.key_arn if self._local_disk_encryption_key else None,
             'EBSEncryption': self._ebs_encryption,
             'TLSCertificateLocation': self._tls_certificate_location,
@@ -114,19 +118,19 @@ class EMRProfile(core.Construct):
         self._mutable_instance_role = property_values['MutableInstanceRole']
         self._mutable_security_groups = property_values['MutableSecurityGroups']
 
-        vpc_id = property_values.get('VpcId', None)
+        vpc_id = property_values.get('Vpc', None)
         self._vpc = ec2.Vpc.from_lookup(self, 'Vpc', vpc_id=vpc_id) \
             if vpc_id \
             else None
 
-        security_groups_ids = property_values['SecurityGroupIds']
+        security_groups_ids = property_values['SecurityGroups']
         self._security_groups = EMRSecurityGroups.from_security_group_ids(
             self, 'SecurityGroups', security_groups_ids['MasterGroup'],
             security_groups_ids['WorkersGroup'], security_groups_ids['ServiceGroup'],
             mutable=self._mutable_security_groups
         )
 
-        role_arns = property_values['RoleArns']
+        role_arns = property_values['Roles']
         self._roles = EMRRoles.from_role_arns(
             self, 'Roles', role_arns['ServiceRole'], role_arns['InstanceRole'],
             role_arns['AutoScalingRole'], mutable=self._mutable_instance_role)
@@ -143,12 +147,12 @@ class EMRProfile(core.Construct):
 
         self._s3_encryption_mode = property_values.get('S3EncryptionMode', None)
 
-        s3_encryption_key = property_values.get('S3EncryptionKeyArn', None)
+        s3_encryption_key = property_values.get('S3EncryptionKey', None)
         self._s3_encryption_key = kms.Key.from_key_arn(self, 'S3EncryptionKey', s3_encryption_key) \
             if s3_encryption_key \
             else None
 
-        local_disk_encryption_key = property_values.get('LocalDiskEncryptionKeyArn', None)
+        local_disk_encryption_key = property_values.get('LocalDiskEncryptionKey', None)
         self._local_disk_encryption_key = kms.Key.from_key_arn(
             self, 'LocalDiskEncryptionKey', local_disk_encryption_key) \
             if local_disk_encryption_key \
@@ -351,10 +355,36 @@ class EMRProfile(core.Construct):
         return self
 
     @staticmethod
-    def from_stored_profile(scope: core.Construct, id: str, profile_name: str):
+    def get_profiles(namespace: str = 'default', next_token: Optional[str] = None) -> Mapping[str, any]:
+        params = {
+            'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
+        }
+        if next_token:
+            params['NextToken'] = next_token
+        result = boto3.client('ssm').get_parameters_by_path(**params)
+
+        profiles = {
+            'EMRProfiles': [json.loads(p['Value']) for p in result['Parameters']]
+        }
+        if 'NextToken' in result:
+            profiles['NextToken'] = result['NextToken']
+        return profiles
+
+    @staticmethod
+    def get_profile(profile_name: str, namespace: str = 'default') -> Mapping[str, any]:
+        try:
+            profile_json = boto3.client('ssm').get_parameter(
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')['Parameter']['Value']
+            return json.loads(profile_json)
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ParameterNotFound':
+                raise EMRProfileNotFoundError()
+
+    @staticmethod
+    def from_stored_profile(scope: core.Construct, id: str, profile_name: str, namespace: str = 'default'):
         try:
             profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name='/emr_launch/control_plane/emr_profiles/{}'.format(profile_name))['Parameter']['Value']
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')['Parameter']['Value']
             profile = EMRProfile(scope, id)
             return profile._property_values_from_json(profile_json)
         except ClientError as e:

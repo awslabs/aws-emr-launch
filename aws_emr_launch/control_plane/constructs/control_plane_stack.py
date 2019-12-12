@@ -28,38 +28,14 @@ class ControlPlaneStack(core.Stack):
 
         self._emr_utilities = EMRUtilities(self, 'EMRUtilities')
 
-        self._string_parameters = []
-        for function_name, f in self._emr_utilities.shared_functions.items():
-            self._string_parameters.append(
-                ssm.StringParameter(
-                    self,
-                    '{}_SSMParameter'.format(f.node.id),
-                    parameter_name='/emr_launch/control_plane/lambda_arns/emr_utilities/{}'.format(function_name),
-                    string_value=f.function_arn
-                ))
-
-        for layer_name, l in self._emr_utilities.shared_layers.items():
-            self._string_parameters.append(
-                ssm.StringParameter(
-                    self,
-                    '{}_SSMParameter'.format(l.node.id),
-                    parameter_name='/emr_launch/control_plane/layer_arns/{}'.format(l.node.id),
-                    string_value=l.layer_version_arn
-                ))
-
         self._emr_events = EMREvents(
-            self,
-            'EMREvents',
+            self, 'EMREvents',
             cluster_state_change_event=self._emr_utilities.cluster_state_change_event
         )
 
     @property
     def emr_utilities(self) -> EMRUtilities:
         return self._emr_utilities
-
-    @property
-    def string_parameters(self) -> List[ssm.StringParameter]:
-        return self._string_parameters
 
     @property
     def emr_events(self) -> EMREvents:

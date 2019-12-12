@@ -16,13 +16,21 @@ import boto3
 import logging
 import traceback
 
-from utils import *
-
 emr = boto3.client('emr')
 ssm = boto3.client('ssm')
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
+
+PARAMETER_STORE_PREFIX = '/emr_launch/control_plane/task_tokens/emr_utilities/{}/{}'
+
+
+def cluster_state_change_key(cluster_id):
+    return PARAMETER_STORE_PREFIX.format('cluster_state', cluster_id)
+
+
+def step_state_change_key(step_id):
+    return PARAMETER_STORE_PREFIX.format('step_state', step_id)
 
 
 def handler(event, context):
@@ -39,7 +47,7 @@ def handler(event, context):
         LOGGER.info('Got job flow response {}'.format(json.dumps(response)))
         cluster_id = response['JobFlowId']
 
-        parameter_name = ClusterEventParameterUtil.cluster_state_change_key(cluster_id)
+        parameter_name = cluster_state_change_key(cluster_id)
         LOGGER.info('Putting TaskToken to Parameter Store: {}'.format(parameter_name))
         ssm.put_parameter(Name=parameter_name, Type='String', Value=task_token)
     except Exception as e:

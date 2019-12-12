@@ -16,8 +16,6 @@ import json
 import logging
 import traceback
 
-from utils import *
-
 emr = boto3.client('emr')
 
 LOGGER = logging.getLogger()
@@ -26,6 +24,10 @@ LOGGER.setLevel(logging.INFO)
 
 class ClusterRunningError(Exception):
     pass
+
+
+def parse_bool(v: str) -> bool:
+    return str(v).lower() in ("yes", "true", "t", "1")
 
 
 def handler(event, context):

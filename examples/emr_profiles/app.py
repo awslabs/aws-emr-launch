@@ -20,14 +20,14 @@ artifacts_bucket = s3.Bucket.from_bucket_name(stack, 'ArtifactsBucket', 'chamcca
 logs_bucket = s3.Bucket.from_bucket_name(stack, 'LogsBucket', 'chamcca-emr-launch-logs-uw2')
 data_bucket = s3.Bucket.from_bucket_name(stack, 'DataBucket', 'chamcca-emr-launch-data-uw2')
 
-emr_components = EMRProfile(
-    stack, 'test-emr-components',
-    profile_name='TestCluster',
+emr_profile = EMRProfile(
+    stack, 'test-emr-profile',
+    profile_name='test-emr-profile',
     vpc=vpc,
     artifacts_bucket=artifacts_bucket,
     logs_bucket=logs_bucket)
 
-emr_components \
+emr_profile \
     .authorize_input_buckets([data_bucket]) \
     .authorize_output_buckets([data_bucket])
 

@@ -29,93 +29,6 @@ class EMRUtilities(core.Construct):
 
         code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
 
-        self._shared_functions = {}
-        self._shared_layers = {}
-
-        self._shared_functions['EMRLaunch_EMRUtilities_FailIfJobRunning'] = aws_lambda.Function(
-            self,
-            'FailIfJobRunning',
-            function_name='EMRLaunch_EMRUtilities_FailIfJobRunning',
-            code=code,
-            handler='fail_if_job_running.handler',
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
-            initial_policy=[
-                iam.PolicyStatement(
-                    effect=iam.Effect.ALLOW,
-                    actions=[
-                        'elasticmapreduce:ListClusters'
-                    ],
-                    resources=['*']
-                )
-            ]
-        )
-
-        self._shared_functions['EMRLaunch_EMRUtilities_RunJobFlow'] = aws_lambda.Function(
-            self,
-            'AddJobFlow',
-            function_name='EMRLaunch_EMRUtilities_RunJobFlow',
-            code=code,
-            handler='run_job_flow.handler',
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
-            initial_policy=[
-                iam.PolicyStatement(
-                    effect=iam.Effect.ALLOW,
-                    actions=[
-                        'elasticmapreduce:RunJobFlow',
-                        'iam:PassRole',
-                        'ssm:PutParameter'
-                    ],
-                    resources=['*']
-                )
-            ]
-        )
-
-        self._shared_functions['EMRLaunch_EMRUtilities_AddJobFlowSteps'] = aws_lambda.Function(
-            self,
-            'AddJobFlowSteps',
-            function_name='EMRLaunch_EMRUtilities_AddJobFlowSteps',
-            code=code,
-            handler='add_job_flow_steps.handler',
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
-            initial_policy=[
-                iam.PolicyStatement(
-                    effect=iam.Effect.ALLOW,
-                    actions=[
-                        'elasticmapreduce:DescribeCluster',
-                        'elasticmapreduce:AddTags',
-                        'elasticmapreduce:AddJobFlowSteps'
-                    ],
-                    resources=['*']
-                )
-            ]
-        )
-
-        emr_config_utils_layer = aws_lambda.LayerVersion(
-            self,
-            'EMRConfigUtilsLayer',
-            layer_version_name='EMRLaunch_EMRUtilities_EMRConfigUtilsLayer',
-            code=aws_lambda.Code.asset(_lambda_path('layers/emr_config_utils')),
-            compatible_runtimes=[
-                aws_lambda.Runtime.PYTHON_3_7
-            ],
-            description='EMR configuration utility functions'
-        )
-        self._shared_layers['EMRLaunch_EMRUtilities_EMRConfigUtilsLayer'] = emr_config_utils_layer
-
-        self._shared_functions['EMRLaunch_EMRUtilities_OverrideClusterConfigs'] = aws_lambda.Function(
-            self,
-            'OverrideClusterConfigs',
-            function_name='EMRLaunch_EMRUtilities_OverrideClusterConfigs',
-            code=code,
-            handler='override_cluster_configs.handler',
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
-            layers=[emr_config_utils_layer]
-        )
-
         self._cluster_state_change_event = aws_lambda.Function(
             self,
             'ClusterStateChangeEvent',
@@ -138,14 +51,6 @@ class EMRUtilities(core.Construct):
                 )
             ]
         )
-
-    @property
-    def shared_functions(self) -> Mapping[str, aws_lambda.Function]:
-        return self._shared_functions
-
-    @property
-    def shared_layers(self) -> Mapping[str, aws_lambda.Function]:
-        return self._shared_layers
 
     @property
     def cluster_state_change_event(self) -> aws_lambda.Function:

@@ -14,6 +14,7 @@
 import json
 import boto3
 
+from typing import Mapping
 from botocore.exceptions import ClientError
 
 from typing import Optional, List
@@ -25,6 +26,8 @@ from aws_cdk import (
 
 from .emr_profile import EMRProfile
 
+SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
+
 
 class ClusterConfigurationNotFoundError(Exception):
     pass
@@ -34,6 +37,7 @@ class BaseConfiguration(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_name: str,
+                 namespace: str = 'default',
                  profile_components: Optional[EMRProfile] = None,
                  release_label: Optional[str] = 'emr-5.28.0',
                  applications: Optional[List[str]] = None,
@@ -41,7 +45,6 @@ class BaseConfiguration(core.Construct):
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
-                 auto_terminate: Optional[bool] = False,
                  step_concurrency_level: Optional[int] = 1):
 
         super().__init__(scope, id)
@@ -49,6 +52,7 @@ class BaseConfiguration(core.Construct):
         if profile_components is None:
             return
 
+        self._cluster_name = cluster_name
         self._profile_components = profile_components
         self._config = {
             'Name': cluster_name,
@@ -68,9 +72,9 @@ class BaseConfiguration(core.Construct):
                 'EmrManagedSlaveSecurityGroup': profile_components.security_groups.workers_group.security_group_id,
                 'ServiceAccessSecurityGroup': profile_components.security_groups.service_group.security_group_id,
                 'TerminationProtected': False,
-                'KeepJobFlowAliveWhenNoSteps': not auto_terminate
+                'KeepJobFlowAliveWhenNoSteps': True
             },
-            'StepConcurrencyLevel': step_concurrency_level
+            # 'StepConcurrencyLevel': step_concurrency_level
         }
         if profile_components.security_configuration_name:
             self._config['SecurityConfiguration'] = profile_components.security_configuration_name
@@ -79,9 +83,9 @@ class BaseConfiguration(core.Construct):
             self, 'SSMParameter',
             string_value=json.dumps({
                 'EMRProfile': self._profile_components.profile_name,
-                'ClusterConfig': self._config
+                'ClusterConfiguration': self._config
             }),
-            parameter_name='/emr_launch/control_plane/cluster_configs/{}'.format(cluster_name))
+            parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -121,6 +125,10 @@ class BaseConfiguration(core.Construct):
         return configurations
 
     @property
+    def cluster_name(self) -> str:
+        return self._cluster_name
+
+    @property
     def profile_components(self) -> EMRProfile:
         return self._profile_components
 
@@ -129,15 +137,41 @@ class BaseConfiguration(core.Construct):
         return self._config
 
     @staticmethod
-    def from_stored_config(scope: core.Construct, id: str, cluster_name: str):
+    def get_configurations(namespace: str = 'default', next_token: Optional[str] = None) -> Mapping[str, any]:
+        params = {
+            'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
+        }
+        if next_token:
+            params['NextToken'] = next_token
+        result = boto3.client('ssm').get_parameters_by_path(**params)
+
+        configurations = {
+            'ClusterConfigurations': [json.loads(p['Value']) for p in result['Parameters']]
+        }
+        if 'NextToken' in result:
+            configurations['NextToken'] = result['NextToken']
+        return configurations
+
+    @staticmethod
+    def get_configuration(cluster_name: str, namespace: str = 'default') -> Mapping[str, any]:
         try:
-            profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name='/emr_launch/control_plane/cluster_configs/{}'.format(cluster_name))['Parameter']['Value']
+            configuration_json = boto3.client('ssm').get_parameter(
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')['Parameter']['Value']
+            return json.loads(configuration_json)
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ParameterNotFound':
+                raise ClusterConfigurationNotFoundError()
+
+    @staticmethod
+    def from_stored_configuration(scope: core.Construct, id: str, cluster_name: str, namespace: str = 'default'):
+        try:
+            configuration_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')['Parameter']['Value']
+            stored_config = json.loads(configuration_json)
             cluster_config = BaseConfiguration(scope, id, cluster_name=cluster_name)
-            stored_config = json.loads(profile_json)
             cluster_config._profile_components = EMRProfile.from_stored_profile(
                 cluster_config, 'EMRProfile', stored_config['EMRProfile'])
-            cluster_config._config = stored_config['ClusterConfig']
+            cluster_config._config = stored_config['ClusterConfiguration']
             return cluster_config
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
@@ -150,6 +184,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  cluster_name: str,
                  profile_components: EMRProfile,
                  subnet: ec2.Subnet,
+                 namespace: str = 'default',
                  release_label: Optional[str] = 'emr-5.28.0',
                  master_instance_type: Optional[str] = 'm5.2xlarge',
                  master_instance_market: Optional[str] = 'ON_DEMAND',
@@ -161,19 +196,24 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
-                 auto_terminate: Optional[bool] = False,
                  step_concurrency_level: Optional[int] = 1):
 
-        super().__init__(scope, id, cluster_name=cluster_name, profile_components=profile_components,
-                         release_label=release_label, applications=applications,
-                         bootstrap_actions=bootstrap_actions, configurations=configurations,
-                         tags=tags, use_glue_catalog=use_glue_catalog, auto_terminate=auto_terminate,
+        super().__init__(scope, id,
+                         cluster_name=cluster_name,
+                         namespace=namespace,
+                         profile_components=profile_components,
+                         release_label=release_label,
+                         applications=applications,
+                         bootstrap_actions=bootstrap_actions,
+                         configurations=configurations,
+                         tags=tags,
+                         use_glue_catalog=use_glue_catalog,
                          step_concurrency_level=step_concurrency_level)
 
         self.config['Instances']['Ec2SubnetId'] = subnet.subnet_id
         self.config['Instances']['InstanceGroups'] = [
             {
-                'Name': 'Master - 1',
+                'Name': 'Master',
                 'InstanceRole': 'MASTER',
                 'InstanceType': master_instance_type,
                 'Market': master_instance_market,
@@ -190,7 +230,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
                 }
             },
             {
-                'Name': 'Core - 2',
+                'Name': 'Core',
                 'InstanceRole': 'CORE',
                 'InstanceType': core_instance_type,
                 'Market': core_instance_market,
