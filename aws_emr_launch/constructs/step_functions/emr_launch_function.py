@@ -28,6 +28,8 @@ from aws_cdk import (
 from .emr_fragments import EMRFragments
 from ..emr_constructs.cluster_configurations import BaseConfiguration
 
+SSM_PARAMETER_KEY = '/emr_launch/emr_launch_functions/{}/{}'
+
 
 class EMRLaunchFunctionNotFoundError(Exception):
     pass
@@ -37,6 +39,7 @@ class EMRLaunchFunction(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_config: Optional[BaseConfiguration] = None,
                  launch_function_name: Optional[str] = None,
+                 namespace: str = 'default',
                  default_fail_if_job_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
                  failure_topic: Optional[sns.Topic] = None,
@@ -88,8 +91,7 @@ class EMRLaunchFunction(core.Construct):
                     'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
                     'StateMachineArn': self._state_machine.state_machine_arn
                 }),
-                parameter_name='/emr_launch/control_plane/emr_launch_functions/{}'.format(
-                    launch_function_name))
+                parameter_name=SSM_PARAMETER_KEY.format(namespace, launch_function_name))
 
     @property
     def allowed_cluster_config_overrides(self) -> Mapping[str, str]:
@@ -100,11 +102,10 @@ class EMRLaunchFunction(core.Construct):
         return self._state_machine
 
     @staticmethod
-    def from_stored_config(scope: core.Construct, id: str, launch_function_name: str):
+    def from_stored_config(scope: core.Construct, id: str, launch_function_name: str, namespace: str = 'default'):
         try:
             function_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name='/emr_launch/control_plane/emr_launch_functions/{}'.format(
-                    launch_function_name))['Parameter']['Value']
+                Name=SSM_PARAMETER_KEY.format(namespace, launch_function_name))['Parameter']['Value']
             launch_function = EMRLaunchFunction(scope, id)
             stored_config = json.loads(function_json)
             launch_function._allowed_cluster_config_overrides = stored_config['AllowedClusterConfigOverrides']

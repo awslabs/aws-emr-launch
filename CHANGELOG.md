@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.3.0 (unreleased)
 ------------------
 
+- add namespace to profiles, configs, functions
+
 - single emr_utilities lambdas and layers per stack
 
 - reduce control_plane footprint

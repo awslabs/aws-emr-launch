@@ -29,6 +29,8 @@ from aws_cdk import (
 from ..security_groups.emr import EMRSecurityGroups
 from ..iam_roles.emr import EMRRoles
 
+SSM_PARAMETER_KEY = '/emr_launch/emr_profiles/{}/{}'
+
 
 class ReadOnlyEMRProfileError(Exception):
     pass
@@ -42,6 +44,7 @@ class EMRProfile(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  profile_name: Optional[str] = None,
+                 namespace: str = 'default',
                  vpc: Optional[ec2.Vpc] = None,
                  artifacts_bucket: Optional[s3.Bucket] = None,
                  logs_bucket: Optional[s3.Bucket] = None,
@@ -76,7 +79,7 @@ class EMRProfile(core.Construct):
             self, 'SSMParameter',
             type='String',
             value=self._property_values_to_json(),
-            name='/emr_launch/control_plane/emr_profiles/{}'.format(profile_name))
+            name=SSM_PARAMETER_KEY.format(namespace, profile_name))
 
         self._rehydrated = False
 
@@ -351,10 +354,10 @@ class EMRProfile(core.Construct):
         return self
 
     @staticmethod
-    def from_stored_profile(scope: core.Construct, id: str, profile_name: str):
+    def from_stored_profile(scope: core.Construct, id: str, profile_name: str, namespace: str = 'default'):
         try:
             profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name='/emr_launch/control_plane/emr_profiles/{}'.format(profile_name))['Parameter']['Value']
+                Name=SSM_PARAMETER_KEY.format(namespace, profile_name))['Parameter']['Value']
             profile = EMRProfile(scope, id)
             return profile._property_values_from_json(profile_json)
         except ClientError as e:

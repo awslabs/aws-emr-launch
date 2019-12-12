@@ -25,6 +25,8 @@ from aws_cdk import (
 
 from .emr_profile import EMRProfile
 
+SSM_PARAMETER_KEY = '/emr_launch/cluster_configs/{}/{}'
+
 
 class ClusterConfigurationNotFoundError(Exception):
     pass
@@ -33,7 +35,7 @@ class ClusterConfigurationNotFoundError(Exception):
 class BaseConfiguration(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
-                 cluster_name: str,
+                 cluster_name: str, namespace: str = 'defalut',
                  profile_components: Optional[EMRProfile] = None,
                  release_label: Optional[str] = 'emr-5.28.0',
                  applications: Optional[List[str]] = None,
@@ -80,7 +82,7 @@ class BaseConfiguration(core.Construct):
                 'EMRProfile': self._profile_components.profile_name,
                 'ClusterConfig': self._config
             }),
-            parameter_name='/emr_launch/control_plane/cluster_configs/{}'.format(cluster_name))
+            parameter_name=SSM_PARAMETER_KEY.format(namespace, cluster_name))
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -128,10 +130,10 @@ class BaseConfiguration(core.Construct):
         return self._config
 
     @staticmethod
-    def from_stored_config(scope: core.Construct, id: str, cluster_name: str):
+    def from_stored_config(scope: core.Construct, id: str, cluster_name: str, namespace: str = 'default'):
         try:
             profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name='/emr_launch/control_plane/cluster_configs/{}'.format(cluster_name))['Parameter']['Value']
+                Name=SSM_PARAMETER_KEY.format(namespace, cluster_name))['Parameter']['Value']
             cluster_config = BaseConfiguration(scope, id, cluster_name=cluster_name)
             stored_config = json.loads(profile_json)
             cluster_config._profile_components = EMRProfile.from_stored_profile(
@@ -149,6 +151,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  cluster_name: str,
                  profile_components: EMRProfile,
                  subnet: ec2.Subnet,
+                 namespace: str = 'default',
                  release_label: Optional[str] = 'emr-5.28.0',
                  master_instance_type: Optional[str] = 'm5.2xlarge',
                  master_instance_market: Optional[str] = 'ON_DEMAND',
@@ -162,10 +165,17 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  use_glue_catalog: Optional[bool] = True,
                  step_concurrency_level: Optional[int] = 1):
 
-        super().__init__(scope, id, cluster_name=cluster_name, profile_components=profile_components,
-                         release_label=release_label, applications=applications,
-                         bootstrap_actions=bootstrap_actions, configurations=configurations,
-                         tags=tags, use_glue_catalog=use_glue_catalog, step_concurrency_level=step_concurrency_level)
+        super().__init__(scope, id,
+                         cluster_name=cluster_name,
+                         namespace=namespace,
+                         profile_components=profile_components,
+                         release_label=release_label,
+                         applications=applications,
+                         bootstrap_actions=bootstrap_actions,
+                         configurations=configurations,
+                         tags=tags,
+                         use_glue_catalog=use_glue_catalog,
+                         step_concurrency_level=step_concurrency_level)
 
         self.config['Instances']['Ec2SubnetId'] = subnet.subnet_id
         self.config['Instances']['InstanceGroups'] = [
