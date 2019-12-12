@@ -165,8 +165,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
         super().__init__(scope, id, cluster_name=cluster_name, profile_components=profile_components,
                          release_label=release_label, applications=applications,
                          bootstrap_actions=bootstrap_actions, configurations=configurations,
-                         tags=tags, use_glue_catalog=use_glue_catalog, auto_terminate=auto_terminate,
-                         step_concurrency_level=step_concurrency_level)
+                         tags=tags, use_glue_catalog=use_glue_catalog, step_concurrency_level=step_concurrency_level)
 
         self.config['Instances']['Ec2SubnetId'] = subnet.subnet_id
         self.config['Instances']['InstanceGroups'] = [

@@ -86,7 +86,7 @@ class EMRLaunchFunction(core.Construct):
                 self, 'SSMParameter',
                 string_value=json.dumps({
                     'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
-                    'FunctionArn': self._state_machine.state_machine_arn
+                    'StateMachineArn': self._state_machine.state_machine_arn
                 }),
                 parameter_name='/emr_launch/control_plane/emr_launch_functions/{}'.format(
                     launch_function_name))
@@ -109,7 +109,7 @@ class EMRLaunchFunction(core.Construct):
             stored_config = json.loads(function_json)
             launch_function._allowed_cluster_config_overrides = stored_config['AllowedClusterConfigOverrides']
             launch_function._state_machine = sfn.StateMachine.from_state_machine_arn(
-                launch_function, 'StateMachine', stored_config['FunctionArn'])
+                launch_function, 'StateMachine', stored_config['StateMachineArn'])
             return launch_function
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
