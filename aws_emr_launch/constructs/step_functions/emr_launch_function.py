@@ -111,17 +111,23 @@ class EMRLaunchFunction(core.Construct):
         return self._state_machine
 
     @staticmethod
-    def list_functions(namespace: str = 'default'):
-        try:
-            function_json = boto3.client('ssm').get_parameters_by_key(
-                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/')['Parameter']['Value']
-            return json.loads(function_json)
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ParameterNotFound':
-                raise EMRLaunchFunctionNotFoundError()
+    def get_functions(namespace: str = 'default', next_token: Optional[str] = None) -> Mapping[str, any]:
+        params = {
+            'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
+        }
+        if next_token:
+            params['NextToken'] = next_token
+        result = boto3.client('ssm').get_parameters_by_path(**params)
+
+        functions = {
+            'EMRLaunchFunctions': [json.loads(p['Value']) for p in result['Parameters']]
+        }
+        if 'NextToken' in result:
+            functions['NextToken'] = result['NextToken']
+        return functions
 
     @staticmethod
-    def describe_function(launch_function_name: str, namespace: str = 'default'):
+    def get_function(launch_function_name: str, namespace: str = 'default') -> Mapping[str, any]:
         try:
             function_json = boto3.client('ssm').get_parameter(
                 Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')['Parameter']['Value']

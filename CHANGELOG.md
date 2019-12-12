@@ -4,11 +4,11 @@ Changelog for emr-launch
 0.3.0 (unreleased)
 ------------------
 
+- get individual/all profiles, conifurations, and launch_functions
+
 - cleaned up stored profiles, configurations, and functions
 
 - refactor examples
-
-- list and describe emr_launch_functions
 
 - add namespace to profiles, configs, functions
 

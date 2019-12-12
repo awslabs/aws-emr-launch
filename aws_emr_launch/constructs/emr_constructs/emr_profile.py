@@ -14,6 +14,7 @@
 import json
 import boto3
 
+from typing import Mapping
 from botocore.exceptions import ClientError
 
 from typing import Optional, List
@@ -352,6 +353,32 @@ class EMRProfile(core.Construct):
         for key in output_keys:
             key.grant_encrypt(self._roles.instance_role)
         return self
+
+    @staticmethod
+    def get_profiles(namespace: str = 'default', next_token: Optional[str] = None) -> Mapping[str, any]:
+        params = {
+            'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
+        }
+        if next_token:
+            params['NextToken'] = next_token
+        result = boto3.client('ssm').get_parameters_by_path(**params)
+
+        profiles = {
+            'EMRProfiles': [json.loads(p['Value']) for p in result['Parameters']]
+        }
+        if 'NextToken' in result:
+            profiles['NextToken'] = result['NextToken']
+        return profiles
+
+    @staticmethod
+    def get_profile(profile_name: str, namespace: str = 'default') -> Mapping[str, any]:
+        try:
+            profile_json = boto3.client('ssm').get_parameter(
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')['Parameter']['Value']
+            return json.loads(profile_json)
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ParameterNotFound':
+                raise EMRProfileNotFoundError()
 
     @staticmethod
     def from_stored_profile(scope: core.Construct, id: str, profile_name: str, namespace: str = 'default'):

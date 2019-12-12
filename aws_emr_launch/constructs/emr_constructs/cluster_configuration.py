@@ -14,6 +14,7 @@
 import json
 import boto3
 
+from typing import Mapping
 from botocore.exceptions import ClientError
 
 from typing import Optional, List
@@ -35,7 +36,8 @@ class ClusterConfigurationNotFoundError(Exception):
 class BaseConfiguration(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
-                 cluster_name: str, namespace: str = 'default',
+                 cluster_name: str,
+                 namespace: str = 'default',
                  profile_components: Optional[EMRProfile] = None,
                  release_label: Optional[str] = 'emr-5.28.0',
                  applications: Optional[List[str]] = None,
@@ -135,11 +137,37 @@ class BaseConfiguration(core.Construct):
         return self._config
 
     @staticmethod
-    def from_stored_config(scope: core.Construct, id: str, cluster_name: str, namespace: str = 'default'):
+    def get_configurations(namespace: str = 'default', next_token: Optional[str] = None) -> Mapping[str, any]:
+        params = {
+            'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
+        }
+        if next_token:
+            params['NextToken'] = next_token
+        result = boto3.client('ssm').get_parameters_by_path(**params)
+
+        configurations = {
+            'ClusterConfigurations': [json.loads(p['Value']) for p in result['Parameters']]
+        }
+        if 'NextToken' in result:
+            configurations['NextToken'] = result['NextToken']
+        return configurations
+
+    @staticmethod
+    def get_configuration(cluster_name: str, namespace: str = 'default') -> Mapping[str, any]:
         try:
-            profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
+            configuration_json = boto3.client('ssm').get_parameter(
                 Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')['Parameter']['Value']
-            stored_config = json.loads(profile_json)
+            return json.loads(configuration_json)
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ParameterNotFound':
+                raise ClusterConfigurationNotFoundError()
+
+    @staticmethod
+    def from_stored_configuration(scope: core.Construct, id: str, cluster_name: str, namespace: str = 'default'):
+        try:
+            configuration_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')['Parameter']['Value']
+            stored_config = json.loads(configuration_json)
             cluster_config = BaseConfiguration(scope, id, cluster_name=cluster_name)
             cluster_config._profile_components = EMRProfile.from_stored_profile(
                 cluster_config, 'EMRProfile', stored_config['EMRProfile'])
