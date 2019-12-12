@@ -27,8 +27,19 @@ cluster_config = InstanceGroupConfiguration(
     subnet=subnet)
 
 launch_config = EMRLaunchFunction(
-    stack, 'test-step-functions-stack',
+    stack, 'test-launch-function',
     launch_function_name='test-cluster-launch',
+    cluster_config=cluster_config,
+    success_topic=success_topic,
+    failure_topic=failure_topic,
+    allowed_cluster_config_overrides={
+        'Name': 'Name',
+        'Instances.InstanceGroups.1.InstanceCount': 'CoreNodes'
+    })
+
+launch_config2 = EMRLaunchFunction(
+    stack, 'test-launch-function-2',
+    launch_function_name='test-cluster-launch-2',
     cluster_config=cluster_config,
     success_topic=success_topic,
     failure_topic=failure_topic,

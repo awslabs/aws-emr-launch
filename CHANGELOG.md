@@ -4,7 +4,9 @@ Changelog for emr-launch
 0.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- single emr_utilities lambdas and layers per stack
+
+- reduce control_plane footprint
 
 
 0.2.1 (2019-11-26)
