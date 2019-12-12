@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.3.0 (unreleased)
+0.3.0 (2019-12-12)
 ------------------
 
 - get individual/all profiles, conifurations, and launch_functions
