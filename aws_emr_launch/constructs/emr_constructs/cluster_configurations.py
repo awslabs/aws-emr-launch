@@ -25,7 +25,7 @@ from aws_cdk import (
 
 from .emr_profile import EMRProfile
 
-SSM_PARAMETER_KEY = '/emr_launch/cluster_configs/{}/{}'
+SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
 
 
 class ClusterConfigurationNotFoundError(Exception):
@@ -82,7 +82,7 @@ class BaseConfiguration(core.Construct):
                 'EMRProfile': self._profile_components.profile_name,
                 'ClusterConfig': self._config
             }),
-            parameter_name=SSM_PARAMETER_KEY.format(namespace, cluster_name))
+            parameter_name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${cluster_name}')
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -133,7 +133,7 @@ class BaseConfiguration(core.Construct):
     def from_stored_config(scope: core.Construct, id: str, cluster_name: str, namespace: str = 'default'):
         try:
             profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name=SSM_PARAMETER_KEY.format(namespace, cluster_name))['Parameter']['Value']
+                Name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${cluster_name}')['Parameter']['Value']
             cluster_config = BaseConfiguration(scope, id, cluster_name=cluster_name)
             stored_config = json.loads(profile_json)
             cluster_config._profile_components = EMRProfile.from_stored_profile(

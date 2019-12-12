@@ -28,7 +28,7 @@ from aws_cdk import (
 from .emr_fragments import EMRFragments
 from ..emr_constructs.cluster_configurations import BaseConfiguration
 
-SSM_PARAMETER_KEY = '/emr_launch/emr_launch_functions/{}/{}'
+SSM_PARAMETER_PREFIX = '/emr_launch/emr_launch_functions'
 
 
 class EMRLaunchFunctionNotFoundError(Exception):
@@ -91,7 +91,7 @@ class EMRLaunchFunction(core.Construct):
                     'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
                     'StateMachineArn': self._state_machine.state_machine_arn
                 }),
-                parameter_name=SSM_PARAMETER_KEY.format(namespace, launch_function_name))
+                parameter_name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${launch_function_name}')
 
     @property
     def allowed_cluster_config_overrides(self) -> Mapping[str, str]:
@@ -102,16 +102,21 @@ class EMRLaunchFunction(core.Construct):
         return self._state_machine
 
     @staticmethod
-    def from_stored_config(scope: core.Construct, id: str, launch_function_name: str, namespace: str = 'default'):
+    def list_functions(namespace: str = 'default'):
         try:
-            function_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name=SSM_PARAMETER_KEY.format(namespace, launch_function_name))['Parameter']['Value']
-            launch_function = EMRLaunchFunction(scope, id)
-            stored_config = json.loads(function_json)
-            launch_function._allowed_cluster_config_overrides = stored_config['AllowedClusterConfigOverrides']
-            launch_function._state_machine = sfn.StateMachine.from_state_machine_arn(
-                launch_function, 'StateMachine', stored_config['StateMachineArn'])
-            return launch_function
+            function_json = boto3.client('ssm').get_parameters_by_key(
+                Name=f'${SSM_PARAMETER_PREFIX}/${namespace}/')['Parameter']['Value']
+            return json.loads(function_json)
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ParameterNotFound':
+                raise EMRLaunchFunctionNotFoundError()
+
+    @staticmethod
+    def describe_function(launch_function_name: str, namespace: str = 'default'):
+        try:
+            function_json = boto3.client('ssm').get_parameter(
+                Name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${launch_function_name}')['Parameter']['Value']
+            return json.loads(function_json)
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
                 raise EMRLaunchFunctionNotFoundError()
