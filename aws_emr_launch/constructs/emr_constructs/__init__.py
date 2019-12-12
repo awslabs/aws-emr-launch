@@ -15,7 +15,7 @@ from .emr_profile import (
     EMRProfile,
 )
 
-from .cluster_configurations import (
+from .cluster_configuration import (
     BaseConfiguration,
     InstanceGroupConfiguration
 )

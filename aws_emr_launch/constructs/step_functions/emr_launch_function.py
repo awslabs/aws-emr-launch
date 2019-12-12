@@ -26,7 +26,7 @@ from aws_cdk import (
 )
 
 from .emr_fragments import EMRFragments
-from ..emr_constructs.cluster_configurations import BaseConfiguration
+from ..emr_constructs.cluster_configuration import BaseConfiguration
 
 SSM_PARAMETER_PREFIX = '/emr_launch/emr_launch_functions'
 
