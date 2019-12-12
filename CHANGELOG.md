@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.3.0 (unreleased)
 ------------------
 
+- cleaned up stored profiles, configurations, and functions
+
 - refactor examples
 
 - list and describe emr_launch_functions

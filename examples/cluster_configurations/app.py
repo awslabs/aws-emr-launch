@@ -15,7 +15,7 @@ success_topic = sns.Topic(stack, 'SuccessTopic')
 failure_topic = sns.Topic(stack, 'FailureTopic')
 
 emr_profile = EMRProfile.from_stored_profile(
-    stack, 'test-emr-components',
+    stack, 'test-profile',
     profile_name='TestCluster')
 
 subnet = emr_profile.vpc.private_subnets[0]

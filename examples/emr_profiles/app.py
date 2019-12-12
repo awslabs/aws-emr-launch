@@ -22,7 +22,7 @@ data_bucket = s3.Bucket.from_bucket_name(stack, 'DataBucket', 'chamcca-emr-launc
 
 emr_components = EMRProfile(
     stack, 'test-emr-components',
-    profile_name='TestCluster',
+    profile_name='test-profile',
     vpc=vpc,
     artifacts_bucket=artifacts_bucket,
     logs_bucket=logs_bucket)

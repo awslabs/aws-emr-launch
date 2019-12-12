@@ -79,22 +79,22 @@ class EMRProfile(core.Construct):
             self, 'SSMParameter',
             type='String',
             value=self._property_values_to_json(),
-            name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${profile_name}')
+            name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')
 
         self._rehydrated = False
 
     def _property_values_to_json(self):
         property_values = {
             'ProfileName': self._profile_name,
-            'VpcId': self._vpc.vpc_id if self._vpc is not None else None,
+            'Vpc': self._vpc.vpc_id if self._vpc is not None else None,
             'MutableInstanceRole': self._mutable_instance_role,
             'MutableSecurityGroups': self._mutable_security_groups,
-            'SecurityGroupIds': {
+            'SecurityGroups': {
                 'MasterGroup': self._security_groups.master_group.security_group_id,
                 'WorkersGroup': self._security_groups.workers_group.security_group_id,
                 'ServiceGroup': self._security_groups.service_group.security_group_id
             },
-            'RoleArns': {
+            'Roles': {
                 'ServiceRole': self._roles.service_role.role_arn,
                 'InstanceRole': self._roles.instance_role.role_arn,
                 'AutoScalingRole': self._roles.autoscaling_role.role_arn
@@ -102,8 +102,8 @@ class EMRProfile(core.Construct):
             'ArtifactsBucket': self._artifacts_bucket.bucket_name if self._artifacts_bucket else None,
             'LogsBucket': self._logs_bucket.bucket_name if self._logs_bucket else None,
             'S3EncryptionMode': self._s3_encryption_mode,
-            'S3EncryptionKeyArn': self._s3_encryption_key.key_arn if self._s3_encryption_key else None,
-            'LocalDiskEncryptionKeyArn':
+            'S3EncryptionKey': self._s3_encryption_key.key_arn if self._s3_encryption_key else None,
+            'LocalDiskEncryptionKey':
                 self._local_disk_encryption_key.key_arn if self._local_disk_encryption_key else None,
             'EBSEncryption': self._ebs_encryption,
             'TLSCertificateLocation': self._tls_certificate_location,
@@ -117,19 +117,19 @@ class EMRProfile(core.Construct):
         self._mutable_instance_role = property_values['MutableInstanceRole']
         self._mutable_security_groups = property_values['MutableSecurityGroups']
 
-        vpc_id = property_values.get('VpcId', None)
+        vpc_id = property_values.get('Vpc', None)
         self._vpc = ec2.Vpc.from_lookup(self, 'Vpc', vpc_id=vpc_id) \
             if vpc_id \
             else None
 
-        security_groups_ids = property_values['SecurityGroupIds']
+        security_groups_ids = property_values['SecurityGroups']
         self._security_groups = EMRSecurityGroups.from_security_group_ids(
             self, 'SecurityGroups', security_groups_ids['MasterGroup'],
             security_groups_ids['WorkersGroup'], security_groups_ids['ServiceGroup'],
             mutable=self._mutable_security_groups
         )
 
-        role_arns = property_values['RoleArns']
+        role_arns = property_values['Roles']
         self._roles = EMRRoles.from_role_arns(
             self, 'Roles', role_arns['ServiceRole'], role_arns['InstanceRole'],
             role_arns['AutoScalingRole'], mutable=self._mutable_instance_role)
@@ -146,12 +146,12 @@ class EMRProfile(core.Construct):
 
         self._s3_encryption_mode = property_values.get('S3EncryptionMode', None)
 
-        s3_encryption_key = property_values.get('S3EncryptionKeyArn', None)
+        s3_encryption_key = property_values.get('S3EncryptionKey', None)
         self._s3_encryption_key = kms.Key.from_key_arn(self, 'S3EncryptionKey', s3_encryption_key) \
             if s3_encryption_key \
             else None
 
-        local_disk_encryption_key = property_values.get('LocalDiskEncryptionKeyArn', None)
+        local_disk_encryption_key = property_values.get('LocalDiskEncryptionKey', None)
         self._local_disk_encryption_key = kms.Key.from_key_arn(
             self, 'LocalDiskEncryptionKey', local_disk_encryption_key) \
             if local_disk_encryption_key \
@@ -357,7 +357,7 @@ class EMRProfile(core.Construct):
     def from_stored_profile(scope: core.Construct, id: str, profile_name: str, namespace: str = 'default'):
         try:
             profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${profile_name}')['Parameter']['Value']
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')['Parameter']['Value']
             profile = EMRProfile(scope, id)
             return profile._property_values_from_json(profile_json)
         except ClientError as e:

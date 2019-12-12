@@ -35,7 +35,7 @@ class ClusterConfigurationNotFoundError(Exception):
 class BaseConfiguration(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
-                 cluster_name: str, namespace: str = 'defalut',
+                 cluster_name: str, namespace: str = 'default',
                  profile_components: Optional[EMRProfile] = None,
                  release_label: Optional[str] = 'emr-5.28.0',
                  applications: Optional[List[str]] = None,
@@ -50,6 +50,7 @@ class BaseConfiguration(core.Construct):
         if profile_components is None:
             return
 
+        self._cluster_name = cluster_name
         self._profile_components = profile_components
         self._config = {
             'Name': cluster_name,
@@ -80,9 +81,9 @@ class BaseConfiguration(core.Construct):
             self, 'SSMParameter',
             string_value=json.dumps({
                 'EMRProfile': self._profile_components.profile_name,
-                'ClusterConfig': self._config
+                'ClusterConfiguration': self._config
             }),
-            parameter_name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${cluster_name}')
+            parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -122,6 +123,10 @@ class BaseConfiguration(core.Construct):
         return configurations
 
     @property
+    def cluster_name(self) -> str:
+        return self._cluster_name
+
+    @property
     def profile_components(self) -> EMRProfile:
         return self._profile_components
 
@@ -133,12 +138,12 @@ class BaseConfiguration(core.Construct):
     def from_stored_config(scope: core.Construct, id: str, cluster_name: str, namespace: str = 'default'):
         try:
             profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${cluster_name}')['Parameter']['Value']
-            cluster_config = BaseConfiguration(scope, id, cluster_name=cluster_name)
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')['Parameter']['Value']
             stored_config = json.loads(profile_json)
+            cluster_config = BaseConfiguration(scope, id, cluster_name=cluster_name)
             cluster_config._profile_components = EMRProfile.from_stored_profile(
                 cluster_config, 'EMRProfile', stored_config['EMRProfile'])
-            cluster_config._config = stored_config['ClusterConfig']
+            cluster_config._config = stored_config['ClusterConfiguration']
             return cluster_config
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':

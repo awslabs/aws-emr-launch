@@ -88,10 +88,19 @@ class EMRLaunchFunction(core.Construct):
             self._ssm_parameter = ssm.StringParameter(
                 self, 'SSMParameter',
                 string_value=json.dumps({
+                    'LaunchFunctionName': launch_function_name,
+                    'ClusterConfiguration': cluster_config.cluster_name,
+                    'DefaultFailIfJobRunning': default_fail_if_job_running,
+                    'SuccessTopic': success_topic.topic_arn if success_topic is not None else None,
+                    'FailureTopic': failure_topic.topic_arn if failure_topic is not None else None,
+                    'OverrideClusterConfigsLambda':
+                        override_cluster_configs_lambda.function_arn
+                        if override_cluster_configs_lambda is not None
+                        else None,
                     'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
                     'StateMachineArn': self._state_machine.state_machine_arn
                 }),
-                parameter_name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${launch_function_name}')
+                parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')
 
     @property
     def allowed_cluster_config_overrides(self) -> Mapping[str, str]:
@@ -105,7 +114,7 @@ class EMRLaunchFunction(core.Construct):
     def list_functions(namespace: str = 'default'):
         try:
             function_json = boto3.client('ssm').get_parameters_by_key(
-                Name=f'${SSM_PARAMETER_PREFIX}/${namespace}/')['Parameter']['Value']
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/')['Parameter']['Value']
             return json.loads(function_json)
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
@@ -115,7 +124,7 @@ class EMRLaunchFunction(core.Construct):
     def describe_function(launch_function_name: str, namespace: str = 'default'):
         try:
             function_json = boto3.client('ssm').get_parameter(
-                Name=f'${SSM_PARAMETER_PREFIX}/${namespace}/${launch_function_name}')['Parameter']['Value']
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')['Parameter']['Value']
             return json.loads(function_json)
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
