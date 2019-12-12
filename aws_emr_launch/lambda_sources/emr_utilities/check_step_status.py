@@ -16,8 +16,6 @@ import json
 import logging
 import traceback
 
-from utils import *
-
 emr = boto3.client('emr')
 cw = boto3.client('cloudwatch')
 

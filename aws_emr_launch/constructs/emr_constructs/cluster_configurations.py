@@ -69,7 +69,7 @@ class BaseConfiguration(core.Construct):
                 'TerminationProtected': False,
                 'KeepJobFlowAliveWhenNoSteps': True
             },
-            'StepConcurrencyLevel': step_concurrency_level
+            # 'StepConcurrencyLevel': step_concurrency_level
         }
         if profile_components.security_configuration_name:
             self._config['SecurityConfiguration'] = profile_components.security_configuration_name

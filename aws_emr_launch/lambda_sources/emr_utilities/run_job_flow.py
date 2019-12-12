@@ -16,8 +16,6 @@ import boto3
 import logging
 import traceback
 
-from utils import *
-
 emr = boto3.client('emr')
 ssm = boto3.client('ssm')
 
