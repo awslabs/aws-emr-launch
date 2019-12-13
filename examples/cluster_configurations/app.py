@@ -34,7 +34,7 @@ launch_config = EMRLaunchFunction(
     failure_topic=failure_topic,
     allowed_cluster_config_overrides={
         'Name': 'Name',
-        'Instances.InstanceGroups.1.InstanceCount': 'CoreInstanceCount'
+        'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount'
     })
 
 launch_config2 = EMRLaunchFunction(
@@ -45,8 +45,8 @@ launch_config2 = EMRLaunchFunction(
     failure_topic=failure_topic,
     allowed_cluster_config_overrides={
         'Name': 'Name',
-        'Instances.InstanceGroups.1.InstanceCount': 'CoreInstanceCount',
-        'Instances.InstanceGroups.1.InstanceType': 'CoreInstanceType'
+        'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
+        'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType'
     })
 
 app.synth()

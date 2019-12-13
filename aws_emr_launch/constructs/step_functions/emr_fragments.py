@@ -126,7 +126,7 @@ class EMRFragments:
             scope, 'Execution Failed',
             cause='Execution failed, check JSON output for more details'
         )
-
+        
         chain = \
             sfn.Task(
                 scope, 'Failure Notification',

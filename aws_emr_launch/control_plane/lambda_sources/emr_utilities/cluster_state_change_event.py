@@ -57,14 +57,14 @@ def handler(event, context):
             LOGGER.info('No {} Parameter found'.format(parameter_name))
             return
 
-        if state in ['WAITING', 'TERMINATED']:
+        if state == 'WAITING':
             success = True
             message = {
                 'ClusterId': cluster_id,
                 'ClusterState': state,
                 'StateChangeReason': state_change_reason
             }
-        elif state == 'TERMINATED_WITH_ERRORS':
+        elif state in ['TERMINATED', 'TERMINATED_WITH_ERRORS']:
             success = False
             message = {
                 'ClusterId': cluster_id,
