@@ -159,5 +159,3 @@ class AddJobFlowSteps(core.Construct):
     @property
     def lambda_function(self) -> aws_lambda.Function:
         return self._lambda_function
-
-

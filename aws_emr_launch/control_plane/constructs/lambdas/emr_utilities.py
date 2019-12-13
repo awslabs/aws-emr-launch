@@ -11,8 +11,6 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from typing import Mapping
-
 from aws_cdk import (
     aws_lambda,
     aws_iam as iam,
