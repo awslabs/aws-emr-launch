@@ -14,15 +14,18 @@
 from typing import Optional, Mapping
 
 from aws_cdk import (
-    aws_lambda,
     aws_sns as sns,
     aws_stepfunctions as sfn,
     aws_stepfunctions_tasks as sfn_tasks,
-    aws_ssm as ssm,
+    aws_lambda as aws_lambda,
     core
 )
 
-from ..lambdas.emr_utilities import *
+from ..lambdas.emr_utilities import (
+    RunJobFlow,
+    FailIfJobRunning,
+    OverrideClusterConfigs
+)
 
 # class SuccessFragment(sfn.StateMachineFragment):
 #     def __init__(self, scope: core.Construct, id: str, *,
@@ -149,8 +152,8 @@ class EMRFragments:
             result_path: str = '$.ClusterConfig') -> sfn.IChainable:
         override_cluster_configs_lambda = \
             OverrideClusterConfigs(scope, 'OverrideClusterConfigs').lambda_function \
-                if override_cluster_configs_lambda is None \
-                else override_cluster_configs_lambda
+            if override_cluster_configs_lambda is None \
+            else override_cluster_configs_lambda
 
         override_cluster_configs_task = sfn.Task(
             scope, 'Override Cluster Configs',

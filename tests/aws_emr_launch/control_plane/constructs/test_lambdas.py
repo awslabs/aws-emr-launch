@@ -23,5 +23,4 @@ def test_emr_lambdas():
     stack = core.Stack(app, 'test-lambdas-stack')
     emr_lambdas_stack = EMRUtilities(stack, 'test-emr-utilities')
 
-    assert emr_lambdas_stack.shared_functions
     assert emr_lambdas_stack.cluster_state_change_event
