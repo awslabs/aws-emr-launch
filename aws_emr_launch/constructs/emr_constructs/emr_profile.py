@@ -112,8 +112,7 @@ class EMRProfile(core.Construct):
         }
         return json.dumps(property_values)
 
-    def _property_values_from_json(self, property_values_json):
-        property_values = json.loads(property_values_json)
+    def _property_values_from_json(self, property_values):
         self._profile_name = property_values['ProfileName']
         self._mutable_instance_role = property_values['MutableInstanceRole']
         self._mutable_security_groups = property_values['MutableSecurityGroups']
@@ -382,11 +381,6 @@ class EMRProfile(core.Construct):
 
     @staticmethod
     def from_stored_profile(scope: core.Construct, id: str, profile_name: str, namespace: str = 'default'):
-        try:
-            profile_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')['Parameter']['Value']
-            profile = EMRProfile(scope, id)
-            return profile._property_values_from_json(profile_json)
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ParameterNotFound':
-                raise EMRProfileNotFoundError()
+        stored_profile = EMRProfile.get_profile(profile_name, namespace)
+        profile = EMRProfile(scope, id)
+        return profile._property_values_from_json(stored_profile)

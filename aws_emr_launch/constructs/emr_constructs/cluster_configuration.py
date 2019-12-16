@@ -164,18 +164,12 @@ class BaseConfiguration(core.Construct):
 
     @staticmethod
     def from_stored_configuration(scope: core.Construct, id: str, cluster_name: str, namespace: str = 'default'):
-        try:
-            configuration_json = boto3.client('ssm', region_name=core.Stack.of(scope).region).get_parameter(
-                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')['Parameter']['Value']
-            stored_config = json.loads(configuration_json)
-            cluster_config = BaseConfiguration(scope, id, cluster_name=cluster_name)
-            cluster_config._profile_components = EMRProfile.from_stored_profile(
-                cluster_config, 'EMRProfile', stored_config['EMRProfile'])
-            cluster_config._config = stored_config['ClusterConfiguration']
-            return cluster_config
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ParameterNotFound':
-                raise ClusterConfigurationNotFoundError()
+        stored_config = BaseConfiguration.get_configuration(cluster_name, namespace)
+        cluster_config = BaseConfiguration(scope, id, cluster_name=cluster_name)
+        cluster_config._profile_components = EMRProfile.from_stored_profile(
+            cluster_config, 'EMRProfile', stored_config['EMRProfile'])
+        cluster_config._config = stored_config['ClusterConfiguration']
+        return cluster_config
 
 
 class InstanceGroupConfiguration(BaseConfiguration):
