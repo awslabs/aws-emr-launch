@@ -25,7 +25,11 @@ from aws_cdk import (
     core
 )
 
-from .emr_fragments import EMRFragments
+from . import (
+    emr_chains,
+    emr_tasks
+)
+
 from ..emr_constructs.cluster_configuration import BaseConfiguration
 
 SSM_PARAMETER_PREFIX = '/emr_launch/emr_launch_functions'
@@ -52,42 +56,44 @@ class EMRLaunchFunction(core.Construct):
 
         self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
 
-        fail = EMRFragments.fail_fragment(
-            self,
+        fail = emr_chains.Fail(
+            self, 'FailChain',
             message=sfn.TaskInput.from_data_at('$.Error'),
             subject='Launch EMR Config Failure',
-            topic=failure_topic)
+            topic=failure_topic).chain
 
-        success = EMRFragments.success_fragment(
-            self,
+        success = emr_chains.Success(
+            self, 'SuccessChain',
             message=sfn.TaskInput.from_data_at('$.Result'),
             subject='Launch EMR Config Succeeded',
-            topic=success_topic)
+            topic=success_topic).chain
 
         # Create Task for overriding cluster configurations
-        override_cluster_configs_task = EMRFragments.override_cluster_configs_task(
-            self, cluster_config=cluster_config.config,
+        override_cluster_configs = emr_tasks.OverrideClusterConfigs(
+            self, 'OverrideClusterConfigsChain',
+            cluster_config=cluster_config.config,
             override_cluster_configs_lambda=override_cluster_configs_lambda,
-            allowed_cluster_config_overrides=allowed_cluster_config_overrides)
+            allowed_cluster_config_overrides=allowed_cluster_config_overrides).task
         # Attach an error catch to the Task
-        override_cluster_configs_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+        override_cluster_configs.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create Task to conditionally fail if a cluster with this name is already
         # running, based on user input
-        fail_if_job_running_task = EMRFragments.fail_if_job_running_task(
-            self, default_fail_if_job_running=default_fail_if_job_running)
+        fail_if_job_running = emr_tasks.FailIfJobRunning(
+            self, 'FailIfJobRunningChain',
+            default_fail_if_job_running=default_fail_if_job_running).task
         # Attach an error catch to the task
-        fail_if_job_running_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+        fail_if_job_running.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task to create the cluster
-        create_cluster_task = EMRFragments.create_cluster_task(self)
+        create_cluster = emr_tasks.CreateCluster(self, 'CreateClusterChain').task
         # Attach an error catch to the Task
-        create_cluster_task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+        create_cluster.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         definition = sfn.Chain \
-            .start(override_cluster_configs_task) \
-            .next(fail_if_job_running_task) \
-            .next(create_cluster_task) \
+            .start(override_cluster_configs) \
+            .next(fail_if_job_running) \
+            .next(create_cluster) \
             .next(success)
 
         self._state_machine = sfn.StateMachine(

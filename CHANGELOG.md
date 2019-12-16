@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.3.1 (unreleased)
 ------------------
 
+- refactored stepfunction chains and tasks
+
 - add_steps cloudwatch rule and lambda
 
 

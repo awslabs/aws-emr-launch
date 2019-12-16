@@ -27,7 +27,8 @@ class ControlPlaneStack(core.Stack):
 
         self._emr_events = EMREvents(
             self, 'EMREvents',
-            cluster_state_change_event=self._emr_utilities.cluster_state_change_event
+            cluster_state_change_event=self._emr_utilities.cluster_state_change_event,
+            step_state_change_event=self._emr_utilities.step_state_change_event
         )
 
     @property

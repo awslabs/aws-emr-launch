@@ -26,7 +26,7 @@ class EMREvents(core.Construct):
                  cluster_state_change_event: aws_lambda.Function,
                  step_state_change_event: aws_lambda.Function) -> None:
         super().__init__(scope, id)
-        self.node.children.append()
+
         self._events = []
         self._events.append(events.Rule(
             self, 'EMRClusterStateChange',
