@@ -27,6 +27,7 @@ setuptools.setup(
         f'aws-cdk.core=={cdk_version}',
         f'aws-cdk-aws.iam=={cdk_version}',
         f'aws-cdk-aws.s3=={cdk_version}',
+        f'aws-cdk-aws.s3.deployment=={cdk_version}',
         f'aws-cdk-aws.kms=={cdk_version}',
         f'aws-cdk-aws.ec2=={cdk_version}',
         f'aws-cdk-aws.emr=={cdk_version}',

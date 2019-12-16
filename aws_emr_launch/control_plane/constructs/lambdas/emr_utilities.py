@@ -50,6 +50,33 @@ class EMRUtilities(core.Construct):
             ]
         )
 
+        self._step_state_change_event = aws_lambda.Function(
+            self,
+            'StepStateChangeEvent',
+            function_name='EMRLaunch_EMRUtilities_StepStateChangeEvent',
+            code=code,
+            handler='step_state_change_event.handler',
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            timeout=core.Duration.minutes(1),
+            initial_policy=[
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=[
+                        'ssm:GetParameter',
+                        'ssm:DeleteParameter',
+                        'states:SendTaskSuccess',
+                        'states:SendTaskHeartbeat',
+                        'states:SendTaskFailure'
+                    ],
+                    resources=['*']
+                )
+            ]
+        )
+
     @property
     def cluster_state_change_event(self) -> aws_lambda.Function:
         return self._cluster_state_change_event
+
+    @property
+    def step_state_change_event(self) -> aws_lambda.Function:
+        return self._step_state_change_event

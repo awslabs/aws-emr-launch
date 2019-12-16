@@ -17,9 +17,21 @@ import logging
 import traceback
 
 emr = boto3.client('emr')
+ssm = boto3.client('ssm')
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
+
+
+PARAMETER_STORE_PREFIX = '/emr_launch/control_plane/task_tokens/emr_utilities/{}/{}'
+
+
+def cluster_state_change_key(cluster_id):
+    return PARAMETER_STORE_PREFIX.format('cluster_state', cluster_id)
+
+
+def step_state_change_key(step_id):
+    return PARAMETER_STORE_PREFIX.format('step_state', step_id)
 
 
 def handler(event, context):
@@ -27,15 +39,21 @@ def handler(event, context):
     try:
         LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
         cluster_id = event.get('ClusterId', None)
-        steps = event['Steps']
+        step = event.get('Step', None)
+        task_token = event.get('TaskToken', None)
 
-        LOGGER.info('Submitting steps {} to cluster {}'.format(json.dumps(steps), cluster_id))
+        LOGGER.info('Submitting Step {} to Cluster {}'.format(json.dumps(step), cluster_id))
         response = emr.add_job_flow_steps(
             JobFlowId=cluster_id,
-            Steps=steps
+            Steps=[step]
         )
 
         LOGGER.info('Got step response {}'.format(json.dumps(response)))
+        step_id = response['StepIds'][0]
+
+        parameter_name = step_state_change_key(step_id)
+        LOGGER.info('Putting TaskToken to Parameter Store: {}'.format(parameter_name))
+        ssm.put_parameter(Name=parameter_name, Type='String', Value=task_token)
     except Exception as e:
         trc = traceback.format_exc()
         s = 'Failed adding steps to cluster {}: {}\n\n{}'.format(cluster_id, str(e), trc)

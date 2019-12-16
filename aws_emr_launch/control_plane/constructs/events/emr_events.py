@@ -23,14 +23,20 @@ from aws_cdk import (
 
 class EMREvents(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
-                 cluster_state_change_event: aws_lambda.Function) -> None:
+                 cluster_state_change_event: aws_lambda.Function,
+                 step_state_change_event: aws_lambda.Function) -> None:
         super().__init__(scope, id)
-
+        self.node.children.append()
         self._events = []
         self._events.append(events.Rule(
             self, 'EMRClusterStateChange',
             event_pattern=events.EventPattern(source=['aws.emr'], detail_type=['EMR Cluster State Change']),
             targets=[targets.LambdaFunction(cluster_state_change_event)]))
+
+        self._events.append(events.Rule(
+            self, 'EMRStepStateChange',
+            event_pattern=events.EventPattern(source=['aws.emr'], detail_type=['EMR Step Status Change']),
+            targets=[targets.LambdaFunction(step_state_change_event)]))
 
     @property
     def events(self) -> List[events.Rule]:

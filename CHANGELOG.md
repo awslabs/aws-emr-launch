@@ -4,7 +4,7 @@ Changelog for emr-launch
 0.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- add_steps cloudwatch rule and lambda
 
 
 0.3.0 (2019-12-12)
