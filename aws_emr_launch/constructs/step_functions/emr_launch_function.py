@@ -100,23 +100,22 @@ class EMRLaunchFunction(core.Construct):
             self, 'StateMachine',
             state_machine_name=launch_function_name, definition=definition)
 
-        if launch_function_name is not None:
-            self._ssm_parameter = ssm.StringParameter(
-                self, 'SSMParameter',
-                string_value=json.dumps({
-                    'LaunchFunctionName': launch_function_name,
-                    'ClusterConfiguration': cluster_config.cluster_name,
-                    'DefaultFailIfJobRunning': default_fail_if_job_running,
-                    'SuccessTopic': success_topic.topic_arn if success_topic is not None else None,
-                    'FailureTopic': failure_topic.topic_arn if failure_topic is not None else None,
-                    'OverrideClusterConfigsLambda':
-                        override_cluster_configs_lambda.function_arn
-                        if override_cluster_configs_lambda is not None
-                        else None,
-                    'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
-                    'StateMachineArn': self._state_machine.state_machine_arn
-                }),
-                parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')
+        self._ssm_parameter = ssm.StringParameter(
+            self, 'SSMParameter',
+            string_value=json.dumps({
+                'LaunchFunctionName': launch_function_name,
+                'ClusterConfiguration': cluster_config.cluster_name,
+                'DefaultFailIfJobRunning': default_fail_if_job_running,
+                'SuccessTopic': success_topic.topic_arn if success_topic is not None else None,
+                'FailureTopic': failure_topic.topic_arn if failure_topic is not None else None,
+                'OverrideClusterConfigsLambda':
+                    override_cluster_configs_lambda.function_arn
+                    if override_cluster_configs_lambda is not None
+                    else None,
+                'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
+                'StateMachineArn': self._state_machine.state_machine_arn
+            }),
+            parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{self._state_machine.state_machine_name}')
 
     @property
     def allowed_cluster_config_overrides(self) -> Mapping[str, str]:
