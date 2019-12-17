@@ -107,5 +107,5 @@ class CreateCluster(core.Construct):
 
 class AddStep(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
-                 name: Optional[str] = None, asset: Optional[s3_assets.Asset] = None, ):
+                 name: Optional[str] = None,):
         super().__init__(scope, id)

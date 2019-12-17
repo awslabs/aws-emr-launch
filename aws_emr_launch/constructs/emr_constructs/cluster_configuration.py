@@ -61,7 +61,7 @@ class BaseConfiguration(core.Construct):
                 profile_components.logs_bucket.bucket_name, cluster_name),
             'ReleaseLabel': release_label,
             'Applications': self._get_applications(applications),
-            'BootstrapActions': [b.bind(self) for b in bootstrap_actions] if bootstrap_actions else [],
+            'BootstrapActions': [b.bind_scope(self) for b in bootstrap_actions] if bootstrap_actions else [],
             'Tags': tags if tags else [],
             'Configurations': self._get_configurations(configurations, use_glue_catalog),
             'JobFlowRole': profile_components.roles.instance_profile_arn,

@@ -32,7 +32,7 @@ class StepFailureAction(enum.Enum):
 
 class Bindable:
     @abstractmethod
-    def bind(self, scope: core.Construct) -> Mapping[str, any]:
+    def bind_scope(self, scope: core.Construct) -> Mapping[str, any]:
         ...
 
 
@@ -62,7 +62,7 @@ class EmrCode(Code):
         self._id = id
         self._bucket_deployment = None
 
-    def bind(self, scope: core.Construct) -> Mapping[str, any]:
+    def bind_scope(self, scope: core.Construct) -> Mapping[str, any]:
         # If the same deployment is used multiple times, retain only the first instantiation
         if self._bucket_deployment is None:
             # Convert BucketDeploymentProps to dict
@@ -76,19 +76,19 @@ class EmrCode(Code):
 
     @property
     def s3_path(self) -> str:
-        return f'{self._deployment_bucket.bucket_name}/{self._deployment_prefix}'
+        return f's3://{self._deployment_bucket.bucket_name}/{self._deployment_prefix}'
 
 
 class EmrBootstrapAction(Bindable):
     def __init__(self, name: str, path: str, args: Optional[List[str]] = None, code: Optional[EmrCode] = None):
         self._name = name
-        self._path = path,
+        self._path = path
         self._args = args
         self._code = code
 
-    def bind(self, scope: core.Construct) -> Mapping[str, any]:
+    def bind_scope(self, scope: core.Construct) -> Mapping[str, any]:
         if self._code is not None:
-            self._code.bind(scope)
+            self._code.bind_scope(scope)
 
         return {
             'Name': self._name,
@@ -111,9 +111,9 @@ class EmrStep(Bindable):
         self._properties = properties
         self._code = code
 
-    def bind(self, scope: core.Construct):
+    def bind_scope(self, scope: core.Construct):
         if self._code is not None:
-            self._code.bind(scope)
+            self._code.bind_scope(scope)
 
         return {
             'Name': self._name,

@@ -41,8 +41,8 @@ class EMRLaunchFunctionNotFoundError(Exception):
 
 class EMRLaunchFunction(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
+                 launch_function_name: str,
                  cluster_config: Optional[BaseConfiguration] = None,
-                 launch_function_name: Optional[str] = None,
                  namespace: str = 'default',
                  default_fail_if_job_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
@@ -115,7 +115,7 @@ class EMRLaunchFunction(core.Construct):
                 'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
                 'StateMachineArn': self._state_machine.state_machine_arn
             }),
-            parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{self._state_machine.state_machine_name}')
+            parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')
 
     @property
     def allowed_cluster_config_overrides(self) -> Mapping[str, str]:
