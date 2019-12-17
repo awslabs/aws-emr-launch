@@ -4,6 +4,10 @@ Changelog for emr-launch
 0.3.1 (unreleased)
 ------------------
 
+- updated example stacks
+
+- improved module imports
+
 - added EmrCode, EmrStep, and EmrBootstrap constructs
 
 - refactored stepfunction chains and tasks
