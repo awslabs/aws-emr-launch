@@ -17,6 +17,7 @@ from aws_cdk import (
     aws_stepfunctions as sfn,
     aws_stepfunctions_tasks as sfn_tasks,
     aws_lambda as aws_lambda,
+    aws_s3_assets as s3_assets,
     core
 )
 
@@ -102,3 +103,9 @@ class CreateCluster(core.Construct):
     @property
     def task(self) -> sfn.Task:
         return self._task
+
+
+class AddStep(core.Construct):
+    def __init__(self, scope: core.Construct, id: str, *,
+                 name: Optional[str] = None, asset: Optional[s3_assets.Asset] = None, ):
+        super().__init__(scope, id)
