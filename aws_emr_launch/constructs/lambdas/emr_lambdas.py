@@ -24,7 +24,7 @@ class FailIfJobRunning(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
-        code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
         self._lambda_function = stack.node.try_find_child('FailIfJobRunning')
@@ -56,7 +56,7 @@ class OverrideClusterConfigs(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
-        code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
         self._layer = stack.node.try_find_child('EMRConfigUtilsLayer')
@@ -65,7 +65,7 @@ class OverrideClusterConfigs(core.Construct):
                 stack,
                 'EMRConfigUtilsLayer',
                 layer_version_name='EMRLaunch_EMRUtilities_EMRConfigUtilsLayer',
-                code=aws_lambda.Code.asset(_lambda_path('layers/emr_config_utils')),
+                code=aws_lambda.Code.from_asset(_lambda_path('layers/emr_config_utils')),
                 compatible_runtimes=[
                     aws_lambda.Runtime.PYTHON_3_7
                 ],
@@ -97,7 +97,7 @@ class RunJobFlow(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
-        code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
         self._lambda_function = stack.node.try_find_child('RunJobFlow')
@@ -131,7 +131,7 @@ class AddJobFlowSteps(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
-        code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
         self._lambda_function = stack.node.try_find_child('AddJobFlowSteps')

@@ -25,7 +25,7 @@ class EMRUtilities(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
-        code = aws_lambda.Code.asset(_lambda_path('emr_utilities'))
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
 
         self._cluster_state_change_event = aws_lambda.Function(
             self,
