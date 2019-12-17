@@ -34,7 +34,7 @@ class ClusterConfigurationNotFoundError(Exception):
     pass
 
 
-class BaseConfiguration(core.Construct):
+class ClusterConfiguration(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_name: str,
@@ -165,15 +165,16 @@ class BaseConfiguration(core.Construct):
 
     @staticmethod
     def from_stored_configuration(scope: core.Construct, id: str, cluster_name: str, namespace: str = 'default'):
-        stored_config = BaseConfiguration.get_configuration(cluster_name, namespace)
-        cluster_config = BaseConfiguration(scope, id, cluster_name=cluster_name)
+        stored_config = ClusterConfiguration.get_configuration(cluster_name, namespace)
+        cluster_config = ClusterConfiguration(scope, id, cluster_name=cluster_name)
+        cluster_config._cluster_name = cluster_name
         cluster_config._profile_components = EMRProfile.from_stored_profile(
             cluster_config, 'EMRProfile', stored_config['EMRProfile'])
         cluster_config._config = stored_config['ClusterConfiguration']
         return cluster_config
 
 
-class InstanceGroupConfiguration(BaseConfiguration):
+class InstanceGroupConfiguration(ClusterConfiguration):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  cluster_name: str,

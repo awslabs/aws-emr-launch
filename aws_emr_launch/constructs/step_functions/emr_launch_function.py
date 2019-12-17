@@ -30,7 +30,7 @@ from . import (
     emr_tasks
 )
 
-from ..emr_constructs.cluster_configuration import BaseConfiguration
+from ..emr_constructs.cluster_configuration import ClusterConfiguration
 
 SSM_PARAMETER_PREFIX = '/emr_launch/emr_launch_functions'
 
@@ -42,7 +42,7 @@ class EMRLaunchFunctionNotFoundError(Exception):
 class EMRLaunchFunction(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  launch_function_name: str,
-                 cluster_config: Optional[BaseConfiguration] = None,
+                 cluster_config: Optional[ClusterConfiguration] = None,
                  namespace: str = 'default',
                  default_fail_if_job_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,

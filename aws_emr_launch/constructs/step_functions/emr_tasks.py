@@ -17,7 +17,6 @@ from aws_cdk import (
     aws_stepfunctions as sfn,
     aws_stepfunctions_tasks as sfn_tasks,
     aws_lambda as aws_lambda,
-    aws_s3_assets as s3_assets,
     core
 )
 
