@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.3.1 (unreleased)
 ------------------
 
+- added EmrCode, EmrStep, and EmrBootstrap constructs
+
 - refactored stepfunction chains and tasks
 
 - add_steps cloudwatch rule and lambda

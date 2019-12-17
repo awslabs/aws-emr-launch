@@ -25,6 +25,7 @@ from aws_cdk import (
 )
 
 from .emr_profile import EMRProfile
+from .emr_code import EmrBootstrapAction
 
 SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
 
@@ -41,7 +42,7 @@ class BaseConfiguration(core.Construct):
                  profile_components: Optional[EMRProfile] = None,
                  release_label: Optional[str] = 'emr-5.28.0',
                  applications: Optional[List[str]] = None,
-                 bootstrap_actions: Optional[List[dict]] = None,
+                 bootstrap_actions: Optional[List[EmrBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
@@ -60,7 +61,7 @@ class BaseConfiguration(core.Construct):
                 profile_components.logs_bucket.bucket_name, cluster_name),
             'ReleaseLabel': release_label,
             'Applications': self._get_applications(applications),
-            'BootstrapActions': bootstrap_actions if bootstrap_actions else [],
+            'BootstrapActions': [b.bind(self) for b in bootstrap_actions] if bootstrap_actions else [],
             'Tags': tags if tags else [],
             'Configurations': self._get_configurations(configurations, use_glue_catalog),
             'JobFlowRole': profile_components.roles.instance_profile_arn,
@@ -186,7 +187,7 @@ class InstanceGroupConfiguration(BaseConfiguration):
                  core_instance_market: Optional[str] = 'ON_DEMAND',
                  core_instance_count: Optional[int] = 2,
                  applications: Optional[List[str]] = None,
-                 bootstrap_actions: Optional[List[dict]] = None,
+                 bootstrap_actions: Optional[List[EmrBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
