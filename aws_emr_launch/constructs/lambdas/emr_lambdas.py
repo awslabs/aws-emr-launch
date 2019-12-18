@@ -59,18 +59,7 @@ class OverrideClusterConfigs(core.Construct):
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        self._layer = stack.node.try_find_child('EMRConfigUtilsLayer')
-        if self._layer is None:
-            self._layer = aws_lambda.LayerVersion(
-                stack,
-                'EMRConfigUtilsLayer',
-                layer_version_name='EMRLaunch_EMRUtilities_EMRConfigUtilsLayer',
-                code=aws_lambda.Code.from_asset(_lambda_path('layers/emr_config_utils')),
-                compatible_runtimes=[
-                    aws_lambda.Runtime.PYTHON_3_7
-                ],
-                description='EMR configuration utility functions'
-            )
+        layer = EmrConfigUtilsLayer(self, 'EmrConfigUtilsLayer')
 
         self._lambda_function = stack.node.try_find_child('OverrideClusterConfigs')
         if self._lambda_function is None:
@@ -81,12 +70,8 @@ class OverrideClusterConfigs(core.Construct):
                 handler='override_cluster_configs.handler',
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
-                layers=[self._layer]
+                layers=[layer.layer]
             )
-
-    @property
-    def layer(self) -> aws_lambda.LayerVersion:
-        return self._layer
 
     @property
     def lambda_function(self) -> aws_lambda.Function:
@@ -100,6 +85,8 @@ class RunJobFlow(core.Construct):
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
+        layer = EmrConfigUtilsLayer(self, 'EmrConfigUtilsLayer')
+
         self._lambda_function = stack.node.try_find_child('RunJobFlow')
         if self._lambda_function is None:
             self._lambda_function = aws_lambda.Function(
@@ -109,6 +96,7 @@ class RunJobFlow(core.Construct):
                 handler='run_job_flow.handler',
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
+                layers=[layer.layer],
                 initial_policy=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
@@ -159,3 +147,28 @@ class AddJobFlowSteps(core.Construct):
     @property
     def lambda_function(self) -> aws_lambda.Function:
         return self._lambda_function
+
+
+class EmrConfigUtilsLayer(core.Construct):
+    def __init__(self, scope: core.Construct, id: str):
+        super().__init__(scope, id)
+
+        code = aws_lambda.Code.from_asset(_lambda_path('layers/emr_config_utils'))
+        stack = core.Stack.of(scope)
+
+        self._layer = stack.node.try_find_child('EMRConfigUtilsLayer')
+        if self._layer is None:
+            self._layer = aws_lambda.LayerVersion(
+                stack,
+                'EMRConfigUtilsLayer',
+                layer_version_name='EMRLaunch_EMRUtilities_EMRConfigUtilsLayer',
+                code=code,
+                compatible_runtimes=[
+                    aws_lambda.Runtime.PYTHON_3_7
+                ],
+                description='EMR configuration utility functions'
+            )
+
+    @property
+    def layer(self) -> aws_lambda.LayerVersion:
+        return self._layer

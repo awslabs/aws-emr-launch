@@ -131,3 +131,5 @@ templates/cdk.out
 # cached word files
 artifacts/~$+*.doc 
 cdk.out
+cdk.context.json
+

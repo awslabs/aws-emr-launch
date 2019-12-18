@@ -22,7 +22,7 @@ subnet = emr_profile.vpc.private_subnets[0]
 bootstrap_code = emr_code.Code.from_path(
     path='./bootstrap_source',
     deployment_bucket=emr_profile.artifacts_bucket,
-    deployment_prefix='bootstrap_source')
+    deployment_prefix='emr_launch_testing/bootstrap_source')
 
 bootstrap = emr_code.EmrBootstrapAction(
     name='bootstrap-1',

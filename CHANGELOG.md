@@ -4,6 +4,10 @@ Changelog for emr-launch
 0.3.1 (unreleased)
 ------------------
 
+- reusable EMRConfigUtilsLayer
+
+- refactor cluster_configuration.cluster_name -> configuration_name
+
 - updated example stacks
 
 - improved module imports
