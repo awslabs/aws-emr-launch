@@ -26,7 +26,7 @@ bootstrap_code = emr_code.Code.from_path(
 
 bootstrap = emr_code.EmrBootstrapAction(
     name='bootstrap-1',
-    path=f'{bootstrap_code.s3_path}/test.sh',
+    path=f'{bootstrap_code.s3_path}/test_bootstrap.sh',
     args=['Arg1', 'Arg2'],
     code=bootstrap_code)
 
@@ -35,6 +35,7 @@ cluster_config = cluster_configuration.InstanceGroupConfiguration(
     configuration_name='test-cluster',
     profile_components=emr_profile,
     subnet=subnet,
-    bootstrap_actions=[bootstrap])
+    bootstrap_actions=[bootstrap],
+    step_concurrency_level=2)
 
 app.synth()

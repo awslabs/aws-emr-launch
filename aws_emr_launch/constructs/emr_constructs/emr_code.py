@@ -105,9 +105,9 @@ class EmrStep(Bindable):
                  properties: Optional[List[Dict]] = None, code: Optional[EmrCode] = None):
         self._name = name
         self._jar = jar
-        self._main_class = main_class,
-        self._args = args,
-        self._action_on_failure = action_on_failure,
+        self._main_class = main_class
+        self._args = args
+        self._action_on_failure = action_on_failure
         self._properties = properties
         self._code = code
 

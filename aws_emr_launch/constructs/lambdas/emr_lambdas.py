@@ -78,6 +78,29 @@ class OverrideClusterConfigs(core.Construct):
         return self._lambda_function
 
 
+class ParseJsonString(core.Construct):
+    def __init__(self, scope: core.Construct, id: str) -> None:
+        super().__init__(scope, id)
+
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
+        stack = core.Stack.of(scope)
+
+        self._lambda_function = stack.node.try_find_child('ParseJsonString')
+        if self._lambda_function is None:
+            self._lambda_function = aws_lambda.Function(
+                stack,
+                'ParseJsonString',
+                code=code,
+                handler='parse_json_string.handler',
+                runtime=aws_lambda.Runtime.PYTHON_3_7,
+                timeout=core.Duration.minutes(1)
+            )
+
+    @property
+    def lambda_function(self) -> aws_lambda.Function:
+        return self._lambda_function
+
+
 class RunJobFlow(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)

@@ -62,12 +62,6 @@ class EMRLaunchFunction(core.Construct):
             subject='Launch EMR Config Failure',
             topic=failure_topic).chain
 
-        success = emr_chains.Success(
-            self, 'SuccessChain',
-            message=sfn.TaskInput.from_data_at('$.Result'),
-            subject='Launch EMR Config Succeeded',
-            topic=success_topic).chain
-
         # Create Task for overriding cluster configurations
         override_cluster_configs = emr_tasks.OverrideClusterConfigs(
             self, 'OverrideClusterConfigsChain',
@@ -86,9 +80,17 @@ class EMRLaunchFunction(core.Construct):
         fail_if_job_running.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task to create the cluster
-        create_cluster = emr_tasks.CreateCluster(self, 'CreateClusterChain').task
+        create_cluster = emr_tasks.CreateCluster(
+            self, 'CreateClusterChain', result_path='$.Result').task
         # Attach an error catch to the Task
         create_cluster.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+
+        success = emr_chains.Success(
+            self, 'SuccessChain',
+            message=sfn.TaskInput.from_data_at('$.Result'),
+            subject='Launch EMR Config Succeeded',
+            topic=success_topic,
+            output_path='$').chain
 
         definition = sfn.Chain \
             .start(override_cluster_configs) \

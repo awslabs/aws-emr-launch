@@ -20,15 +20,18 @@ from aws_cdk import (
     core
 )
 
+from ..lambdas import emr_lambdas
+
 
 class Success(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  message: sfn.TaskInput, subject: Optional[str] = None,
-                 topic: Optional[sns.Topic] = None):
+                 topic: Optional[sns.Topic] = None,
+                 result_path: str = '$.PublishResult', output_path: Optional[str] = None):
         super().__init__(scope, id)
 
         succeed = sfn.Succeed(
-            scope, 'Succeeded'
+            scope, 'Succeeded', output_path=output_path
         )
 
         self._chain = \
@@ -36,7 +39,7 @@ class Success(core.Construct):
                 scope, 'Success Notification',
                 input_path='$',
                 output_path='$',
-                result_path='$.PublishResult',
+                result_path=result_path,
                 task=sfn_tasks.PublishToTopic(
                     topic,
                     message=message,
@@ -53,7 +56,8 @@ class Success(core.Construct):
 class Fail(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  message: sfn.TaskInput, subject: Optional[str] = None,
-                 topic: Optional[sns.Topic] = None):
+                 topic: Optional[sns.Topic] = None,
+                 result_path: str = '$.PublishResult', output_path: str = '$'):
         super().__init__(scope, id)
 
         fail = sfn.Fail(
@@ -65,8 +69,8 @@ class Fail(core.Construct):
             sfn.Task(
                 scope, 'Failure Notification',
                 input_path='$',
-                output_path='$',
-                result_path='$.PublishResult',
+                output_path=output_path,
+                result_path=result_path,
                 task=sfn_tasks.PublishToTopic(
                     topic,
                     message=message,
@@ -74,6 +78,41 @@ class Fail(core.Construct):
                 )
             ) \
             .next(fail) if topic is not None else fail
+
+    @property
+    def chain(self) -> sfn.IChainable:
+        return self._chain
+
+
+class NestedStateMachine(core.Construct):
+    def __init__(self, scope: core.Construct, id: str, name: str, state_machine: sfn.StateMachine,
+                 fail_chain: Optional[sfn.IChainable] = None):
+        super().__init__(scope, id)
+
+        state_machine_task = sfn.Task(
+            scope, name,
+            task=sfn_tasks.StartExecution(
+                state_machine,
+                integration_pattern=sfn.ServiceIntegrationPattern.SYNC),
+            input_path='$')
+
+        parse_json_string = emr_lambdas.ParseJsonString(scope, 'ParseJsonStringLambda').lambda_function
+
+        parse_json_string_task = sfn.Task(
+            scope, 'Parse JSON Output',
+            result_path='$',
+            task=sfn_tasks.InvokeFunction(
+                parse_json_string,
+                payload={
+                    'JsonString': sfn.TaskInput.from_data_at('$.Output').value
+                })
+        )
+
+        if fail_chain:
+            state_machine_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
+            parse_json_string_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
+
+        self._chain = state_machine_task.next(parse_json_string_task)
 
     @property
     def chain(self) -> sfn.IChainable:

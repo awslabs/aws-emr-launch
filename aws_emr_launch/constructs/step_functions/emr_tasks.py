@@ -21,6 +21,7 @@ from aws_cdk import (
 )
 
 from ..lambdas import emr_lambdas
+from ..emr_constructs import emr_code
 
 
 class OverrideClusterConfigs(core.Construct):
@@ -80,14 +81,15 @@ class FailIfJobRunning(core.Construct):
 
 
 class CreateCluster(core.Construct):
-    def __init__(self, scope: core.Construct, id: str, *, result_path: str = '$.Result'):
+    def __init__(self, scope: core.Construct, id: str, *,
+                 result_path: Optional[str] = None, output_path: Optional[str] = None):
         super().__init__(scope, id)
 
         run_job_flow_lambda = emr_lambdas.RunJobFlow(scope, 'RunJobFlowLambda').lambda_function
 
         self._task = sfn.Task(
             scope, 'Start EMR Cluster',
-            output_path='$',
+            output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.RunLambdaTask(
                 run_job_flow_lambda,
@@ -106,5 +108,28 @@ class CreateCluster(core.Construct):
 
 class AddStep(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
-                 name: Optional[str] = None,):
+                 name: str, emr_step: emr_code.EmrStep, cluster_id: str,
+                 result_path: Optional[str] = None, output_path: Optional[str] = None):
         super().__init__(scope, id)
+
+        add_job_flow_step_lambda = emr_lambdas.AddJobFlowSteps(scope, 'AddJobFlowStepsLambda').lambda_function
+
+        self._task = sfn.Task(
+            scope, name,
+            output_path=output_path,
+            result_path=result_path,
+            task=sfn_tasks.RunLambdaTask(
+                add_job_flow_step_lambda,
+                integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
+                payload={
+                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
+                    'ClusterId': cluster_id,
+                    'Step': emr_step.bind_scope(self),
+                    'TaskToken': sfn.Context.task_token
+                }
+            )
+        )
+
+    @property
+    def task(self) -> sfn.Task:
+        return self._task
