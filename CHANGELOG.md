@@ -4,6 +4,10 @@ Changelog for emr-launch
 0.3.1 (unreleased)
 ------------------
 
+- correctly update and store cluster_configuration
+
+- add boto3 to shared lambda layer
+
 - reusable EMRConfigUtilsLayer
 
 - refactor cluster_configuration.cluster_name -> configuration_name

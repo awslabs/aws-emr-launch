@@ -75,18 +75,26 @@ class ClusterConfiguration(core.Construct):
                 'TerminationProtected': False,
                 'KeepJobFlowAliveWhenNoSteps': True
             },
-            # 'StepConcurrencyLevel': step_concurrency_level
+            'StepConcurrencyLevel': step_concurrency_level
         }
         if profile_components.security_configuration_name:
             self._config['SecurityConfiguration'] = profile_components.security_configuration_name
 
-        self._ssm_parameter = ssm.StringParameter(
+        self._ssm_parameter = ssm.CfnParameter(
             self, 'SSMParameter',
-            string_value=json.dumps({
+            type='String',
+            value=json.dumps({
                 'EMRProfile': self._profile_components.profile_name,
                 'ClusterConfiguration': self._config
             }),
-            parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')
+            name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')
+
+    def _update_config(self, new_config):
+        self._config = new_config
+        self._ssm_parameter.value = json.dumps({
+            'EMRProfile': self._profile_components.profile_name,
+            'ClusterConfiguration': self._config
+        })
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -206,8 +214,9 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                          use_glue_catalog=use_glue_catalog,
                          step_concurrency_level=step_concurrency_level)
 
-        self.config['Instances']['Ec2SubnetId'] = subnet.subnet_id
-        self.config['Instances']['InstanceGroups'] = [
+        config = self.config
+        config['Instances']['Ec2SubnetId'] = subnet.subnet_id
+        config['Instances']['InstanceGroups'] = [
             {
                 'Name': 'Master',
                 'InstanceRole': 'MASTER',
@@ -243,3 +252,4 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                 }
             }
         ]
+        self._update_config(config)
