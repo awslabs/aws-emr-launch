@@ -3,7 +3,6 @@
 from aws_cdk import (
     aws_sns as sns,
     aws_stepfunctions as sfn,
-    aws_stepfunctions_tasks as sfn_tasks,
     core
 )
 
@@ -62,7 +61,7 @@ fail = emr_chains.Fail(
 
 launch_cluster = emr_chains.NestedStateMachine(
     stack, 'NestedStateMachine',
-    name='Launch Cluster',
+    name='Launch Cluster StateMachine',
     state_machine=launch_function.state_machine,
     fail_chain=fail).chain
 
@@ -70,7 +69,7 @@ add_step = emr_tasks.AddStep(
     stack, 'AddStep',
     name='Add Step',
     emr_step=emr_step,
-    cluster_id=sfn.TaskInput.from_data_at('$.ClusterId').value,
+    cluster_id=sfn.TaskInput.from_data_at('$.Result.ClusterId').value,
     result_path='$.StepResult').task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
 success = emr_chains.Success(
