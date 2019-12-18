@@ -104,7 +104,7 @@ class EMRLaunchFunction(core.Construct):
             self, 'SSMParameter',
             string_value=json.dumps({
                 'LaunchFunctionName': launch_function_name,
-                'ClusterConfiguration': cluster_config.cluster_name,
+                'ClusterConfiguration': cluster_config.configuration_name,
                 'DefaultFailIfJobRunning': default_fail_if_job_running,
                 'SuccessTopic': success_topic.topic_arn if success_topic is not None else None,
                 'FailureTopic': failure_topic.topic_arn if failure_topic is not None else None,

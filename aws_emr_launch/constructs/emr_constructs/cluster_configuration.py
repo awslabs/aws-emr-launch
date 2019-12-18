@@ -37,7 +37,7 @@ class ClusterConfigurationNotFoundError(Exception):
 class ClusterConfiguration(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, *,
-                 cluster_name: str,
+                 configuration_name: str,
                  namespace: str = 'default',
                  profile_components: Optional[EMRProfile] = None,
                  release_label: Optional[str] = 'emr-5.28.0',
@@ -53,12 +53,12 @@ class ClusterConfiguration(core.Construct):
         if profile_components is None:
             return
 
-        self._cluster_name = cluster_name
+        self._configuration_name = configuration_name
         self._profile_components = profile_components
         self._config = {
-            'Name': cluster_name,
+            'Name': configuration_name,
             'LogUri': 's3://{}/elasticmapreduce/{}'.format(
-                profile_components.logs_bucket.bucket_name, cluster_name),
+                profile_components.logs_bucket.bucket_name, configuration_name),
             'ReleaseLabel': release_label,
             'Applications': self._get_applications(applications),
             'BootstrapActions': [b.bind_scope(self) for b in bootstrap_actions] if bootstrap_actions else [],
@@ -86,7 +86,7 @@ class ClusterConfiguration(core.Construct):
                 'EMRProfile': self._profile_components.profile_name,
                 'ClusterConfiguration': self._config
             }),
-            parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')
+            parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -126,8 +126,8 @@ class ClusterConfiguration(core.Construct):
         return configurations
 
     @property
-    def cluster_name(self) -> str:
-        return self._cluster_name
+    def configuration_name(self) -> str:
+        return self._configuration_name
 
     @property
     def profile_components(self) -> EMRProfile:
@@ -154,20 +154,20 @@ class ClusterConfiguration(core.Construct):
         return configurations
 
     @staticmethod
-    def get_configuration(cluster_name: str, namespace: str = 'default') -> Mapping[str, any]:
+    def get_configuration(configuration_name: str, namespace: str = 'default') -> Mapping[str, any]:
         try:
             configuration_json = boto3.client('ssm').get_parameter(
-                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{cluster_name}')['Parameter']['Value']
+                Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')['Parameter']['Value']
             return json.loads(configuration_json)
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
                 raise ClusterConfigurationNotFoundError()
 
     @staticmethod
-    def from_stored_configuration(scope: core.Construct, id: str, cluster_name: str, namespace: str = 'default'):
-        stored_config = ClusterConfiguration.get_configuration(cluster_name, namespace)
-        cluster_config = ClusterConfiguration(scope, id, cluster_name=cluster_name)
-        cluster_config._cluster_name = cluster_name
+    def from_stored_configuration(scope: core.Construct, id: str, configuration_name: str, namespace: str = 'default'):
+        stored_config = ClusterConfiguration.get_configuration(configuration_name, namespace)
+        cluster_config = ClusterConfiguration(scope, id, configuration_name=configuration_name)
+        cluster_config._configuration_name = configuration_name
         cluster_config._profile_components = EMRProfile.from_stored_profile(
             cluster_config, 'EMRProfile', stored_config['EMRProfile'])
         cluster_config._config = stored_config['ClusterConfiguration']
@@ -177,7 +177,7 @@ class ClusterConfiguration(core.Construct):
 class InstanceGroupConfiguration(ClusterConfiguration):
 
     def __init__(self, scope: core.Construct, id: str, *,
-                 cluster_name: str,
+                 configuration_name: str,
                  profile_components: EMRProfile,
                  subnet: ec2.Subnet,
                  namespace: str = 'default',
@@ -195,7 +195,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                  step_concurrency_level: Optional[int] = 1):
 
         super().__init__(scope, id,
-                         cluster_name=cluster_name,
+                         configuration_name=configuration_name,
                          namespace=namespace,
                          profile_components=profile_components,
                          release_label=release_label,

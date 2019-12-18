@@ -75,7 +75,7 @@ def test_cluster_configurations():
 
     cluster_config = cluster_configuration.InstanceGroupConfiguration(
         stack, 'test-instance-group-config',
-        cluster_name='test-cluster',
+        configuration_name='test-cluster',
         profile_components=emr_components,
         subnet=vpc.private_subnets[0])
 
