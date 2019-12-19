@@ -11,7 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from typing import Optional
+from typing import Optional, Mapping
 
 from aws_cdk import (
     aws_sns as sns,
@@ -31,12 +31,12 @@ class Success(core.Construct):
         super().__init__(scope, id)
 
         succeed = sfn.Succeed(
-            scope, 'Succeeded', output_path=output_path
+            self, 'Succeeded', output_path=output_path
         )
 
         self._chain = \
             sfn.Task(
-                scope, 'Success Notification',
+                self, 'Success Notification',
                 input_path='$',
                 output_path='$',
                 result_path=result_path,
@@ -57,17 +57,18 @@ class Fail(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  message: sfn.TaskInput, subject: Optional[str] = None,
                  topic: Optional[sns.Topic] = None,
-                 result_path: str = '$.PublishResult', output_path: str = '$'):
+                 result_path: str = '$.PublishResult', output_path: str = '$',
+                 cause: Optional[str] = None, comment: Optional[str] = None,
+                 error: Optional[str] = None):
         super().__init__(scope, id)
 
         fail = sfn.Fail(
-            scope, 'Execution Failed',
-            cause='Execution failed, check JSON output for more details'
+            self, 'Execution Failed', cause=cause, comment=comment, error=error
         )
 
         self._chain = \
             sfn.Task(
-                scope, 'Failure Notification',
+                self, 'Failure Notification',
                 input_path='$',
                 output_path=output_path,
                 result_path=result_path,
@@ -86,20 +87,20 @@ class Fail(core.Construct):
 
 class NestedStateMachine(core.Construct):
     def __init__(self, scope: core.Construct, id: str, name: str, state_machine: sfn.StateMachine,
-                 fail_chain: Optional[sfn.IChainable] = None):
+                 input: Optional[Mapping[str, any]] = None, fail_chain: Optional[sfn.IChainable] = None):
         super().__init__(scope, id)
 
         state_machine_task = sfn.Task(
-            scope, name,
+            self, name,
             task=sfn_tasks.StartExecution(
                 state_machine,
-                integration_pattern=sfn.ServiceIntegrationPattern.SYNC),
-            input_path='$')
+                input=input,
+                integration_pattern=sfn.ServiceIntegrationPattern.SYNC))
 
-        parse_json_string = emr_lambdas.ParseJsonString(scope, 'ParseJsonStringLambda').lambda_function
+        parse_json_string = emr_lambdas.ParseJsonString(self, 'ParseJsonStringLambda').lambda_function
 
         parse_json_string_task = sfn.Task(
-            scope, 'Parse JSON Output',
+            self, 'Parse JSON Output',
             result_path='$',
             task=sfn_tasks.InvokeFunction(
                 parse_json_string,

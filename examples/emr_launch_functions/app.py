@@ -63,6 +63,9 @@ launch_cluster = emr_chains.NestedStateMachine(
     stack, 'NestedStateMachine',
     name='Launch Cluster StateMachine',
     state_machine=launch_function.state_machine,
+    input={
+        'LaunchParameters': sfn.TaskInput.from_data_at('$.LaunchParameters').value
+    },
     fail_chain=fail).chain
 
 add_step = emr_tasks.AddStep(

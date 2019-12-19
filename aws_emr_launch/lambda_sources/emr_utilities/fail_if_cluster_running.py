@@ -56,7 +56,9 @@ def handler(event, context):
                     break
 
             if cluster_is_running and fail_if_cluster_running:
-                raise ClusterRunningError(jf_name, cluster_id)
+                raise ClusterRunningError(
+                    f'Found running Cluster with name {cluster_name}. '
+                    f'ClusterId: {cluster_id}. FailIfClusterRunning is {fail_if_cluster_running}')
             else:
                 return event
 
