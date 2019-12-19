@@ -42,7 +42,7 @@ step_code = emr_code.Code.from_path(
     deployment_bucket=cluster_config.profile_components.artifacts_bucket,
     deployment_prefix='emr_launch_testing/step_source')
 
-emr_step = emr_code.EmrStep(
+emr_step = emr_code.EMRStep(
     name='Test Step',
     jar='s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar',
     args=[

@@ -109,7 +109,7 @@ class CreateCluster(core.Construct):
 
 class AddStep(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
-                 name: str, emr_step: emr_code.EmrStep, cluster_id: str,
+                 name: str, emr_step: emr_code.EMRStep, cluster_id: str,
                  result_path: Optional[str] = None, output_path: Optional[str] = None):
         super().__init__(scope, id)
 

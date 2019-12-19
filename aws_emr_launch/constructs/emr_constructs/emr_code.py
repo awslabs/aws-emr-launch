@@ -39,14 +39,14 @@ class Bindable:
 class Code(Bindable):
     @staticmethod
     def from_path(path: str, deployment_bucket: s3.Bucket, deployment_prefix: str):
-        return EmrCode(s3_deployment.BucketDeploymentProps(
+        return EMRCode(s3_deployment.BucketDeploymentProps(
             sources=[s3_deployment.Source.asset(path)],
             destination_bucket=deployment_bucket,
             destination_key_prefix=deployment_prefix))
 
     @staticmethod
     def from_props(deployment_props: s3_deployment.BucketDeploymentProps):
-        return EmrCode(deployment_props)
+        return EMRCode(deployment_props)
 
     @property
     @abstractmethod
@@ -54,7 +54,7 @@ class Code(Bindable):
         ...
 
 
-class EmrCode(Code):
+class EMRCode(Code):
     def __init__(self, deployment_props: s3_deployment.BucketDeploymentProps, id: Optional[str] = None):
         self._deployment_props = deployment_props
         self._deployment_bucket = deployment_props.destination_bucket
@@ -79,8 +79,8 @@ class EmrCode(Code):
         return f's3://{self._deployment_bucket.bucket_name}/{self._deployment_prefix}'
 
 
-class EmrBootstrapAction(Bindable):
-    def __init__(self, name: str, path: str, args: Optional[List[str]] = None, code: Optional[EmrCode] = None):
+class EMRBootstrapAction(Bindable):
+    def __init__(self, name: str, path: str, args: Optional[List[str]] = None, code: Optional[EMRCode] = None):
         self._name = name
         self._path = path
         self._args = args
@@ -99,10 +99,10 @@ class EmrBootstrapAction(Bindable):
         }
 
 
-class EmrStep(Bindable):
+class EMRStep(Bindable):
     def __init__(self, name: str, jar: str, main_class: Optional[str] = None, args: Optional[List[str]] = None,
                  action_on_failure: StepFailureAction = StepFailureAction.CONTINUE,
-                 properties: Optional[List[Dict]] = None, code: Optional[EmrCode] = None):
+                 properties: Optional[List[Dict]] = None, code: Optional[EMRCode] = None):
         self._name = name
         self._jar = jar
         self._main_class = main_class

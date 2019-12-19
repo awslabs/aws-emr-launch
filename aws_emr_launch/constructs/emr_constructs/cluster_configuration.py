@@ -25,7 +25,7 @@ from aws_cdk import (
 )
 
 from .emr_profile import EMRProfile
-from .emr_code import EmrBootstrapAction
+from .emr_code import EMRBootstrapAction
 
 SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
 
@@ -42,7 +42,7 @@ class ClusterConfiguration(core.Construct):
                  profile_components: Optional[EMRProfile] = None,
                  release_label: Optional[str] = 'emr-5.28.0',
                  applications: Optional[List[str]] = None,
-                 bootstrap_actions: Optional[List[EmrBootstrapAction]] = None,
+                 bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
@@ -196,7 +196,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                  core_instance_market: Optional[str] = 'ON_DEMAND',
                  core_instance_count: Optional[int] = 2,
                  applications: Optional[List[str]] = None,
-                 bootstrap_actions: Optional[List[EmrBootstrapAction]] = None,
+                 bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,

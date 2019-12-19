@@ -59,7 +59,7 @@ class OverrideClusterConfigs(core.Construct):
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        layer = EmrConfigUtilsLayer(self, 'EmrConfigUtilsLayer')
+        layer = EMRConfigUtilsLayer(self, 'EmrConfigUtilsLayer')
 
         self._lambda_function = stack.node.try_find_child('OverrideClusterConfigs')
         if self._lambda_function is None:
@@ -108,7 +108,7 @@ class RunJobFlow(core.Construct):
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        layer = EmrConfigUtilsLayer(self, 'EmrConfigUtilsLayer')
+        layer = EMRConfigUtilsLayer(self, 'EmrConfigUtilsLayer')
 
         self._lambda_function = stack.node.try_find_child('RunJobFlow')
         if self._lambda_function is None:
@@ -173,7 +173,7 @@ class AddJobFlowSteps(core.Construct):
         return self._lambda_function
 
 
-class EmrConfigUtilsLayer(core.Construct):
+class EMRConfigUtilsLayer(core.Construct):
     def __init__(self, scope: core.Construct, id: str):
         super().__init__(scope, id)
 

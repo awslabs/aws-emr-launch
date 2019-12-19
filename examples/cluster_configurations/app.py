@@ -24,7 +24,7 @@ bootstrap_code = emr_code.Code.from_path(
     deployment_bucket=emr_profile.artifacts_bucket,
     deployment_prefix='emr_launch_testing/bootstrap_source')
 
-bootstrap = emr_code.EmrBootstrapAction(
+bootstrap = emr_code.EMRBootstrapAction(
     name='bootstrap-1',
     path=f'{bootstrap_code.s3_path}/test_bootstrap.sh',
     args=['Arg1', 'Arg2'],
