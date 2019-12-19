@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.3.1 (unreleased)
+0.4.0 (unreleased)
 ------------------
 
 - refactor FailIfJobRunning, fail_if_job_running -> FailIfClusterRunning, fail_if_cluster_running
