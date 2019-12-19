@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.3.1 (unreleased)
 ------------------
 
+- refactor FailIfJobRunning, fail_if_job_running -> FailIfClusterRunning, fail_if_cluster_running
+
 - correctly update and store cluster_configuration
 
 - add boto3 to shared lambda layer

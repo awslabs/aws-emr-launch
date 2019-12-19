@@ -44,7 +44,7 @@ class EMRLaunchFunction(core.Construct):
                  launch_function_name: str,
                  cluster_config: Optional[ClusterConfiguration] = None,
                  namespace: str = 'default',
-                 default_fail_if_job_running: bool = False,
+                 default_fail_if_cluster_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
                  failure_topic: Optional[sns.Topic] = None,
                  override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
@@ -73,11 +73,11 @@ class EMRLaunchFunction(core.Construct):
 
         # Create Task to conditionally fail if a cluster with this name is already
         # running, based on user input
-        fail_if_job_running = emr_tasks.FailIfJobRunning(
-            self, 'FailIfJobRunningChain',
-            default_fail_if_job_running=default_fail_if_job_running).task
+        fail_if_cluster_running = emr_tasks.FailIfClusterRunning(
+            self, 'FailIfClusterRunningChain',
+            default_fail_if_cluster_running=default_fail_if_cluster_running).task
         # Attach an error catch to the task
-        fail_if_job_running.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+        fail_if_cluster_running.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task to create the cluster
         create_cluster = emr_tasks.CreateCluster(
@@ -94,7 +94,7 @@ class EMRLaunchFunction(core.Construct):
 
         definition = sfn.Chain \
             .start(override_cluster_configs) \
-            .next(fail_if_job_running) \
+            .next(fail_if_cluster_running) \
             .next(create_cluster) \
             .next(success)
 
@@ -107,7 +107,7 @@ class EMRLaunchFunction(core.Construct):
             string_value=json.dumps({
                 'LaunchFunctionName': launch_function_name,
                 'ClusterConfiguration': cluster_config.configuration_name,
-                'DefaultFailIfJobRunning': default_fail_if_job_running,
+                'DefaultFailIfClusterRunning': default_fail_if_cluster_running,
                 'SuccessTopic': success_topic.topic_arn if success_topic is not None else None,
                 'FailureTopic': failure_topic.topic_arn if failure_topic is not None else None,
                 'OverrideClusterConfigsLambda':

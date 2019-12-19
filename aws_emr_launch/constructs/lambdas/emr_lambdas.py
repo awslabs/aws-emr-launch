@@ -20,20 +20,20 @@ from aws_cdk import (
 from . import _lambda_path
 
 
-class FailIfJobRunning(core.Construct):
+class FailIfClusterRunning(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        self._lambda_function = stack.node.try_find_child('FailIfJobRunning')
+        self._lambda_function = stack.node.try_find_child('FailIfClusterRunning')
         if self._lambda_function is None:
             self._lambda_function = aws_lambda.Function(
                 stack,
-                'FailIfJobRunning',
+                'FailIfClusterRunning',
                 code=code,
-                handler='fail_if_job_running.handler',
+                handler='fail_if_cluster_running.handler',
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
                 initial_policy=[
@@ -160,7 +160,8 @@ class AddJobFlowSteps(core.Construct):
                         actions=[
                             'elasticmapreduce:DescribeCluster',
                             'elasticmapreduce:AddTags',
-                            'elasticmapreduce:AddJobFlowSteps'
+                            'elasticmapreduce:AddJobFlowSteps',
+                            'ssm:PutParameter'
                         ],
                         resources=['*']
                     )

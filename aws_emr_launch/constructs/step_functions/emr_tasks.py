@@ -56,21 +56,22 @@ class OverrideClusterConfigs(core.Construct):
         return self._task
 
 
-class FailIfJobRunning(core.Construct):
-    def __init__(self, scope: core.Construct, id: str, *, default_fail_if_job_running: bool):
+class FailIfClusterRunning(core.Construct):
+    def __init__(self, scope: core.Construct, id: str, *, default_fail_if_cluster_running: bool):
         super().__init__(scope, id)
 
-        fail_if_job_running_lambda = emr_lambdas.FailIfJobRunning(scope, 'FailIfJobRunningLambda').lambda_function
+        fail_if_cluster_running_lambda = emr_lambdas.FailIfClusterRunning(
+            scope, 'FailIfClusterRunningLambda').lambda_function
 
         self._task = sfn.Task(
-            scope, 'Fail If Job Running',
+            scope, 'Fail If Cluster Running',
             output_path='$',
             result_path='$',
             task=sfn_tasks.InvokeFunction(
-                fail_if_job_running_lambda,
+                fail_if_cluster_running_lambda,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'DefaultFailIfJobRunning': default_fail_if_job_running,
+                    'DefaultFailIfClusterRunning': default_fail_if_cluster_running,
                     'ClusterConfig': sfn.TaskInput.from_data_at('$.ClusterConfig').value
                 })
         )

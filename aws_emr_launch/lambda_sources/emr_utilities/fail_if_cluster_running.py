@@ -34,16 +34,16 @@ def handler(event, context):
 
     try:
         LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
-        default_fail_if_job_running = parse_bool(event.get('DefaultFailIfJobRunning', False))
+        default_fail_if_cluster_running = parse_bool(event.get('DefaultFailIfClusterRunning', False))
 
-        # This will work for {"JobInput": {"FailIfJobRunning": true}} or {"FailIfJobRunning": true}
-        fail_if_job_running = parse_bool(
-            event.get('ExecutionInput', event).get('FailIfJobRunning', default_fail_if_job_running))
+        # This will work for {"JobInput": {"FailIfClusterRunning": true}} or {"FailIfClusterRunning": true}
+        fail_if_cluster_running = parse_bool(
+            event.get('ExecutionInput', event).get('FailIfClusterRunning', default_fail_if_cluster_running))
 
         # check if job flow already exists
-        if fail_if_job_running:
+        if fail_if_cluster_running:
             cluster_name = event.get('ClusterConfig', {}).get('Name', '')
-            job_is_running = False
+            cluster_is_running = False
             LOGGER.info('Checking if job flow {} is running already'.format(cluster_name))
             response = emr.list_clusters(ClusterStates=['STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING'])
             for job_flow_running in response['Clusters']:
@@ -51,11 +51,11 @@ def handler(event, context):
                 cluster_id = job_flow_running['Id']
                 if jf_name == cluster_name:
                     LOGGER.info('Job flow {} is already running: terminate? {}'
-                                .format(cluster_name, str(fail_if_job_running)))
-                    job_is_running = True
+                                .format(cluster_name, str(fail_if_cluster_running)))
+                    cluster_is_running = True
                     break
 
-            if job_is_running and fail_if_job_running:
+            if cluster_is_running and fail_if_cluster_running:
                 raise ClusterRunningError(jf_name, cluster_id)
             else:
                 return event

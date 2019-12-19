@@ -40,7 +40,7 @@ def handler(event, context):
     LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
     step_id = event['detail']['stepId']
     state = event['detail']['state']
-    message = json.loads(event['detail']['message'])
+    message = event['detail']['message']
 
     parameter_name = step_state_change_key(step_id)
     LOGGER.info('Getting TaskToken from Parameter Store: {}'.format(parameter_name))
