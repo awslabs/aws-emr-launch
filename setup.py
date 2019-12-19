@@ -16,8 +16,11 @@ setuptools.setup(
     description='EMR Launch modules',
     long_description=long_description,
     long_description_content_type='text/markdown',
+    keywords=['aws'],
 
-    author='author',
+    author='chamcca',
+    author_email='chamcca@amazon.com',
+    url='https://code.amazon.com/packages/AWSProServe_project_EMRLaunch/trees/mainline',
 
     package_dir={'aws_emr_launch': 'aws_emr_launch'},
     packages=setuptools.find_packages(),
