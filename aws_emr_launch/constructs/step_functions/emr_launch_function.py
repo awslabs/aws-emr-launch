@@ -59,7 +59,7 @@ class EMRLaunchFunction(core.Construct):
         fail = emr_chains.Fail(
             self, 'FailChain',
             message=sfn.TaskInput.from_data_at('$.Error'),
-            subject='Launch EMR Config Failure',
+            subject='EMR Launch Function Failure',
             topic=failure_topic).chain
 
         # Create Task for overriding cluster configurations
