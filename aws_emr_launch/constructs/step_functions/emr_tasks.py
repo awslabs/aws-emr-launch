@@ -125,7 +125,7 @@ class AddStep(core.Construct):
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
                     'ClusterId': cluster_id,
-                    'Step': emr_step.bind_scope(self),
+                    'Step': emr_step.resolve(self),
                     'TaskToken': sfn.Context.task_token
                 }
             )

@@ -30,13 +30,13 @@ class StepFailureAction(enum.Enum):
     CONTINUE = 'CONTINUE'
 
 
-class Bindable:
+class Resolvable:
     @abstractmethod
-    def bind_scope(self, scope: core.Construct) -> Mapping[str, any]:
+    def resolve(self, scope: core.Construct) -> Mapping[str, any]:
         ...
 
 
-class Code(Bindable):
+class Code(Resolvable):
     @staticmethod
     def from_path(path: str, deployment_bucket: s3.Bucket, deployment_prefix: str):
         return EMRCode(s3_deployment.BucketDeploymentProps(
@@ -62,14 +62,14 @@ class EMRCode(Code):
         self._id = id
         self._bucket_deployment = None
 
-    def bind_scope(self, scope: core.Construct) -> Mapping[str, any]:
+    def resolve(self, scope: core.Construct) -> Mapping[str, any]:
         # If the same deployment is used multiple times, retain only the first instantiation
         if self._bucket_deployment is None:
             # Convert BucketDeploymentProps to dict
             deployment_props = vars(self._deployment_props)['_values']
             self._bucket_deployment = s3_deployment.BucketDeployment(
                 scope,
-                f'BucketDeployment_{self._id}' if self._id else 'BucketDeployment',
+                f'{self._id}_BucketDeployment' if self._id else 'BucketDeployment',
                 **deployment_props)
 
         return {'S3Path': self.s3_path}
@@ -79,16 +79,16 @@ class EMRCode(Code):
         return f's3://{self._deployment_bucket.bucket_name}/{self._deployment_prefix}'
 
 
-class EMRBootstrapAction(Bindable):
+class EMRBootstrapAction(Resolvable):
     def __init__(self, name: str, path: str, args: Optional[List[str]] = None, code: Optional[EMRCode] = None):
         self._name = name
         self._path = path
         self._args = args
         self._code = code
 
-    def bind_scope(self, scope: core.Construct) -> Mapping[str, any]:
+    def resolve(self, scope: core.Construct) -> Mapping[str, any]:
         if self._code is not None:
-            self._code.bind_scope(scope)
+            self._code.resolve(scope)
 
         return {
             'Name': self._name,
@@ -99,7 +99,7 @@ class EMRBootstrapAction(Bindable):
         }
 
 
-class EMRStep(Bindable):
+class EMRStep(Resolvable):
     def __init__(self, name: str, jar: str, main_class: Optional[str] = None, args: Optional[List[str]] = None,
                  action_on_failure: StepFailureAction = StepFailureAction.CONTINUE,
                  properties: Optional[List[Dict]] = None, code: Optional[EMRCode] = None):
@@ -111,9 +111,9 @@ class EMRStep(Bindable):
         self._properties = properties
         self._code = code
 
-    def bind_scope(self, scope: core.Construct):
+    def resolve(self, scope: core.Construct):
         if self._code is not None:
-            self._code.bind_scope(scope)
+            self._code.resolve(scope)
 
         return {
             'Name': self._name,
