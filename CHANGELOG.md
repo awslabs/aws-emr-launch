@@ -4,7 +4,7 @@ Changelog for emr-launch
 0.4.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- simplify EmrStep.properties dict
 
 
 0.4.0 (2019-12-19)

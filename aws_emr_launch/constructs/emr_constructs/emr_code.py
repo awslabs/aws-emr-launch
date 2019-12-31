@@ -102,7 +102,7 @@ class EMRBootstrapAction(Resolvable):
 class EMRStep(Resolvable):
     def __init__(self, name: str, jar: str, main_class: Optional[str] = None, args: Optional[List[str]] = None,
                  action_on_failure: StepFailureAction = StepFailureAction.CONTINUE,
-                 properties: Optional[List[Dict]] = None, code: Optional[EMRCode] = None):
+                 properties: Optional[Dict[str, str]] = None, code: Optional[EMRCode] = None):
         self._name = name
         self._jar = jar
         self._main_class = main_class
@@ -122,6 +122,6 @@ class EMRStep(Resolvable):
                 'Jar': self._jar,
                 'MainClass': self._main_class,
                 'Args': self._args if self._args else [],
-                'Properties': self._properties if self._properties else []
+                'Properties': [{'Key': k, 'Value': v} for k, v in self._properties.items()] if self._properties else []
             }
         }
