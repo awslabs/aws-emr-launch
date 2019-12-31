@@ -72,24 +72,26 @@ class EMRRoles(core.Construct):
 
     @staticmethod
     def _create_service_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
-        role = iam.Role(scope, id, role_name=role_name,
-                        assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
-                        inline_policies={
-                            'emr-artifacts-policy': EMRRoles._emr_artifacts_policy()
-                        },
-                        managed_policies=[
-                            iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonElasticMapReduceRole')
-                        ])
+        role = iam.Role(
+            scope, id, role_name=role_name,
+            assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
+            inline_policies={
+                'emr-artifacts-policy': EMRRoles._emr_artifacts_policy()
+            },
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AmazonElasticMapReduceRole')
+            ])
         return role
 
     @staticmethod
     def _create_autoscaling_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
-        role = iam.Role(scope, id, role_name=role_name,
-                        assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
-                        managed_policies=[
-                            iam.ManagedPolicy.from_aws_managed_policy_name(
-                                'service-role/AmazonElasticMapReduceforAutoScalingRole')
-                        ])
+        role = iam.Role(
+            scope, id, role_name=role_name,
+            assumed_by=iam.ServicePrincipal('elasticmapreduce.amazonaws.com'),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    'service-role/AmazonElasticMapReduceforAutoScalingRole')
+            ])
 
         role.assume_role_policy.add_statements(
             iam.PolicyStatement(
@@ -106,12 +108,13 @@ class EMRRoles(core.Construct):
 
     @staticmethod
     def _create_instance_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
-        role = iam.Role(scope, id,
-                        role_name=role_name,
-                        assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
-                        inline_policies={
-                            'emr-artifacts-policy': EMRRoles._emr_artifacts_policy()
-                        })
+        role = iam.Role(
+            scope, id,
+            role_name=role_name,
+            assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
+            inline_policies={
+                'emr-artifacts-policy': EMRRoles._emr_artifacts_policy()
+            })
         return role
 
     @staticmethod
