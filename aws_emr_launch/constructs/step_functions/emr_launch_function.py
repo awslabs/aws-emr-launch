@@ -117,7 +117,7 @@ class EMRLaunchFunction(core.Construct):
                     if override_cluster_configs_lambda is not None
                     else None,
                 'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
-                'StateMachineArn': self._state_machine.state_machine_arn,
+                'StateMachine': self._state_machine.state_machine_arn,
                 'Description': self._description
             }),
             parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')

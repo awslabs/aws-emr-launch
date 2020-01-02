@@ -15,15 +15,19 @@ from aws_cdk import (
     core
 )
 
-from .lambdas.emr_utilities import EMRUtilities
 from .events.emr_events import EMREvents
+from .lambdas import (
+    emr_utilities,
+    apis
+)
 
 
 class ControlPlaneStack(core.Stack):
     def __init__(self, app: core.App, name: str = 'aws-emr-launch-control-plane', **kwargs):
         super().__init__(app, name, **kwargs)
 
-        self._emr_utilities = EMRUtilities(self, 'EMRUtilities')
+        self._emr_utilities = emr_utilities.EMRUtilities(self, 'EMRUtilities')
+        self._apis = apis.Apis(self, 'Apis')
 
         self._emr_events = EMREvents(
             self, 'EMREvents',
@@ -32,8 +36,12 @@ class ControlPlaneStack(core.Stack):
         )
 
     @property
-    def emr_utilities(self) -> EMRUtilities:
+    def emr_utilities(self) -> emr_utilities.EMRUtilities:
         return self._emr_utilities
+
+    @property
+    def apis(self) -> apis.Apis:
+        return self._apis
 
     @property
     def emr_events(self) -> EMREvents:

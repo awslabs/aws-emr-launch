@@ -18,7 +18,7 @@ from aws_cdk import (
 )
 
 from . import _lambda_path
-from .... import __version__
+from .... import __package__
 
 
 class EMRUtilities(core.Construct):
@@ -32,7 +32,7 @@ class EMRUtilities(core.Construct):
             self,
             'ClusterStateChangeEvent',
             function_name='EMRLaunch_EMRUtilities_ClusterStateChangeEvent',
-            description=f'Version: {__version__}',
+            description=f'Version: {__package__}',
             code=code,
             handler='cluster_state_change_event.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -56,7 +56,7 @@ class EMRUtilities(core.Construct):
             self,
             'StepStateChangeEvent',
             function_name='EMRLaunch_EMRUtilities_StepStateChangeEvent',
-            description=f'Version: {__version__}',
+            description=f'Version: {__package__}',
             code=code,
             handler='step_state_change_event.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
