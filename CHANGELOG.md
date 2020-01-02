@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.4.1 (unreleased)
 ------------------
 
+- added TerminateCluster task
+
 - add Get/List APIs to control_plane
 
 - add desriptions to emr_profiles, cluster_configurations, and emr_launch_functions

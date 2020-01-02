@@ -64,7 +64,7 @@ launch_cluster = emr_chains.NestedStateMachine(
     name='Launch Cluster StateMachine',
     state_machine=launch_function.state_machine,
     input={
-        'LaunchParameters': sfn.TaskInput.from_data_at('$.LaunchParameters').value
+        'ClusterConfigurationOverrides': sfn.TaskInput.from_data_at('$.ClusterConfigurationOverrides').value
     },
     fail_chain=fail).chain
 
@@ -75,6 +75,12 @@ add_step = emr_tasks.AddStep(
     cluster_id=sfn.TaskInput.from_data_at('$.Result.ClusterId').value,
     result_path='$.StepResult').task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
+terminate_cluster = emr_tasks.TerminateCluster(
+    stack, 'TerminateCluster',
+    name='Terminate Cluster',
+    cluster_id=sfn.TaskInput.from_data_at('$.Result.ClusterId').value,
+    result_path='$.TerminateResult').task.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+
 success = emr_chains.Success(
     stack, 'SuccessChain',
     message=sfn.TaskInput.from_data_at('$.StepResult'),
@@ -84,6 +90,7 @@ success = emr_chains.Success(
 definition = sfn.Chain \
     .start(launch_cluster) \
     .next(add_step) \
+    .next(terminate_cluster) \
     .next(success)
 
 state_machine = sfn.StateMachine(

@@ -134,3 +134,28 @@ class AddStep(core.Construct):
     @property
     def task(self) -> sfn.Task:
         return self._task
+
+
+class TerminateCluster(core.Construct):
+    def __init__(self, scope: core.Construct, id: str, *,
+                 name: str, cluster_id: str,result_path: Optional[str] = None, output_path: Optional[str] = None):
+        super().__init__(scope, id)
+
+        terminate_job_flow_lambda = emr_lambdas.TerminateJobFlow(scope, 'TerminateJobFlowLambda').lambda_function
+
+        self._task = sfn.Task(
+            scope, name,
+            output_path=output_path,
+            result_path=result_path,
+            task=sfn_tasks.InvokeFunction(
+                terminate_job_flow_lambda,
+                payload={
+                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
+                    'ClusterId': cluster_id
+                }
+            )
+        )
+
+    @property
+    def task(self) -> sfn.Task:
+        return self._task
