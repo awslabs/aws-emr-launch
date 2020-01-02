@@ -186,7 +186,7 @@ class ClusterConfiguration(core.Construct):
         cluster_config._profile_components = EMRProfile.from_stored_profile(
             cluster_config, 'EMRProfile', stored_config['EMRProfile'])
         cluster_config._config = stored_config['ClusterConfiguration']
-        cluster_config._description = stored_config['Description']
+        cluster_config._description = stored_config.get('Description', None)
         return cluster_config
 
 
