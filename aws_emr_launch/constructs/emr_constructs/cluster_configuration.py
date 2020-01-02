@@ -55,6 +55,7 @@ class ClusterConfiguration(core.Construct):
             return
 
         self._configuration_name = configuration_name
+        self._namespace = namespace
         self._profile_components = profile_components
         self._description = description
         self._config = {
@@ -84,20 +85,22 @@ class ClusterConfiguration(core.Construct):
         self._ssm_parameter = ssm.CfnParameter(
             self, 'SSMParameter',
             type='String',
-            value=json.dumps({
-                'EMRProfile': self._profile_components.profile_name,
-                'Description': self._description,
-                'ClusterConfiguration': self._config
-            }),
+            value=self._property_values_to_json(),
             name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')
+
+    def _property_values_to_json(self):
+        return json.dumps({
+            'ConfigurationName': self._configuration_name,
+            'EMRProfile':
+                f'{self._profile_components.namespace}/{self._profile_components.profile_name}',
+            'Description': self._description,
+            'Namespace': self._namespace,
+            'ClusterConfiguration': self._config
+        })
 
     def _update_config(self, new_config):
         self._config = new_config
-        self._ssm_parameter.value = json.dumps({
-            'EMRProfile': self._profile_components.profile_name,
-            'Description': self._description,
-            'ClusterConfiguration': self._config
-        })
+        self._ssm_parameter.value = self._property_values_to_json()
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -139,6 +142,10 @@ class ClusterConfiguration(core.Construct):
     @property
     def configuration_name(self) -> str:
         return self._configuration_name
+
+    @property
+    def namespace(self) -> str:
+        return self._namespace
 
     @property
     def profile_components(self) -> EMRProfile:
@@ -183,9 +190,13 @@ class ClusterConfiguration(core.Construct):
         stored_config = ClusterConfiguration.get_configuration(configuration_name, namespace)
         cluster_config = ClusterConfiguration(scope, id, configuration_name=configuration_name)
         cluster_config._configuration_name = configuration_name
+        cluster_config._namespace = namespace
+        emr_profile = stored_config['EMRProfile'].split('/')
         cluster_config._profile_components = EMRProfile.from_stored_profile(
-            cluster_config, 'EMRProfile', stored_config['EMRProfile'])
+            cluster_config, 'EMRProfile', emr_profile[1], namespace=emr_profile[0])
+        cluster_config._configuration_name = stored_config['ConfigurationName']
         cluster_config._config = stored_config['ClusterConfiguration']
+        cluster_config._namespace = stored_config['Namespace']
         cluster_config._description = stored_config.get('Description', None)
         return cluster_config
 

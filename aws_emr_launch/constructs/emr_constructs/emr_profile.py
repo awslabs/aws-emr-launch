@@ -58,6 +58,7 @@ class EMRProfile(core.Construct):
             return
 
         self._profile_name = profile_name
+        self._namespace = namespace
         self._mutable_instance_role = mutable_instance_role
         self._mutable_security_groups = mutable_security_groups
         self._vpc = vpc
@@ -89,6 +90,7 @@ class EMRProfile(core.Construct):
     def _property_values_to_json(self):
         property_values = {
             'ProfileName': self._profile_name,
+            'Namespace': self._namespace,
             'Vpc': self._vpc.vpc_id if self._vpc is not None else None,
             'MutableInstanceRole': self._mutable_instance_role,
             'MutableSecurityGroups': self._mutable_security_groups,
@@ -117,6 +119,7 @@ class EMRProfile(core.Construct):
 
     def _property_values_from_json(self, property_values):
         self._profile_name = property_values['ProfileName']
+        self._namespace = property_values['Namespace']
         self._mutable_instance_role = property_values['MutableInstanceRole']
         self._mutable_security_groups = property_values['MutableSecurityGroups']
 
@@ -234,6 +237,10 @@ class EMRProfile(core.Construct):
     @property
     def profile_name(self) -> str:
         return self._profile_name
+
+    @property
+    def namespace(self) -> str:
+        return self._namespace
 
     @property
     def mutable_instance_role(self) -> bool:

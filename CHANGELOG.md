@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.4.1 (unreleased)
 ------------------
 
+- FIX: include namespace when rehydrating saved profiles and configs
+
 - added TerminateCluster task
 
 - add Get/List APIs to control_plane
