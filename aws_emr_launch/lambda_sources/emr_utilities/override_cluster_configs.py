@@ -24,28 +24,41 @@ LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
 
+class InvalidOverrideError(Exception):
+    pass
+
+
 def handler(event, context):
     LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
-    overrides = event.get('ExecutionInput', {}).get('ClusterConfigOverrides', {})
+    # This will work with ClusterConfigurationOverrides or ClusterConfigOverrides
+    overrides = event.get('ExecutionInput', {}).get('ClusterConfigurationOverrides', None)
+    if overrides is None:
+        overrides = event.get('ExecutionInput', {}).get('ClusterConfigOverrides', {})
+
     allowed_overrides = event.get('AllowedClusterConfigOverrides', None)
     cluster_config = event.get('ClusterConfig', {})
 
     try:
         for path, new_value in overrides.items():
             if allowed_overrides:
-                path = allowed_overrides.get(path, None)
-                if path is None:
-                    continue
+                new_path = allowed_overrides.get(path, None)
+                if new_path is None:
+                    raise InvalidOverrideError(f'Value "{path}" is not an allowed cluster configuration override')
+                else:
+                    path = new_path
 
             path_parts = path.split('.')
             update_key = path_parts[-1]
-            path = '.'.join(path_parts[0:-1])
+            key_path = '.'.join(path_parts[0:-1])
 
             update_key = int(update_key) if update_key.isdigit() else update_key
             update_attr = cluster_config \
-                if path == '' else dictor(cluster_config, path)
+                if key_path == '' else dictor(cluster_config, key_path)
 
-            LOGGER.info('Path: "{}" CurrentValue: "{}" NewValue: "{}"'.format(path, update_attr[update_key], new_value))
+            if update_attr is None or update_attr.get(update_key, None) is None:
+                raise InvalidOverrideError(f'The update path "{path}" was not found in the cluster configuration')
+
+            LOGGER.info(f'Path: "{key_path}" CurrentValue: "{update_attr[update_key]}" NewValue: "{new_value}"')
             update_attr[update_key] = new_value
 
         return cluster_config

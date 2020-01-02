@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.4.1 (unreleased)
 ------------------
 
+- Fail if supplied cluster_configuration override is invalid
+
 - add library version to control_plane Lambdas
 
 - simplify EmrStep.properties dict
