@@ -48,13 +48,15 @@ class EMRLaunchFunction(core.Construct):
                  success_topic: Optional[sns.Topic] = None,
                  failure_topic: Optional[sns.Topic] = None,
                  override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
-                 allowed_cluster_config_overrides: Optional[Mapping[str, str]] = None) -> None:
+                 allowed_cluster_config_overrides: Optional[Mapping[str, str]] = None,
+                 description: Optional[str] = None) -> None:
         super().__init__(scope, id)
 
         if cluster_config is None:
             return
 
         self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
+        self._description = description
 
         fail = emr_chains.Fail(
             self, 'FailChain',
@@ -115,7 +117,8 @@ class EMRLaunchFunction(core.Construct):
                     if override_cluster_configs_lambda is not None
                     else None,
                 'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
-                'StateMachineArn': self._state_machine.state_machine_arn
+                'StateMachineArn': self._state_machine.state_machine_arn,
+                'Description': self._description
             }),
             parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')
 
@@ -126,6 +129,10 @@ class EMRLaunchFunction(core.Construct):
     @property
     def state_machine(self) -> sfn.StateMachine:
         return self._state_machine
+
+    @property
+    def description(self) -> str:
+        return self._description
 
     @staticmethod
     def get_functions(namespace: str = 'default', next_token: Optional[str] = None) -> Mapping[str, any]:

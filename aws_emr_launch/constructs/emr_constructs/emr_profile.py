@@ -50,7 +50,8 @@ class EMRProfile(core.Construct):
                  artifacts_bucket: Optional[s3.Bucket] = None,
                  logs_bucket: Optional[s3.Bucket] = None,
                  mutable_instance_role: bool = False,
-                 mutable_security_groups: bool = False) -> None:
+                 mutable_security_groups: bool = False,
+                 description: Optional[str] = None) -> None:
         super().__init__(scope, id)
 
         if not profile_name:
@@ -66,6 +67,7 @@ class EMRProfile(core.Construct):
                                artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
         self._artifacts_bucket = artifacts_bucket
         self._logs_bucket = logs_bucket
+        self._description = description
 
         self._s3_encryption_mode = None
         self._s3_encryption_key = None
@@ -108,7 +110,8 @@ class EMRProfile(core.Construct):
                 self._local_disk_encryption_key.key_arn if self._local_disk_encryption_key else None,
             'EBSEncryption': self._ebs_encryption,
             'TLSCertificateLocation': self._tls_certificate_location,
-            'SecurityConfigurationName': self._security_configuration_name
+            'SecurityConfigurationName': self._security_configuration_name,
+            'Description': self._description
         }
         return json.dumps(property_values)
 
@@ -160,6 +163,7 @@ class EMRProfile(core.Construct):
         self._ebs_encryption = property_values.get('EBSEncryption', None)
         self._tls_certificate_location = property_values.get('TLSCertificateLocation', None)
         self._security_configuration_name = property_values.get('SecurityConfigurationName', None)
+        self._description = property_values.get('Description', None)
         self._rehydrated = True
         return self
 
@@ -282,6 +286,10 @@ class EMRProfile(core.Construct):
     @property
     def security_configuration_name(self) -> str:
         return self._security_configuration_name
+
+    @property
+    def description(self) -> str:
+        return self._description
 
     def set_s3_encryption(self, mode: str, encryption_key: Optional[kms.Key] = None):
         if self._rehydrated:

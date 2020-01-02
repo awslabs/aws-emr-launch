@@ -46,7 +46,8 @@ class ClusterConfiguration(core.Construct):
                  configurations: Optional[List[dict]] = None,
                  tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
-                 step_concurrency_level: Optional[int] = 1):
+                 step_concurrency_level: Optional[int] = 1,
+                 description: Optional[str] = None):
 
         super().__init__(scope, id)
 
@@ -55,6 +56,7 @@ class ClusterConfiguration(core.Construct):
 
         self._configuration_name = configuration_name
         self._profile_components = profile_components
+        self._description = description
         self._config = {
             'Name': configuration_name,
             'LogUri': f's3://{profile_components.logs_bucket.bucket_name}/elasticmapreduce/{configuration_name}',
@@ -84,6 +86,7 @@ class ClusterConfiguration(core.Construct):
             type='String',
             value=json.dumps({
                 'EMRProfile': self._profile_components.profile_name,
+                'Description': self._description,
                 'ClusterConfiguration': self._config
             }),
             name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')
@@ -92,6 +95,7 @@ class ClusterConfiguration(core.Construct):
         self._config = new_config
         self._ssm_parameter.value = json.dumps({
             'EMRProfile': self._profile_components.profile_name,
+            'Description': self._description,
             'ClusterConfiguration': self._config
         })
 
@@ -141,6 +145,10 @@ class ClusterConfiguration(core.Construct):
         return self._profile_components
 
     @property
+    def description(self) -> str:
+        return self._description
+
+    @property
     def config(self) -> dict:
         return self._config
 
@@ -178,6 +186,7 @@ class ClusterConfiguration(core.Construct):
         cluster_config._profile_components = EMRProfile.from_stored_profile(
             cluster_config, 'EMRProfile', stored_config['EMRProfile'])
         cluster_config._config = stored_config['ClusterConfiguration']
+        cluster_config._description = stored_config['Description']
         return cluster_config
 
 

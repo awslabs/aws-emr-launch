@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.4.1 (unreleased)
 ------------------
 
+- add desriptions to emr_profiles, cluster_configurations, and emr_launch_functions
+
 - Fail if supplied cluster_configuration override is invalid
 
 - add library version to control_plane Lambdas
