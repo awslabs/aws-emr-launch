@@ -56,6 +56,32 @@ class OverrideClusterConfigs(core.Construct):
         return self._task
 
 
+class UpdateClusterTags(core.Construct):
+    def __init__(self, scope: core.Construct, id: str, *,
+                 output_path: str = '$',
+                 result_path: str = '$.ClusterConfig'):
+        super().__init__(scope, id)
+
+        update_cluster_tags_lambda = emr_lambdas.UpdateClusterTags(
+            scope, 'UpdateClusterTagsLambda').lambda_function
+
+        self._task = sfn.Task(
+            scope, 'Update Cluster Tags',
+            output_path=output_path,
+            result_path=result_path,
+            task=sfn_tasks.InvokeFunction(
+                update_cluster_tags_lambda,
+                payload={
+                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
+                    'ClusterConfig': sfn.TaskInput.from_data_at('$.ClusterConfig').value
+                })
+        )
+
+    @property
+    def task(self) -> sfn.Task:
+        return self._task
+
+
 class FailIfClusterRunning(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *, default_fail_if_cluster_running: bool):
         super().__init__(scope, id)

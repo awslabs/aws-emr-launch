@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.4.1 (unreleased)
 ------------------
 
+- enable updating of cluster tags at runtime
+
 - FIX: include namespace when rehydrating saved profiles and configs
 
 - added TerminateCluster task

@@ -73,6 +73,12 @@ class EMRLaunchFunction(core.Construct):
         # Attach an error catch to the Task
         override_cluster_configs.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
+        # Create a Task for updating the cluster tags at runtime
+        update_cluster_tags = emr_tasks.UpdateClusterTags(
+            self, 'UpdateClusterTagsChain').task
+        # Attach an error catch to the Task
+        update_cluster_tags.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+
         # Create Task to conditionally fail if a cluster with this name is already
         # running, based on user input
         fail_if_cluster_running = emr_tasks.FailIfClusterRunning(
@@ -96,6 +102,7 @@ class EMRLaunchFunction(core.Construct):
 
         definition = sfn.Chain \
             .start(override_cluster_configs) \
+            .next(update_cluster_tags) \
             .next(fail_if_cluster_running) \
             .next(create_cluster) \
             .next(success)
