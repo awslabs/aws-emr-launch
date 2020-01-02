@@ -138,7 +138,7 @@ class AddStep(core.Construct):
 
 class TerminateCluster(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
-                 name: str, cluster_id: str,result_path: Optional[str] = None, output_path: Optional[str] = None):
+                 name: str, cluster_id: str, result_path: Optional[str] = None, output_path: Optional[str] = None):
         super().__init__(scope, id)
 
         terminate_job_flow_lambda = emr_lambdas.TerminateJobFlow(scope, 'TerminateJobFlowLambda').lambda_function

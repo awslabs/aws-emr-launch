@@ -18,7 +18,7 @@ from aws_cdk import (
 )
 
 from . import _lambda_path
-from .... import __package__
+from aws_emr_launch import __package__
 
 
 class EMRUtilities(core.Construct):
