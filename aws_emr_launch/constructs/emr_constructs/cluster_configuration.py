@@ -57,8 +57,7 @@ class ClusterConfiguration(core.Construct):
         self._profile_components = profile_components
         self._config = {
             'Name': configuration_name,
-            'LogUri': 's3://{}/elasticmapreduce/{}'.format(
-                profile_components.logs_bucket.bucket_name, configuration_name),
+            'LogUri': f's3://{profile_components.logs_bucket.bucket_name}/elasticmapreduce/{configuration_name}',
             'ReleaseLabel': release_label,
             'Applications': self._get_applications(applications),
             'BootstrapActions': [b.resolve(self) for b in bootstrap_actions] if bootstrap_actions else [],

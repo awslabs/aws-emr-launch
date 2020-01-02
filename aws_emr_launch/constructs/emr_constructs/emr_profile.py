@@ -174,7 +174,7 @@ class EMRProfile(core.Construct):
             return
 
         if self._security_configuration is None:
-            name = '{}-SecurityConfiguration'.format(self._profile_name)
+            name = f'{self._profile_name}-SecurityConfiguration'
             self._security_configuration = emr.CfnSecurityConfiguration(
                 self, 'SecurityConfiguration',
                 security_configuration={}, name=name
