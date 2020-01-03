@@ -53,7 +53,12 @@ def handler(event, context):
 
         parameter_name = step_state_change_key(step_id)
         LOGGER.info('Putting TaskToken to Parameter Store: {}'.format(parameter_name))
-        ssm.put_parameter(Name=parameter_name, Type='String', Value=task_token)
+
+        parameter_value = {
+            'TaskToken': task_token
+        }
+
+        ssm.put_parameter(Name=parameter_name, Type='String', Value=json.dumps(parameter_value))
     except Exception as e:
         trc = traceback.format_exc()
         s = 'Failed adding steps to cluster {}: {}\n\n{}'.format(cluster_id, str(e), trc)

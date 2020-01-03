@@ -49,7 +49,13 @@ def handler(event, context):
 
         parameter_name = cluster_state_change_key(cluster_id)
         LOGGER.info('Putting TaskToken to Parameter Store: {}'.format(parameter_name))
-        ssm.put_parameter(Name=parameter_name, Type='String', Value=task_token)
+
+        parameter_value = {
+            'TaskToken': task_token,
+            'TerminationRequested': False
+        }
+
+        ssm.put_parameter(Name=parameter_name, Type='String', Value=json.dumps(parameter_value))
     except Exception as e:
         trc = traceback.format_exc()
         s = 'Failed running flow {}: {}\n\n{}'.format(str(event), str(e), trc)

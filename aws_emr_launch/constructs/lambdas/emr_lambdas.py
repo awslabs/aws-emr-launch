@@ -216,7 +216,8 @@ class TerminateJobFlow(core.Construct):
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
                         actions=[
-                            'elasticmapreduce:TerminateJobFlows'
+                            'elasticmapreduce:TerminateJobFlows',
+                            'ssm:PutParameter'
                         ],
                         resources=['*']
                     )

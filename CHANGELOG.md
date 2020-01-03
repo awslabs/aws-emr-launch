@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.5.0 (unreleased)
 ------------------
 
+- BREAKING: wrap TaskToken message in JSON structure
+
 - BREAKING: refactor ClusterConfiguration.profile_components -> ClusterConfiguration.emr_profile
 
 

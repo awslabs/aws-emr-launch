@@ -45,12 +45,14 @@ def handler(event, context):
     parameter_name = step_state_change_key(step_id)
     LOGGER.info('Getting TaskToken from Parameter Store: {}'.format(parameter_name))
     try:
-        task_token = ssm.get_parameter(Name=parameter_name)['Parameter']['Value']
+        parameter_value = json.loads(ssm.get_parameter(Name=parameter_name)['Parameter']['Value'])
     except ClientError as e:
         if e.response['Error']['Code'] == 'ParameterNotFound':
-            task_token = None
+            parameter_value = None
         else:
             raise e
+
+    task_token = parameter_value.get('TaskToken', None) if parameter_value is not None else None
 
     try:
         if task_token is None:
@@ -72,18 +74,18 @@ def handler(event, context):
                 'Message': message
             }
         else:
-            LOGGER.info('Sending Task Heartbeat, TaskToken: {}, StepState: {}'.format(task_token, state))
+            LOGGER.info(f'Sending Task Heartbeat, TaskToken: {task_token}, StepState: {state}')
             sfn.send_task_heartbeat(taskToken=task_token)
             return
 
-        LOGGER.info('Removing TaskToken Parameter: {}'.format(parameter_name))
+        LOGGER.info(f'Removing TaskToken Parameter: {parameter_name}')
         ssm.delete_parameter(Name=parameter_name)
 
         if success:
-            LOGGER.info('Sending Task Success, TaskToken: {}, Output: {}'.format(task_token, message))
+            LOGGER.info(f'Sending Task Success, TaskToken: {task_token}, Output: {message}')
             sfn.send_task_success(taskToken=task_token, output=json.dumps(message))
         else:
-            LOGGER.info('Sending Task Failure, TaskToken: {}, Output: {}'.format(task_token, message))
+            LOGGER.info(f'Sending Task Failure, TaskToken: {task_token}, Output: {message}')
             sfn.send_task_failure(taskToken=task_token, error='ClusterFailedError', cause=json.dumps(message))
 
     except Exception as e:

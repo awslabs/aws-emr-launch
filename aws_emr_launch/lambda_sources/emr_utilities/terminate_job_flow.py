@@ -22,18 +22,34 @@ ssm = boto3.client('ssm')
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
+PARAMETER_STORE_PREFIX = '/emr_launch/control_plane/task_tokens/emr_utilities/{}/{}'
+
+
+def cluster_state_change_key(cluster_id):
+    return PARAMETER_STORE_PREFIX.format('cluster_state', cluster_id)
+
 
 def handler(event, context):
 
     try:
         LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
         cluster_id = event['ClusterId']
+        task_token = event.get('TaskToken', None)
 
         # Terminate Job FLow
         LOGGER.info('Terminating job flow {}'.format(json.dumps(cluster_id)))
         response = emr.terminate_job_flows(JobFlowIds=[cluster_id])
 
         LOGGER.info('Got job flow response {}'.format(json.dumps(response)))
+        parameter_name = cluster_state_change_key(cluster_id)
+        LOGGER.info('Putting TaskToken to Parameter Store: {}'.format(parameter_name))
+
+        parameter_value = {
+            'TaskToken': task_token,
+            'TerminationRequested': True
+        }
+
+        ssm.put_parameter(Name=parameter_name, Type='String', Value=json.dumps(parameter_value))
     except Exception as e:
         trc = traceback.format_exc()
         s = 'Failed terminating flow {}: {}\n\n{}'.format(str(event), str(e), trc)
