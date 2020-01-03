@@ -39,7 +39,7 @@ launch_function = emr_launch_function.EMRLaunchFunction(
 
 step_code = emr_code.Code.from_path(
     path='./step_source',
-    deployment_bucket=cluster_config.profile_components.artifacts_bucket,
+    deployment_bucket=cluster_config.emr_profile.artifacts_bucket,
     deployment_prefix='emr_launch_testing/step_source')
 
 emr_step = emr_code.EMRStep(

@@ -4,7 +4,7 @@ Changelog for emr-launch
 0.5.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- BREAKING: refactor ClusterConfiguration.profile_components -> ClusterConfiguration.emr_profile
 
 
 0.4.1 (2020-01-03)

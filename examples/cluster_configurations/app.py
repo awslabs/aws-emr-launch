@@ -33,7 +33,7 @@ bootstrap = emr_code.EMRBootstrapAction(
 cluster_config = cluster_configuration.InstanceGroupConfiguration(
     stack, 'ClusterConfiguration',
     configuration_name='test-cluster',
-    profile_components=emr_profile,
+    emr_profile=emr_profile,
     subnet=subnet,
     bootstrap_actions=[bootstrap],
     step_concurrency_level=2)

@@ -76,7 +76,7 @@ def test_cluster_configurations():
     cluster_config = cluster_configuration.InstanceGroupConfiguration(
         stack, 'test-instance-group-config',
         configuration_name='test-cluster',
-        profile_components=emr_components,
+        emr_profile=emr_components,
         subnet=vpc.private_subnets[0])
 
     assert cluster_config.config
