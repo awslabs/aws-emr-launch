@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.4.1 (unreleased)
+0.4.1 (2020-01-03)
 ------------------
 
 - enable updating of cluster tags at runtime
