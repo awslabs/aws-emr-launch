@@ -173,11 +173,13 @@ class TerminateCluster(core.Construct):
             scope, name,
             output_path=output_path,
             result_path=result_path,
-            task=sfn_tasks.InvokeFunction(
+            task=sfn_tasks.RunLambdaTask(
                 terminate_job_flow_lambda,
+                integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'ClusterId': cluster_id
+                    'ClusterId': cluster_id,
+                    'TaskToken': sfn.Context.task_token
                 }
             )
         )

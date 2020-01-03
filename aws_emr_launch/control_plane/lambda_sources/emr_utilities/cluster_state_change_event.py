@@ -59,14 +59,17 @@ def handler(event, context):
             LOGGER.info('No {} Parameter found'.format(parameter_name))
             return
 
-        if state == 'WAITING':
+        expected_state = parameter_value.get('ExpectedState', '')
+
+        if state == 'WAITING' and state == expected_state:
             success = True
         elif state == 'TERMINATED_WITH_ERRORS':
             success = False
         elif state == 'TERMINATED':
-            success = parameter_value.get('TerminationRequested', False)
+            success = state == expected_state
         else:
-            LOGGER.info(f'Sending Task Heartbeat, TaskToken: {task_token}, ClusterState: {state}')
+            LOGGER.info(f'Sending Task Heartbeat, TaskToken: {task_token}, '
+                        f'ClusterState: {state}, ExpectedState: {expected_state}')
             sfn.send_task_heartbeat(taskToken=task_token)
             return
 

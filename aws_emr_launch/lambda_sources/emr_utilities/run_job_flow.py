@@ -52,7 +52,7 @@ def handler(event, context):
 
         parameter_value = {
             'TaskToken': task_token,
-            'TerminationRequested': False
+            'ExpectedState': 'WAITING'
         }
 
         ssm.put_parameter(Name=parameter_name, Type='String', Value=json.dumps(parameter_value))
