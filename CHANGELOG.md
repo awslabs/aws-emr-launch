@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.5.0 (unreleased)
 ------------------
 
+- rehydrate EMRLaunchFunction from stored function
+
 - TerminateCluster task waits for actual termination
 
 - BREAKING: wrap TaskToken message in JSON structure
