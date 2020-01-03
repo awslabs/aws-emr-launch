@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import os
+
 from aws_cdk import (
     aws_sns as sns,
     aws_stepfunctions as sfn,
@@ -17,7 +19,9 @@ from aws_emr_launch.constructs.step_functions import (
 )
 
 app = core.App()
-stack = core.Stack(app, 'EmrLaunchFunctionsStack', env=core.Environment(account='876929970656', region='us-west-2'))
+stack = core.Stack(app, 'EmrLaunchFunctionsStack', env=core.Environment(
+    account=os.environ["CDK_DEFAULT_ACCOUNT"],
+    region=os.environ["CDK_DEFAULT_REGION"]))
 
 success_topic = sns.Topic(stack, 'SuccessTopic')
 failure_topic = sns.Topic(stack, 'FailureTopic')
@@ -28,7 +32,7 @@ cluster_config = cluster_configuration.ClusterConfiguration.from_stored_configur
 launch_function = emr_launch_function.EMRLaunchFunction(
     stack, 'EMRLaunchFunction-1',
     launch_function_name='test-cluster-launch',
-    cluster_config=cluster_config,
+    cluster_configuration=cluster_config,
     success_topic=success_topic,
     failure_topic=failure_topic,
     allowed_cluster_config_overrides={

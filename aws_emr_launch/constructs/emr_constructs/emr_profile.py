@@ -15,6 +15,7 @@ import json
 import boto3
 
 from typing import Mapping
+from enum import Enum
 from botocore.exceptions import ClientError
 
 from typing import Optional, List
@@ -39,6 +40,13 @@ class ReadOnlyEMRProfileError(Exception):
 
 class EMRProfileNotFoundError(Exception):
     pass
+
+
+class S3EncryptionMode(Enum):
+    SSE_S3 = 'SSE-S3'
+    SSE_KMS = 'SSE-KMS'
+    CSE_KMS = 'CSE-KMS'
+    CSE_Custom = 'CSE-Custom'
 
 
 class EMRProfile(core.Construct):
@@ -70,7 +78,7 @@ class EMRProfile(core.Construct):
         self._logs_bucket = logs_bucket
         self._description = description
 
-        self._s3_encryption_mode = None
+        self._s3_encryption_mode = S3EncryptionMode.SSE_S3
         self._s3_encryption_key = None
         self._local_disk_encryption_key = None
         self._ebs_encryption = False
@@ -106,7 +114,7 @@ class EMRProfile(core.Construct):
             },
             'ArtifactsBucket': self._artifacts_bucket.bucket_name if self._artifacts_bucket else None,
             'LogsBucket': self._logs_bucket.bucket_name if self._logs_bucket else None,
-            'S3EncryptionMode': self._s3_encryption_mode,
+            'S3EncryptionMode': self._s3_encryption_mode.name if self._s3_encryption_mode else None,
             'S3EncryptionKey': self._s3_encryption_key.key_arn if self._s3_encryption_key else None,
             'LocalDiskEncryptionKey':
                 self._local_disk_encryption_key.key_arn if self._local_disk_encryption_key else None,
@@ -150,7 +158,10 @@ class EMRProfile(core.Construct):
             if logs_bucket \
             else None
 
-        self._s3_encryption_mode = property_values.get('S3EncryptionMode', None)
+        s3_encryption_mode = property_values.get('S3EncryptionMode', None)
+        self._s3_encryption_mode = S3EncryptionMode[s3_encryption_mode] \
+            if s3_encryption_mode \
+            else None
 
         s3_encryption_key = property_values.get('S3EncryptionKey', None)
         self._s3_encryption_key = kms.Key.from_key_arn(self, 'S3EncryptionKey', s3_encryption_key) \
@@ -213,7 +224,7 @@ class EMRProfile(core.Construct):
 
             if self._s3_encryption_mode:
                 atrest_config['S3EncryptionConfiguration'] = {
-                    'EncryptionMode': self._s3_encryption_mode
+                    'EncryptionMode': self._s3_encryption_mode.value
                 }
                 if self._s3_encryption_key:
                     atrest_config['S3EncryptionConfiguration']['AwsKmsKey'] = self._s3_encryption_key.key_arn
@@ -271,7 +282,7 @@ class EMRProfile(core.Construct):
         return self._roles
 
     @property
-    def s3_encryption_mode(self) -> str:
+    def s3_encryption_mode(self) -> S3EncryptionMode:
         return self._s3_encryption_mode
 
     @property
@@ -298,9 +309,13 @@ class EMRProfile(core.Construct):
     def description(self) -> str:
         return self._description
 
-    def set_s3_encryption(self, mode: str, encryption_key: Optional[kms.Key] = None):
+    def set_s3_encryption(self, mode: Optional[S3EncryptionMode], encryption_key: Optional[kms.Key] = None):
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
+
+        if mode and mode == S3EncryptionMode.CSE_Custom:
+            raise NotImplementedError('Use of CSE-Custom currently requires setting a custom security '
+                                      'configuration with `set_custom_security_configuration()`')
 
         if encryption_key:
             encryption_key.grant_encrypt(self._roles.instance_role)
