@@ -38,6 +38,7 @@ setuptools.setup(
         f'aws-cdk-aws.sqs=={cdk_version}',
         f'aws-cdk-aws.ssm=={cdk_version}',
         f'aws-cdk-aws.lambda=={cdk_version}',
+        f'aws-cdk-aws.lambda-event-sources=={cdk_version}',
         f'aws-cdk-aws.stepfunctions=={cdk_version}',
         f'aws-cdk-aws.stepfunctions-tasks=={cdk_version}',
         f'aws-cdk-aws.events=={cdk_version}',

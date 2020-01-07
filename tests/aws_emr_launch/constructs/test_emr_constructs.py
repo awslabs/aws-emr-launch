@@ -47,7 +47,7 @@ def test_profile_components():
         .authorize_input_buckets([input_bucket]) \
         .authorize_output_buckets([output_bucket]) \
         .authorize_input_keys([input_key]) \
-        .set_s3_encryption('SSE-KMS', s3_key) \
+        .set_s3_encryption(emr_profile.S3EncryptionMode.SSE_KMS, s3_key) \
         .set_local_disk_encryption_key(local_disk_key, ebs_encryption=True) \
         .set_tls_certificate_location('s3://null_bucket/cert')
 

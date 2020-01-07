@@ -127,7 +127,8 @@ class EMRLaunchFunction(core.Construct):
         return json.dumps({
             'LaunchFunctionName': self._launch_function_name,
             'Namespace': self._namespace,
-            'ClusterConfiguration': f'{self._cluster_configuration.namespace}/{self._cluster_configuration.configuration_name}',
+            'ClusterConfiguration':
+                f'{self._cluster_configuration.namespace}/{self._cluster_configuration.configuration_name}',
             'DefaultFailIfClusterRunning': self._default_fail_if_cluster_running,
             'SuccessTopic': self._success_topic.topic_arn if self._success_topic is not None else None,
             'FailureTopic': self._failure_topic.topic_arn if self._failure_topic is not None else None,

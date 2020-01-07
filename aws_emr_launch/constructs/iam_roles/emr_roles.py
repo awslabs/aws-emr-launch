@@ -95,7 +95,6 @@ class EMRRoles(core.Construct):
             ]
         )
 
-
     @staticmethod
     def _create_service_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
         role = iam.Role(
