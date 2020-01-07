@@ -93,6 +93,8 @@ class EMRProfile(core.Construct):
             value=self._property_values_to_json(),
             name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')
 
+        self._construct_security_configuration()
+
         self._rehydrated = False
 
     def _property_values_to_json(self):
@@ -331,6 +333,7 @@ class EMRProfile(core.Construct):
         encryption_key.grant_encrypt_decrypt(self._roles.instance_role)
         if ebs_encryption:
             encryption_key.grant_encrypt_decrypt(self._roles.service_role)
+            encryption_key.grant(self._roles.service_role, 'kms:CreateGrant', 'kms:ListGrants', 'kms:RevokeGrant')
         self._local_disk_encryption_key = encryption_key
         self._ebs_encryption = ebs_encryption
         self._construct_security_configuration()
