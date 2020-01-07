@@ -34,12 +34,12 @@ class OverrideClusterConfigs(core.Construct):
         super().__init__(scope, id)
 
         override_cluster_configs_lambda = \
-            emr_lambdas.OverrideClusterConfigs(scope, 'OverrideClusterConfigsLambda').lambda_function \
+            emr_lambdas.OverrideClusterConfigs(self, 'OverrideClusterConfigsLambda').lambda_function \
             if override_cluster_configs_lambda is None \
             else override_cluster_configs_lambda
 
         self._task = sfn.Task(
-            scope, 'Override Cluster Configs',
+            self, 'Override Cluster Configs',
             output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.InvokeFunction(
@@ -63,10 +63,10 @@ class UpdateClusterTags(core.Construct):
         super().__init__(scope, id)
 
         update_cluster_tags_lambda = emr_lambdas.UpdateClusterTags(
-            scope, 'UpdateClusterTagsLambda').lambda_function
+            self, 'UpdateClusterTagsLambda').lambda_function
 
         self._task = sfn.Task(
-            scope, 'Update Cluster Tags',
+            self, 'Update Cluster Tags',
             output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.InvokeFunction(
@@ -87,10 +87,10 @@ class FailIfClusterRunning(core.Construct):
         super().__init__(scope, id)
 
         fail_if_cluster_running_lambda = emr_lambdas.FailIfClusterRunning(
-            scope, 'FailIfClusterRunningLambda').lambda_function
+            self, 'FailIfClusterRunningLambda').lambda_function
 
         self._task = sfn.Task(
-            scope, 'Fail If Cluster Running',
+            self, 'Fail If Cluster Running',
             output_path='$',
             result_path='$',
             task=sfn_tasks.InvokeFunction(
@@ -112,10 +112,10 @@ class CreateCluster(core.Construct):
                  result_path: Optional[str] = None, output_path: Optional[str] = None):
         super().__init__(scope, id)
 
-        run_job_flow_lambda = emr_lambdas.RunJobFlow(scope, 'RunJobFlowLambda').lambda_function
+        run_job_flow_lambda = emr_lambdas.RunJobFlow(self, 'RunJobFlowLambda').lambda_function
 
         self._task = sfn.Task(
-            scope, 'Start EMR Cluster',
+            self, 'Start EMR Cluster',
             output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.RunLambdaTask(
@@ -139,10 +139,10 @@ class AddStep(core.Construct):
                  result_path: Optional[str] = None, output_path: Optional[str] = None):
         super().__init__(scope, id)
 
-        add_job_flow_step_lambda = emr_lambdas.AddJobFlowSteps(scope, 'AddJobFlowStepsLambda').lambda_function
+        add_job_flow_step_lambda = emr_lambdas.AddJobFlowSteps(self, 'AddJobFlowStepsLambda').lambda_function
 
         self._task = sfn.Task(
-            scope, name,
+            self, name,
             output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.RunLambdaTask(
@@ -167,10 +167,10 @@ class TerminateCluster(core.Construct):
                  name: str, cluster_id: str, result_path: Optional[str] = None, output_path: Optional[str] = None):
         super().__init__(scope, id)
 
-        terminate_job_flow_lambda = emr_lambdas.TerminateJobFlow(scope, 'TerminateJobFlowLambda').lambda_function
+        terminate_job_flow_lambda = emr_lambdas.TerminateJobFlow(self, 'TerminateJobFlowLambda').lambda_function
 
         self._task = sfn.Task(
-            scope, name,
+            self, name,
             output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.RunLambdaTask(

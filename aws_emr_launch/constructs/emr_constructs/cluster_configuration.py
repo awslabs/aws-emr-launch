@@ -79,6 +79,7 @@ class ClusterConfiguration(core.Construct):
             },
             'StepConcurrencyLevel': step_concurrency_level
         }
+
         if emr_profile.security_configuration_name:
             self._config['SecurityConfiguration'] = emr_profile.security_configuration_name
 
