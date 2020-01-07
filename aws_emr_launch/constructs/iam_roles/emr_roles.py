@@ -47,6 +47,31 @@ class EMRRoles(core.Construct):
             logs_bucket.grant_read_write(self._instance_role)
 
     @staticmethod
+    def _glue_catalog_policy(scope: core.Construct) -> iam.PolicyDocument:
+        stack = core.Stack.of(scope)
+        return iam.PolicyDocument(statements=[
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=[
+                    'glue:GetDatabase',
+                    'glue:GetDatabases'
+                ],
+                resources=[
+                    stack.format_arn(
+                        partition=stack.partition,
+                        service='glue',
+                        resource='catalog'
+                    ),
+                    stack.format_arn(
+                        partition=stack.partition,
+                        service='glue',
+                        resource='database/default'
+                    )
+                ]
+            )
+        ])
+
+    @staticmethod
     def _emr_artifacts_policy() -> iam.PolicyDocument:
         return iam.PolicyDocument(
             statements=[
@@ -69,6 +94,7 @@ class EMRRoles(core.Construct):
                 )
             ]
         )
+
 
     @staticmethod
     def _create_service_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
@@ -113,7 +139,8 @@ class EMRRoles(core.Construct):
             role_name=role_name,
             assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'),
             inline_policies={
-                'emr-artifacts-policy': EMRRoles._emr_artifacts_policy()
+                'emr-artifacts-policy': EMRRoles._emr_artifacts_policy(),
+                'glue-catalog-policy': EMRRoles._glue_catalog_policy(scope)
             })
         return role
 
