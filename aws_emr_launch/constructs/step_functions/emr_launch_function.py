@@ -96,13 +96,13 @@ class EMRLaunchFunction(core.Construct):
 
         # Create a Task to create the cluster
         create_cluster = emr_tasks.CreateCluster(
-            self, 'CreateClusterChain', result_path='$.Result').task
+            self, 'CreateClusterChain', result_path='$.LaunchClusterResult').task
         # Attach an error catch to the Task
         create_cluster.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         success = emr_chains.Success(
             self, 'SuccessChain',
-            message=sfn.TaskInput.from_data_at('$.Result'),
+            message=sfn.TaskInput.from_data_at('$.LaunchClusterResult'),
             subject='Launch EMR Config Succeeded',
             topic=success_topic,
             output_path='$').chain
