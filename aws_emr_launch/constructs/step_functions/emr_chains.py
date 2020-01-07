@@ -11,7 +11,9 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from typing import Optional, Mapping
+import jsii
+
+from typing import Optional, Mapping, List
 
 from aws_cdk import (
     aws_sns as sns,
@@ -23,19 +25,19 @@ from aws_cdk import (
 from ..lambdas import emr_lambdas
 
 
-class Success(core.Construct):
+class Success(sfn.StateMachineFragment):
     def __init__(self, scope: core.Construct, id: str, *,
                  message: sfn.TaskInput, subject: Optional[str] = None,
                  topic: Optional[sns.Topic] = None,
                  result_path: str = '$.PublishResult', output_path: Optional[str] = None):
         super().__init__(scope, id)
 
-        succeed = sfn.Succeed(
+        self._end = sfn.Succeed(
             self, 'Succeeded', output_path=output_path
         )
 
-        self._chain = \
-            sfn.Task(
+        if topic is not None:
+            self._start = sfn.Task(
                 self, 'Success Notification',
                 input_path='$',
                 output_path='$',
@@ -45,15 +47,21 @@ class Success(core.Construct):
                     message=message,
                     subject=subject
                 )
-            ) \
-            .next(succeed) if topic is not None else succeed
+            )
+            self._start.next(self._end)
+        else:
+            self._start = self._end
 
     @property
-    def chain(self) -> sfn.IChainable:
-        return self._chain
+    def start_state(self) -> sfn.State:
+        return self._start
+
+    @property
+    def end_states(self) -> List[sfn.INextable]:
+        return self._end.end_states
 
 
-class Fail(core.Construct):
+class Fail(sfn.StateMachineFragment):
     def __init__(self, scope: core.Construct, id: str, *,
                  message: sfn.TaskInput, subject: Optional[str] = None,
                  topic: Optional[sns.Topic] = None,
@@ -62,12 +70,12 @@ class Fail(core.Construct):
                  error: Optional[str] = None):
         super().__init__(scope, id)
 
-        fail = sfn.Fail(
+        self._end = sfn.Fail(
             self, 'Execution Failed', cause=cause, comment=comment, error=error
         )
 
-        self._chain = \
-            sfn.Task(
+        if topic is not None:
+            self._start = sfn.Task(
                 self, 'Failure Notification',
                 input_path='$',
                 output_path=output_path,
@@ -77,15 +85,21 @@ class Fail(core.Construct):
                     message=message,
                     subject=subject
                 )
-            ) \
-            .next(fail) if topic is not None else fail
+            )
+            self._start.next(self._end)
+        else:
+            self._start = self._end
 
     @property
-    def chain(self) -> sfn.IChainable:
-        return self._chain
+    def start_state(self) -> sfn.State:
+        return self._start
+
+    @property
+    def end_states(self) -> List[sfn.INextable]:
+        return self._end.end_states
 
 
-class NestedStateMachine(core.Construct):
+class NestedStateMachine(sfn.StateMachineFragment):
     def __init__(self, scope: core.Construct, id: str, name: str, state_machine: sfn.StateMachine,
                  input: Optional[Mapping[str, any]] = None, fail_chain: Optional[sfn.IChainable] = None):
         super().__init__(scope, id)
@@ -113,8 +127,15 @@ class NestedStateMachine(core.Construct):
             state_machine_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
             parse_json_string_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
 
-        self._chain = state_machine_task.next(parse_json_string_task)
+        state_machine_task.next(parse_json_string_task)
+
+        self._start = state_machine_task
+        self._end = parse_json_string_task
 
     @property
-    def chain(self) -> sfn.IChainable:
-        return self._chain
+    def start_state(self) -> sfn.State:
+        return self._start
+
+    @property
+    def end_states(self) -> List[sfn.INextable]:
+        return self._end.end_states

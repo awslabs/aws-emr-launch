@@ -69,34 +69,34 @@ class EMRLaunchFunction(core.Construct):
             self, 'FailChain',
             message=sfn.TaskInput.from_data_at('$.Error'),
             subject='EMR Launch Function Failure',
-            topic=failure_topic).chain
+            topic=failure_topic)
 
         # Create Task for overriding cluster configurations
-        override_cluster_configs = emr_tasks.OverrideClusterConfigs(
+        override_cluster_configs = emr_tasks.OverrideClusterConfigs.build(
             self, 'OverrideClusterConfigsChain',
             cluster_config=cluster_configuration.config,
             override_cluster_configs_lambda=override_cluster_configs_lambda,
-            allowed_cluster_config_overrides=allowed_cluster_config_overrides).task
+            allowed_cluster_config_overrides=allowed_cluster_config_overrides)
         # Attach an error catch to the Task
         override_cluster_configs.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task for updating the cluster tags at runtime
-        update_cluster_tags = emr_tasks.UpdateClusterTags(
-            self, 'UpdateClusterTagsChain').task
+        update_cluster_tags = emr_tasks.UpdateClusterTags.build(
+            self, 'UpdateClusterTagsChain')
         # Attach an error catch to the Task
         update_cluster_tags.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create Task to conditionally fail if a cluster with this name is already
         # running, based on user input
-        fail_if_cluster_running = emr_tasks.FailIfClusterRunning(
+        fail_if_cluster_running = emr_tasks.FailIfClusterRunning.build(
             self, 'FailIfClusterRunningChain',
-            default_fail_if_cluster_running=default_fail_if_cluster_running).task
+            default_fail_if_cluster_running=default_fail_if_cluster_running)
         # Attach an error catch to the task
         fail_if_cluster_running.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task to create the cluster
-        create_cluster = emr_tasks.CreateCluster(
-            self, 'CreateClusterChain', result_path='$.LaunchClusterResult').task
+        create_cluster = emr_tasks.CreateCluster.build(
+            self, 'CreateClusterChain', result_path='$.LaunchClusterResult')
         # Attach an error catch to the Task
         create_cluster.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
@@ -105,7 +105,7 @@ class EMRLaunchFunction(core.Construct):
             message=sfn.TaskInput.from_data_at('$.LaunchClusterResult'),
             subject='Launch EMR Config Succeeded',
             topic=success_topic,
-            output_path='$').chain
+            output_path='$')
 
         definition = sfn.Chain \
             .start(override_cluster_configs) \

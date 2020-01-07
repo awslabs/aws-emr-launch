@@ -43,7 +43,7 @@ fail = emr_chains.Fail(
     stack, 'FailChain',
     message=sfn.TaskInput.from_data_at('$.Error'),
     subject='Pipeline Failure',
-    topic=failure_topic).chain
+    topic=failure_topic)
 
 # Create a Parallel Task for the Phase 1 Steps
 phase_1 = sfn.Parallel(stack, 'Phase1', result_path='$.Result.Phase1')
@@ -66,11 +66,11 @@ for i in range(5):
         code=step_code
     )
     # Define an AddStep Task for Each Step
-    step_task = emr_tasks.AddStep(
+    step_task = emr_tasks.AddStep.build(
         stack, f'Phase1Step{i}',
         name=f'Phase 1 - Step {i}',
         emr_step=emr_step,
-        cluster_id=sfn.TaskInput.from_data_at('$.ClusterId').value).task
+        cluster_id=sfn.TaskInput.from_data_at('$.ClusterId').value)
     phase_1.branch(step_task)
 
 
@@ -99,11 +99,11 @@ for i in range(5):
         code=step_code
     )
     # Define an AddStep Task for Each Step
-    step_task = emr_tasks.AddStep(
+    step_task = emr_tasks.AddStep.build(
         stack, f'Phase2Step{i}',
         name=f'Phase 2 - Step {i}',
         emr_step=emr_step,
-        cluster_id=sfn.TaskInput.from_data_at('$.ClusterId').value).task
+        cluster_id=sfn.TaskInput.from_data_at('$.ClusterId').value)
     phase_2.branch(step_task)
 
 # A Chain for Success notification when the pipeline completes
@@ -111,7 +111,7 @@ success = emr_chains.Success(
     stack, 'SuccessChain',
     message=sfn.TaskInput.from_data_at('$.Result'),
     subject='Pipeline Succeeded',
-    topic=success_topic).chain
+    topic=success_topic)
 
 # Assemble the Pipeline
 definition = sfn.Chain \
