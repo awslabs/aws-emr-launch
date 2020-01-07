@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import os
+
+from aws_cdk import (
+    aws_sns as sns,
+    aws_stepfunctions as sfn,
+    core
+)
+
+from aws_emr_launch.constructs.emr_constructs import (
+    cluster_configuration,
+    emr_code
+)
+from aws_emr_launch.constructs.step_functions import (
+    emr_launch_function,
+    emr_chains,
+    emr_tasks
+)
+
+app = core.App()
+stack = core.Stack(app, 'EmrLaunchFunctionStack', env=core.Environment(
+    account=os.environ["CDK_DEFAULT_ACCOUNT"],
+    region=os.environ["CDK_DEFAULT_REGION"]))
+
+# Create SNS Topics to send Success/Failure updates when the Cluster is Launched
+success_topic = sns.Topic(stack, 'SuccessTopic')
+failure_topic = sns.Topic(stack, 'FailureTopic')
+
+# Load our Basic Cluster Configuration created in the cluster_configurations example
+cluster_config = cluster_configuration.ClusterConfiguration.from_stored_configuration(
+    stack, 'ClusterConfiguration', 'basic-instance-group-cluster')
+
+# Create a new State Machine to launch a cluster with the Basic configuration
+# Allow the Name, Instances.InstanceGroups.1.InstanceCount, and
+# Instances.InstanceGroups.1.InstanceType to be overwritten at runtime and assign
+# simple names to them. Unless specifically indicated, fail to start if a cluster
+# of the same name is already running.
+launch_function = emr_launch_function.EMRLaunchFunction(
+    stack, 'EMRLaunchFunction',
+    launch_function_name='launch-basic-cluster',
+    cluster_configuration=cluster_config,
+    success_topic=success_topic,
+    failure_topic=failure_topic,
+    default_fail_if_cluster_running=True,
+    allowed_cluster_config_overrides={
+        'Name': 'Name',
+        'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
+        'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType'
+    })
+
+app.synth()
