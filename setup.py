@@ -6,8 +6,8 @@ with open('VERSION', 'r') as version_file:
 with open('README.md') as fp:
     long_description = fp.read()
 
-boto3_version = '1.10.17'
-cdk_version = '1.19.0'
+boto3_version = '==1.10.17'
+cdk_version = '>=1.19.0'
 
 setuptools.setup(
     name='aws-emr-launch',
@@ -26,23 +26,23 @@ setuptools.setup(
     packages=setuptools.find_packages(),
 
     install_requires=[
-        f'boto3=={boto3_version}',
-        f'aws-cdk.core=={cdk_version}',
-        f'aws-cdk-aws.iam=={cdk_version}',
-        f'aws-cdk-aws.s3=={cdk_version}',
-        f'aws-cdk-aws.s3.deployment=={cdk_version}',
-        f'aws-cdk-aws.kms=={cdk_version}',
-        f'aws-cdk-aws.ec2=={cdk_version}',
-        f'aws-cdk-aws.emr=={cdk_version}',
-        f'aws-cdk-aws.sns=={cdk_version}',
-        f'aws-cdk-aws.sqs=={cdk_version}',
-        f'aws-cdk-aws.ssm=={cdk_version}',
-        f'aws-cdk-aws.lambda=={cdk_version}',
+        f'boto3{boto3_version}',
+        f'aws-cdk.core{cdk_version}',
+        f'aws-cdk-aws.iam{cdk_version}',
+        f'aws-cdk-aws.s3{cdk_version}',
+        f'aws-cdk-aws.s3.deployment{cdk_version}',
+        f'aws-cdk-aws.kms{cdk_version}',
+        f'aws-cdk-aws.ec2{cdk_version}',
+        f'aws-cdk-aws.emr{cdk_version}',
+        f'aws-cdk-aws.sns{cdk_version}',
+        f'aws-cdk-aws.sqs{cdk_version}',
+        f'aws-cdk-aws.ssm{cdk_version}',
+        f'aws-cdk-aws.lambda{cdk_version}',
         f'aws-cdk-aws.lambda-event-sources=={cdk_version}',
-        f'aws-cdk-aws.stepfunctions=={cdk_version}',
-        f'aws-cdk-aws.stepfunctions-tasks=={cdk_version}',
-        f'aws-cdk-aws.events=={cdk_version}',
-        f'aws-cdk-aws.events-targets=={cdk_version}'
+        f'aws-cdk-aws.stepfunctions{cdk_version}',
+        f'aws-cdk-aws.stepfunctions-tasks{cdk_version}',
+        f'aws-cdk-aws.events{cdk_version}',
+        f'aws-cdk-aws.events-targets{cdk_version}'
     ],
 
     include_package_data=True,
