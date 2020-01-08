@@ -52,6 +52,38 @@ class FailIfClusterRunning(core.Construct):
         return self._lambda_function
 
 
+class LoadClusterConfiguration(core.Construct):
+    def __init__(self, scope: core.Construct, id: str) -> None:
+        super().__init__(scope, id)
+
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
+        stack = core.Stack.of(scope)
+
+        self._lambda_function = stack.node.try_find_child('LoadClusterConfiguration')
+        if self._lambda_function is None:
+            self._lambda_function = aws_lambda.Function(
+                stack,
+                'LoadClusterConfiguration',
+                code=code,
+                handler='load_cluster_configuration.handler',
+                runtime=aws_lambda.Runtime.PYTHON_3_7,
+                timeout=core.Duration.minutes(1),
+                initial_policy=[
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=[
+                            'ssm:GetParameter'
+                        ],
+                        resources=['*']
+                    )
+                ]
+            )
+
+    @property
+    def lambda_function(self) -> aws_lambda.Function:
+        return self._lambda_function
+
+
 class OverrideClusterConfigs(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)

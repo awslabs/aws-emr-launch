@@ -24,6 +24,31 @@ from ..lambdas import emr_lambdas
 from ..emr_constructs import emr_code
 
 
+class LoadClusterConfiguration:
+    @staticmethod
+    def build(scope: core.Construct, id: str, *,
+              namepspace: str,
+              cluster_configuration_name: str,
+              output_path: str = '$',
+              result_path: str = '$.ClusterConfig') -> sfn.Task:
+        construct = core.Construct(scope, id)
+
+        load_cluster_configuration_lambda = emr_lambdas.LoadClusterConfiguration(
+            construct, 'LoadClusterConfigurationLambda').lambda_function
+
+        return sfn.Task(
+            construct, 'Load Cluster Configuration',
+            output_path=output_path,
+            result_path=result_path,
+            task=sfn_tasks.InvokeFunction(
+                load_cluster_configuration_lambda,
+                payload={
+                    'Namespace': namepspace,
+                    'ConfigurationName': cluster_configuration_name,
+                })
+        )
+
+
 class OverrideClusterConfigs:
     @staticmethod
     def build(scope: core.Construct, id: str, *,

@@ -27,6 +27,8 @@ PROFILES_SSM_PARAMETER_PREFIX = '/emr_launch/emr_profiles'
 CONFIGURATIONS_SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
 FUNCTIONS_SSM_PARAMETER_PREFIX = '/emr_launch/emr_launch_functions'
 
+ssm = boto3.client('ssm')
+
 
 class EMRProfileNotFoundError(Exception):
     pass
@@ -47,7 +49,7 @@ def _get_parameter_values(ssm_parameter_prefix: str, top_level_return: str, name
     }
     if next_token:
         params['NextToken'] = next_token
-    result = boto3.client('ssm').get_parameters_by_path(**params)
+    result = ssm.get_parameters_by_path(**params)
 
     return_val = {
         top_level_return: [json.loads(p['Value']) for p in result['Parameters']]
@@ -58,7 +60,7 @@ def _get_parameter_values(ssm_parameter_prefix: str, top_level_return: str, name
 
 
 def _get_parameter_value(ssm_parameter_prefix: str, name: str, namespace: str = 'default') -> Mapping[str, any]:
-    configuration_json = boto3.client('ssm').get_parameter(
+    configuration_json = ssm.get_parameter(
         Name=f'{ssm_parameter_prefix}/{namespace}/{name}')['Parameter']['Value']
     return json.loads(configuration_json)
 
@@ -129,7 +131,7 @@ def get_configuration_handler(event, context):
     except ClientError as e:
         if e.response['Error']['Code'] == 'ParameterNotFound':
             LOGGER.error(f'ConfigurationNotFound: {namespace}/{configuration_name}')
-            raise EMRProfileNotFoundError(f'ConfigurationNotFound: {namespace}/{configuration_name}')
+            raise ClusterConfigurationNotFoundError(f'ConfigurationNotFound: {namespace}/{configuration_name}')
         else:
             trc = traceback.format_exc()
             s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
@@ -169,7 +171,7 @@ def get_function_handler(event, context):
     except ClientError as e:
         if e.response['Error']['Code'] == 'ParameterNotFound':
             LOGGER.error(f'FunctionNotFound: {namespace}/{function_name}')
-            raise EMRProfileNotFoundError(f'FunctionNotFound: {namespace}/{function_name}')
+            raise EMRLaunchFunctionNotFoundError(f'FunctionNotFound: {namespace}/{function_name}')
         else:
             trc = traceback.format_exc()
             s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
