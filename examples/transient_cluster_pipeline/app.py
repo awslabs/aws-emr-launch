@@ -146,4 +146,6 @@ state_machine = sfn.StateMachine(
     stack, 'TransientPipeline',
     state_machine_name='transient-multi-phase-pipeline', definition=definition)
 
+core.CfnOutput(stack, 'SuccessTopicArn', value=success_topic.topic_arn, export_name='TransientPipeline-SuccessTopicArn')
+
 app.synth()

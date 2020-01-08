@@ -139,11 +139,7 @@ sns_lambda = aws_lambda.Function(
         sources.SnsEventSource(
             sns.Topic.from_topic_arn(
                 stack, 'TransientPipelineSuccessTopic',
-                    stack.format_arn(
-                        partition=stack.partition,
-                        service='sns',
-                        resource='TransientPipelineStack-SuccessTopic495EEDDD-1UAOQ2IDOXPXZ'
-                    )))
+                    core.Fn.import_value('TransientPipeline-SuccessTopicArn')))
     ]
 )
 
