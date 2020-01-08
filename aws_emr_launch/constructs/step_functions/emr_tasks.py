@@ -22,9 +22,10 @@ from aws_cdk import (
 
 from ..lambdas import emr_lambdas
 from ..emr_constructs import emr_code
+from ..iam_roles import emr_roles
 
 
-class LoadClusterConfiguration:
+class LoadClusterConfigurationBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
               namepspace: str,
@@ -33,8 +34,7 @@ class LoadClusterConfiguration:
               result_path: str = '$.ClusterConfig') -> sfn.Task:
         construct = core.Construct(scope, id)
 
-        load_cluster_configuration_lambda = emr_lambdas.LoadClusterConfiguration(
-            construct, 'LoadClusterConfigurationLambda').lambda_function
+        load_cluster_configuration_lambda = emr_lambdas.LoadClusterConfigurationBuilder.get_or_build(construct)
 
         return sfn.Task(
             construct, 'Load Cluster Configuration',
@@ -49,7 +49,7 @@ class LoadClusterConfiguration:
         )
 
 
-class OverrideClusterConfigs:
+class OverrideClusterConfigsBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
               cluster_config: dict,
@@ -60,7 +60,7 @@ class OverrideClusterConfigs:
         construct = core.Construct(scope, id)
 
         override_cluster_configs_lambda = \
-            emr_lambdas.OverrideClusterConfigs(construct, 'OverrideClusterConfigsLambda').lambda_function \
+            emr_lambdas.OverrideClusterConfigsBuilder.get_or_build(construct) \
             if override_cluster_configs_lambda is None \
             else override_cluster_configs_lambda
 
@@ -78,15 +78,14 @@ class OverrideClusterConfigs:
         )
 
 
-class UpdateClusterTags:
+class UpdateClusterTagsBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
               output_path: str = '$',
               result_path: str = '$.ClusterConfig') -> sfn.Task:
         construct = core.Construct(scope, id)
 
-        update_cluster_tags_lambda = emr_lambdas.UpdateClusterTags(
-            construct, 'UpdateClusterTagsLambda').lambda_function
+        update_cluster_tags_lambda = emr_lambdas.UpdateClusterTagsBuilder.get_or_build(construct)
 
         return sfn.Task(
             construct, 'Update Cluster Tags',
@@ -101,13 +100,12 @@ class UpdateClusterTags:
         )
 
 
-class FailIfClusterRunning:
+class FailIfClusterRunningBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *, default_fail_if_cluster_running: bool) -> sfn.Task:
         construct = core.Construct(scope, id)
 
-        fail_if_cluster_running_lambda = emr_lambdas.FailIfClusterRunning(
-            construct, 'FailIfClusterRunningLambda').lambda_function
+        fail_if_cluster_running_lambda = emr_lambdas.FailIfClusterRunningBuilder.get_or_build(construct)
 
         return sfn.Task(
             construct, 'Fail If Cluster Running',
@@ -123,13 +121,13 @@ class FailIfClusterRunning:
         )
 
 
-class CreateCluster:
+class CreateClusterBuilder:
     @staticmethod
-    def build(scope: core.Construct, id: str, *,
+    def build(scope: core.Construct, id: str, *, roles: emr_roles.EMRRoles,
               result_path: Optional[str] = None, output_path: Optional[str] = None) -> sfn.Task:
         construct = core.Construct(scope, id)
 
-        run_job_flow_lambda = emr_lambdas.RunJobFlow(construct, 'RunJobFlowLambda').lambda_function
+        run_job_flow_lambda = emr_lambdas.RunJobFlowBuilder.get_or_build(construct, roles)
 
         return sfn.Task(
             construct, 'Start EMR Cluster',
@@ -146,14 +144,14 @@ class CreateCluster:
         )
 
 
-class AddStep:
+class AddStepBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
               name: str, emr_step: emr_code.EMRStep, cluster_id: str,
               result_path: Optional[str] = None, output_path: Optional[str] = None) -> sfn.Task:
         construct = core.Construct(scope, id)
 
-        add_job_flow_step_lambda = emr_lambdas.AddJobFlowSteps(construct, 'AddJobFlowStepsLambda').lambda_function
+        add_job_flow_step_lambda = emr_lambdas.AddJobFlowStepBuilder.get_or_build(construct)
 
         return sfn.Task(
             construct, name,
@@ -172,14 +170,14 @@ class AddStep:
         )
 
 
-class TerminateCluster:
+class TerminateClusterBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
               name: str, cluster_id: str, result_path: Optional[str] = None,
               output_path: Optional[str] = None) -> sfn.Task:
         construct = core.Construct(scope, id)
 
-        terminate_job_flow_lambda = emr_lambdas.TerminateJobFlow(construct, 'TerminateJobFlowLambda').lambda_function
+        terminate_job_flow_lambda = emr_lambdas.TerminateJobFlowBuilder.get_or_build(construct)
 
         return sfn.Task(
             construct, name,

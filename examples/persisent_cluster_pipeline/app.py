@@ -66,7 +66,7 @@ for i in range(5):
         code=step_code
     )
     # Define an AddStep Task for Each Step
-    step_task = emr_tasks.AddStep.build(
+    step_task = emr_tasks.AddStepBuilder.build(
         stack, f'Phase1Step{i}',
         name=f'Phase 1 - Step {i}',
         emr_step=emr_step,
@@ -99,7 +99,7 @@ for i in range(5):
         code=step_code
     )
     # Define an AddStep Task for Each Step
-    step_task = emr_tasks.AddStep.build(
+    step_task = emr_tasks.AddStepBuilder.build(
         stack, f'Phase2Step{i}',
         name=f'Phase 2 - Step {i}',
         emr_step=emr_step,

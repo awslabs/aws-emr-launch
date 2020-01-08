@@ -18,18 +18,18 @@ from aws_cdk import (
 )
 
 from . import _lambda_path
+from ..iam_roles import emr_roles
 
 
-class FailIfClusterRunning(core.Construct):
-    def __init__(self, scope: core.Construct, id: str) -> None:
-        super().__init__(scope, id)
-
+class FailIfClusterRunningBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        self._lambda_function = stack.node.try_find_child('FailIfClusterRunning')
-        if self._lambda_function is None:
-            self._lambda_function = aws_lambda.Function(
+        lambda_function = stack.node.try_find_child('FailIfClusterRunning')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
                 stack,
                 'FailIfClusterRunning',
                 code=code,
@@ -46,22 +46,18 @@ class FailIfClusterRunning(core.Construct):
                     )
                 ]
             )
-
-    @property
-    def lambda_function(self) -> aws_lambda.Function:
-        return self._lambda_function
+        return lambda_function
 
 
-class LoadClusterConfiguration(core.Construct):
-    def __init__(self, scope: core.Construct, id: str) -> None:
-        super().__init__(scope, id)
-
+class LoadClusterConfigurationBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        self._lambda_function = stack.node.try_find_child('LoadClusterConfiguration')
-        if self._lambda_function is None:
-            self._lambda_function = aws_lambda.Function(
+        lambda_function = stack.node.try_find_child('LoadClusterConfiguration')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
                 stack,
                 'LoadClusterConfiguration',
                 code=code,
@@ -71,55 +67,49 @@ class LoadClusterConfiguration(core.Construct):
                 initial_policy=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
-                        actions=[
-                            'ssm:GetParameter'
-                        ],
-                        resources=['*']
+                        actions=['ssm:GetParameter'],
+                        resources=[stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/cluster_configurations/*'
+                        )]
                     )
                 ]
             )
-
-    @property
-    def lambda_function(self) -> aws_lambda.Function:
-        return self._lambda_function
+        return lambda_function
 
 
-class OverrideClusterConfigs(core.Construct):
-    def __init__(self, scope: core.Construct, id: str) -> None:
-        super().__init__(scope, id)
-
+class OverrideClusterConfigsBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        layer = EMRConfigUtilsLayer(self, 'EmrConfigUtilsLayer')
+        layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
-        self._lambda_function = stack.node.try_find_child('OverrideClusterConfigs')
-        if self._lambda_function is None:
-            self._lambda_function = aws_lambda.Function(
+        lambda_function = stack.node.try_find_child('OverrideClusterConfigs')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
                 stack,
                 'OverrideClusterConfigs',
                 code=code,
                 handler='override_cluster_configs.handler',
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
-                layers=[layer.layer]
+                layers=[layer]
             )
-
-    @property
-    def lambda_function(self) -> aws_lambda.Function:
-        return self._lambda_function
+        return lambda_function
 
 
-class UpdateClusterTags(core.Construct):
-    def __init__(self, scope: core.Construct, id: str) -> None:
-        super().__init__(scope, id)
-
+class UpdateClusterTagsBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        self._lambda_function = stack.node.try_find_child('UpdateClusterTags')
-        if self._lambda_function is None:
-            self._lambda_function = aws_lambda.Function(
+        lambda_function = stack.node.try_find_child('UpdateClusterTags')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
                 stack,
                 'UpdateClusterTags',
                 code=code,
@@ -127,22 +117,18 @@ class UpdateClusterTags(core.Construct):
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1)
             )
-
-    @property
-    def lambda_function(self) -> aws_lambda.Function:
-        return self._lambda_function
+        return lambda_function
 
 
-class ParseJsonString(core.Construct):
-    def __init__(self, scope: core.Construct, id: str) -> None:
-        super().__init__(scope, id)
-
+class ParseJsonStringBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        self._lambda_function = stack.node.try_find_child('ParseJsonString')
-        if self._lambda_function is None:
-            self._lambda_function = aws_lambda.Function(
+        lambda_function = stack.node.try_find_child('ParseJsonString')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
                 stack,
                 'ParseJsonString',
                 code=code,
@@ -150,61 +136,71 @@ class ParseJsonString(core.Construct):
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1)
             )
-
-    @property
-    def lambda_function(self) -> aws_lambda.Function:
-        return self._lambda_function
+        return lambda_function
 
 
-class RunJobFlow(core.Construct):
-    def __init__(self, scope: core.Construct, id: str) -> None:
-        super().__init__(scope, id)
-
+class RunJobFlowBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct, roles: emr_roles.EMRRoles) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        layer = EMRConfigUtilsLayer(self, 'EmrConfigUtilsLayer')
+        layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
-        self._lambda_function = stack.node.try_find_child('RunJobFlow')
-        if self._lambda_function is None:
-            self._lambda_function = aws_lambda.Function(
+        lambda_function = stack.node.try_find_child('RunJobFlow')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
                 stack,
                 'RunJobFlow',
                 code=code,
                 handler='run_job_flow.handler',
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
-                layers=[layer.layer],
+                layers=[layer],
                 initial_policy=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
                         actions=[
-                            'elasticmapreduce:RunJobFlow',
-                            'iam:PassRole',
-                            'ssm:PutParameter'
+                            'elasticmapreduce:RunJobFlow'
                         ],
                         resources=['*']
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=['iam:PassRole'],
+                        resources=[
+                            roles.service_role.role_arn,
+                            roles.instance_role.role_arn,
+                            roles.autoscaling_role.role_arn
+                        ]
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=['ssm:PutParameter'],
+                        resources=[
+                            stack.format_arn(
+                                partition=stack.partition,
+                                service='ssm',
+                                resource='parameter/emr_launch/control_plane/task_tokens/emr_utilities/*'
+                            )
+                        ]
                     )
                 ]
             )
-
-    @property
-    def lambda_function(self) -> aws_lambda.Function:
-        return self._lambda_function
+        return lambda_function
 
 
-class AddJobFlowSteps(core.Construct):
-    def __init__(self, scope: core.Construct, id: str) -> None:
-        super().__init__(scope, id)
-
+class AddJobFlowStepBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        self._lambda_function = stack.node.try_find_child('AddJobFlowSteps')
-        if self._lambda_function is None:
-            self._lambda_function = aws_lambda.Function(
+        lambda_function = stack.node.try_find_child('AddJobFlowStep')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
                 stack,
-                'AddJobFlowSteps',
+                'AddJobFlowStep',
                 code=code,
                 handler='add_job_flow_steps.handler',
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -215,29 +211,35 @@ class AddJobFlowSteps(core.Construct):
                         actions=[
                             'elasticmapreduce:DescribeCluster',
                             'elasticmapreduce:AddTags',
-                            'elasticmapreduce:AddJobFlowSteps',
-                            'ssm:PutParameter'
+                            'elasticmapreduce:AddJobFlowSteps'
                         ],
                         resources=['*']
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=['ssm:PutParameter'],
+                        resources=[
+                            stack.format_arn(
+                                partition=stack.partition,
+                                service='ssm',
+                                resource='parameter/emr_launch/control_plane/task_tokens/emr_utilities/*'
+                            )
+                        ]
                     )
                 ]
             )
-
-    @property
-    def lambda_function(self) -> aws_lambda.Function:
-        return self._lambda_function
+        return lambda_function
 
 
-class TerminateJobFlow(core.Construct):
-    def __init__(self, scope: core.Construct, id: str) -> None:
-        super().__init__(scope, id)
-
+class TerminateJobFlowBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        self._lambda_function = stack.node.try_find_child('TerminateJobFlow')
-        if self._lambda_function is None:
-            self._lambda_function = aws_lambda.Function(
+        lambda_function = stack.node.try_find_child('TerminateJobFlow')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
                 stack,
                 'TerminateJobFlow',
                 code=code,
@@ -247,30 +249,34 @@ class TerminateJobFlow(core.Construct):
                 initial_policy=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
-                        actions=[
-                            'elasticmapreduce:TerminateJobFlows',
-                            'ssm:PutParameter'
-                        ],
+                        actions=['elasticmapreduce:TerminateJobFlows'],
                         resources=['*']
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=['ssm:PutParameter'],
+                        resources=[
+                            stack.format_arn(
+                                partition=stack.partition,
+                                service='ssm',
+                                resource='parameter/emr_launch/control_plane/task_tokens/emr_utilities/*'
+                            )
+                        ]
                     )
                 ]
             )
-
-    @property
-    def lambda_function(self) -> aws_lambda.Function:
-        return self._lambda_function
+        return lambda_function
 
 
-class EMRConfigUtilsLayer(core.Construct):
-    def __init__(self, scope: core.Construct, id: str):
-        super().__init__(scope, id)
-
+class EMRConfigUtilsLayerBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct) -> aws_lambda.LayerVersion:
         code = aws_lambda.Code.from_asset(_lambda_path('layers/emr_config_utils'))
         stack = core.Stack.of(scope)
 
-        self._layer = stack.node.try_find_child('EMRConfigUtilsLayer')
-        if self._layer is None:
-            self._layer = aws_lambda.LayerVersion(
+        layer = stack.node.try_find_child('EMRConfigUtilsLayer')
+        if layer is None:
+            layer = aws_lambda.LayerVersion(
                 stack,
                 'EMRConfigUtilsLayer',
                 layer_version_name='EMRLaunch_EMRUtilities_EMRConfigUtilsLayer',
@@ -280,7 +286,4 @@ class EMRConfigUtilsLayer(core.Construct):
                 ],
                 description='EMR configuration utility functions'
             )
-
-    @property
-    def layer(self) -> aws_lambda.LayerVersion:
-        return self._layer
+        return layer

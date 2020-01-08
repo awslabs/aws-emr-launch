@@ -72,14 +72,14 @@ class EMRLaunchFunction(core.Construct):
             topic=failure_topic)
 
         # Create Task for loading the cluster configuration from Parameter Store
-        load_cluster_configuration = emr_tasks.LoadClusterConfiguration.build(
+        load_cluster_configuration = emr_tasks.LoadClusterConfigurationBuilder.build(
             self, 'LoadClusterConfigurationChain',
             namepspace=cluster_configuration.namespace,
             cluster_configuration_name=cluster_configuration.configuration_name)
         load_cluster_configuration.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create Task for overriding cluster configurations
-        override_cluster_configs = emr_tasks.OverrideClusterConfigs.build(
+        override_cluster_configs = emr_tasks.OverrideClusterConfigsBuilder.build(
             self, 'OverrideClusterConfigsChain',
             cluster_config=cluster_configuration.config,
             override_cluster_configs_lambda=override_cluster_configs_lambda,
@@ -89,21 +89,23 @@ class EMRLaunchFunction(core.Construct):
 
         # Create Task to conditionally fail if a cluster with this name is already
         # running, based on user input
-        fail_if_cluster_running = emr_tasks.FailIfClusterRunning.build(
+        fail_if_cluster_running = emr_tasks.FailIfClusterRunningBuilder.build(
             self, 'FailIfClusterRunningChain',
             default_fail_if_cluster_running=default_fail_if_cluster_running)
         # Attach an error catch to the task
         fail_if_cluster_running.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task for updating the cluster tags at runtime
-        update_cluster_tags = emr_tasks.UpdateClusterTags.build(
+        update_cluster_tags = emr_tasks.UpdateClusterTagsBuilder.build(
             self, 'UpdateClusterTagsChain')
         # Attach an error catch to the Task
         update_cluster_tags.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task to create the cluster
-        create_cluster = emr_tasks.CreateCluster.build(
-            self, 'CreateClusterChain', result_path='$.LaunchClusterResult')
+        create_cluster = emr_tasks.CreateClusterBuilder.build(
+            self, 'CreateClusterChain',
+            roles=cluster_configuration.emr_profile.roles,
+            result_path='$.LaunchClusterResult')
         # Attach an error catch to the Task
         create_cluster.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 

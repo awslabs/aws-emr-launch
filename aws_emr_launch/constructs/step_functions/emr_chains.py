@@ -111,7 +111,7 @@ class NestedStateMachine(sfn.StateMachineFragment):
                 input=input,
                 integration_pattern=sfn.ServiceIntegrationPattern.SYNC))
 
-        parse_json_string = emr_lambdas.ParseJsonString(self, 'ParseJsonStringLambda').lambda_function
+        parse_json_string = emr_lambdas.ParseJsonStringBuilder.get_or_build(self)
 
         parse_json_string_task = sfn.Task(
             self, 'Parse JSON Output',

@@ -81,7 +81,7 @@ for i in range(5):
         code=step_code
     )
     # Define an AddStep Task for Each Step
-    step_task = emr_tasks.AddStep.build(
+    step_task = emr_tasks.AddStepBuilder.build(
         stack, f'Step{i}',
         name=f'Step {i}',
         emr_step=emr_step,
@@ -89,7 +89,7 @@ for i in range(5):
     steps.branch(step_task)
 
 # Define a Task to Terminate the Cluster
-terminate_cluster = emr_tasks.TerminateCluster.build(
+terminate_cluster = emr_tasks.TerminateClusterBuilder.build(
     stack, 'TerminateCluster',
     name='Terminate Cluster',
     cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value,

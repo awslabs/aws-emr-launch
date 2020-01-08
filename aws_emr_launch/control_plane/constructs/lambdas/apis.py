@@ -26,6 +26,7 @@ class Apis(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
+        stack = core.Stack.of(scope)
         code = aws_lambda.Code.from_asset(_lambda_path('apis'))
 
         self._get_profile = aws_lambda.Function(
@@ -43,7 +44,13 @@ class Apis(core.Construct):
                     actions=[
                         'ssm:GetParameter'
                     ],
-                    resources=['*']
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/emr_profiles/*'
+                        )
+                    ]
                 )
             ]
         )
@@ -63,7 +70,13 @@ class Apis(core.Construct):
                     actions=[
                         'ssm:GetParametersByPath'
                     ],
-                    resources=['*']
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/emr_profiles/*'
+                        )
+                    ]
                 )
             ]
         )
@@ -83,7 +96,13 @@ class Apis(core.Construct):
                     actions=[
                         'ssm:GetParameter'
                     ],
-                    resources=['*']
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/cluster_configurations/*'
+                        )
+                    ]
                 )
             ]
         )
@@ -103,7 +122,13 @@ class Apis(core.Construct):
                     actions=[
                         'ssm:GetParametersByPath'
                     ],
-                    resources=['*']
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/cluster_configurations/*'
+                        )
+                    ]
                 )
             ]
         )
@@ -123,7 +148,13 @@ class Apis(core.Construct):
                     actions=[
                         'ssm:GetParameter'
                     ],
-                    resources=['*']
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/emr_launch_functions/*'
+                        )
+                    ]
                 )
             ]
         )
@@ -143,7 +174,13 @@ class Apis(core.Construct):
                     actions=[
                         'ssm:GetParametersByPath'
                     ],
-                    resources=['*']
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/emr_launch_functions/*'
+                        )
+                    ]
                 )
             ]
         )

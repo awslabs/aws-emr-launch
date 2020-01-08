@@ -26,6 +26,7 @@ class EMRUtilities(core.Construct):
     def __init__(self, scope: core.Construct, id: str) -> None:
         super().__init__(scope, id)
 
+        stack = core.Stack.of(scope)
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
 
         self._cluster_state_change_event = aws_lambda.Function(
@@ -41,13 +42,25 @@ class EMRUtilities(core.Construct):
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
                     actions=[
-                        'ssm:GetParameter',
-                        'ssm:DeleteParameter',
                         'states:SendTaskSuccess',
                         'states:SendTaskHeartbeat',
                         'states:SendTaskFailure'
                     ],
                     resources=['*']
+                ),
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=[
+                        'ssm:GetParameter',
+                        'ssm:DeleteParameter'
+                    ],
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/control_plane/task_tokens/emr_utilities/*'
+                        )
+                    ]
                 )
             ]
         )
@@ -65,13 +78,25 @@ class EMRUtilities(core.Construct):
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
                     actions=[
-                        'ssm:GetParameter',
-                        'ssm:DeleteParameter',
                         'states:SendTaskSuccess',
                         'states:SendTaskHeartbeat',
                         'states:SendTaskFailure'
                     ],
                     resources=['*']
+                ),
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=[
+                        'ssm:GetParameter',
+                        'ssm:DeleteParameter'
+                    ],
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/control_plane/task_tokens/emr_utilities/*'
+                        )
+                    ]
                 )
             ]
         )
