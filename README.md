@@ -23,32 +23,40 @@ Then install this project's dependencies using
 $ pipenv install '-e .'
 ```
 
-## Writing Code
+## Running the examples/
+The examples first require deployment of the `control_plane` and some customization of `s3.Buckets` and `vpc.Vpc` for the account/region to be deployed to.
 
-#### Writing new template files
+Deploy examples in the following order:
+1. `control_plane`
+2. `emr_profiles`
+3. `cluster_configurations`
+4. `emr_launch_functions`
+5. `transient_cluster_pipeline`
+6. `persistent_cluster_pipeline`
+7. `sns_triggered_pipeline`
 
-
-#### Running Code
-
-To run a command either
-
+Create and activate a virtualenv for the examples:
 ```
-$ pipenv run [YOUR COMMAND]
-```
-or start a shell in your pipenv using
-
-```
-$ pipenv shell
-```
-
-View all stacks in `app.py` with
-```
-$ pipenv run cdk ls
+$ cd examples/
+$ python3 -m venv .env
+$ source .env/bin/activate
 ```
 
-Deploy a stack with
+Install the `aws-emr-launch` library and dependencies:
 ```
-$ pipenv run cdk deploy [NAME-OF-YOUR-STACK]
+$ pip install ..
+```
+
+Deploy the `control_plane` (this only needs to be done once or after updates to the `control_plane`):
+```
+$ cd control_plane
+$ cdk deploy
+```
+
+Deploy an example:
+```
+$ cd emr_profiles/
+$ cdk deploy
 ```
 
 ## Testing
