@@ -36,7 +36,7 @@ launch_function = emr_launch_function.EMRLaunchFunction.from_stored_function(
 # Launch Function
 step_code = emr_code.Code.from_path(
     path='./step_sources',
-    deployment_bucket=launch_function.cluster_configuration.emr_profile.artifacts_bucket,
+    deployment_bucket=launch_function.emr_profile.artifacts_bucket,
     deployment_prefix='transient_pipeline/step_sources')
 
 # Create a Chain to receive Failure messages

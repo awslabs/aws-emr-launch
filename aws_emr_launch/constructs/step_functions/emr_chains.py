@@ -11,8 +11,6 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-import jsii
-
 from typing import Optional, Mapping, List
 
 from aws_cdk import (

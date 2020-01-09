@@ -112,6 +112,7 @@ class EMRProfile(core.Construct):
             'Roles': {
                 'ServiceRole': self._roles.service_role.role_arn,
                 'InstanceRole': self._roles.instance_role.role_arn,
+                'InstanceProfile': self._roles.instance_profile_arn,
                 'AutoScalingRole': self._roles.autoscaling_role.role_arn
             },
             'ArtifactsBucket': self._artifacts_bucket.bucket_name if self._artifacts_bucket else None,
@@ -411,6 +412,8 @@ class EMRProfile(core.Construct):
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
                 raise EMRProfileNotFoundError()
+            else:
+                raise e
 
     @staticmethod
     def from_stored_profile(scope: core.Construct, id: str, profile_name: str, namespace: str = 'default'):

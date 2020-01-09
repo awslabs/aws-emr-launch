@@ -68,11 +68,18 @@ class LoadClusterConfigurationBuilder:
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
                         actions=['ssm:GetParameter'],
-                        resources=[stack.format_arn(
-                            partition=stack.partition,
-                            service='ssm',
-                            resource='parameter/emr_launch/cluster_configurations/*'
-                        )]
+                        resources=[
+                            stack.format_arn(
+                                partition=stack.partition,
+                                service='ssm',
+                                resource='parameter/emr_launch/cluster_configurations/*'
+                            ),
+                            stack.format_arn(
+                                partition=stack.partition,
+                                service='ssm',
+                                resource='parameter/emr_launch/emr_profiles/*'
+                            )
+                        ]
                     )
                 ]
             )

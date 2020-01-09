@@ -65,19 +65,24 @@ def _get_parameter_value(ssm_parameter_prefix: str, name: str, namespace: str = 
     return json.loads(configuration_json)
 
 
+def _log_and_raise(e, event):
+    trc = traceback.format_exc()
+    s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
+    LOGGER.error(s)
+    raise e
+
+
 def get_profiles_handler(event, context):
     LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
     namespace = event.get('Namespace', 'default')
     next_token = event.get('NextToken', None)
 
     try:
-        return _get_parameter_values(PROFILES_SSM_PARAMETER_PREFIX, 'EMRProfiles', namespace, next_token)
+        return _get_parameter_values(
+            PROFILES_SSM_PARAMETER_PREFIX, 'EMRProfiles', namespace, next_token)
 
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
-        raise e
+        _log_and_raise(e, event)
 
 
 def get_profile_handler(event, context):
@@ -86,22 +91,17 @@ def get_profile_handler(event, context):
     namespace = event.get('Namespace', 'default')
 
     try:
-        return _get_parameter_value(PROFILES_SSM_PARAMETER_PREFIX, profile_name, namespace)
+        return _get_parameter_value(
+            PROFILES_SSM_PARAMETER_PREFIX, profile_name, namespace)
 
     except ClientError as e:
         if e.response['Error']['Code'] == 'ParameterNotFound':
             LOGGER.error(f'ProfileNotFound: {namespace}/{profile_name}')
             raise EMRProfileNotFoundError(f'ProfileNotFound: {namespace}/{profile_name}')
         else:
-            trc = traceback.format_exc()
-            s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-            LOGGER.error(s)
-            raise e
+            _log_and_raise(e, event)
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
-        raise e
+        _log_and_raise(e, event)
 
 
 def get_configurations_handler(event, context):
@@ -110,14 +110,11 @@ def get_configurations_handler(event, context):
     next_token = event.get('NextToken', None)
 
     try:
-        return _get_parameter_values(CONFIGURATIONS_SSM_PARAMETER_PREFIX, 'ClusterConfigurations',
-                                     namespace, next_token)
+        return _get_parameter_values(
+            CONFIGURATIONS_SSM_PARAMETER_PREFIX, 'ClusterConfigurations', namespace, next_token)
 
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
-        raise e
+        _log_and_raise(e, event)
 
 
 def get_configuration_handler(event, context):
@@ -126,22 +123,17 @@ def get_configuration_handler(event, context):
     namespace = event.get('Namespace', 'default')
 
     try:
-        return _get_parameter_value(CONFIGURATIONS_SSM_PARAMETER_PREFIX, configuration_name, namespace)
+        return _get_parameter_value(
+            CONFIGURATIONS_SSM_PARAMETER_PREFIX, configuration_name, namespace)
 
     except ClientError as e:
         if e.response['Error']['Code'] == 'ParameterNotFound':
             LOGGER.error(f'ConfigurationNotFound: {namespace}/{configuration_name}')
             raise ClusterConfigurationNotFoundError(f'ConfigurationNotFound: {namespace}/{configuration_name}')
         else:
-            trc = traceback.format_exc()
-            s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-            LOGGER.error(s)
-            raise e
+            _log_and_raise(e, event)
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
-        raise e
+        _log_and_raise(e, event)
 
 
 def get_functions_handler(event, context):
@@ -150,14 +142,11 @@ def get_functions_handler(event, context):
     next_token = event.get('NextToken', None)
 
     try:
-        return _get_parameter_values(FUNCTIONS_SSM_PARAMETER_PREFIX, 'EMRLaunchFunctions',
-                                     namespace, next_token)
+        return _get_parameter_values(
+            FUNCTIONS_SSM_PARAMETER_PREFIX, 'EMRLaunchFunctions', namespace, next_token)
 
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
-        raise e
+        _log_and_raise(e, event)
 
 
 def get_function_handler(event, context):
@@ -166,19 +155,14 @@ def get_function_handler(event, context):
     namespace = event.get('Namespace', 'default')
 
     try:
-        return _get_parameter_value(FUNCTIONS_SSM_PARAMETER_PREFIX, function_name, namespace)
+        return _get_parameter_value(
+            FUNCTIONS_SSM_PARAMETER_PREFIX, function_name, namespace)
 
     except ClientError as e:
         if e.response['Error']['Code'] == 'ParameterNotFound':
             LOGGER.error(f'FunctionNotFound: {namespace}/{function_name}')
             raise EMRLaunchFunctionNotFoundError(f'FunctionNotFound: {namespace}/{function_name}')
         else:
-            trc = traceback.format_exc()
-            s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-            LOGGER.error(s)
-            raise e
+            _log_and_raise(e, event)
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
-        raise e
+        _log_and_raise(e, event)

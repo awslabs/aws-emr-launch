@@ -63,20 +63,10 @@ def test_cluster_configurations():
     app = core.App()
     stack = core.Stack(app, 'test-stack')
     vpc = ec2.Vpc(stack, 'test-vpc')
-    artifacts_bucket = s3.Bucket(stack, 'test-artifacts-bucket')
-    logs_bucket = s3.Bucket(stack, 'test-logs-bucket')
-
-    emr_components = emr_profile.EMRProfile(
-        stack, 'test-emr-components',
-        profile_name='TestCluster',
-        vpc=vpc,
-        artifacts_bucket=artifacts_bucket,
-        logs_bucket=logs_bucket)
 
     cluster_config = cluster_configuration.InstanceGroupConfiguration(
         stack, 'test-instance-group-config',
         configuration_name='test-cluster',
-        emr_profile=emr_components,
         subnet=vpc.private_subnets[0])
 
     assert cluster_config.config

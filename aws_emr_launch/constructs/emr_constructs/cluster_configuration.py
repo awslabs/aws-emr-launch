@@ -24,7 +24,6 @@ from aws_cdk import (
     core
 )
 
-from .emr_profile import EMRProfile
 from .emr_code import EMRBootstrapAction
 
 SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
@@ -39,7 +38,6 @@ class ClusterConfiguration(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  configuration_name: str,
                  namespace: str = 'default',
-                 emr_profile: Optional[EMRProfile] = None,
                  release_label: Optional[str] = 'emr-5.28.0',
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
@@ -51,37 +49,26 @@ class ClusterConfiguration(core.Construct):
 
         super().__init__(scope, id)
 
-        if emr_profile is None:
+        if configuration_name is None:
             return
 
         self._configuration_name = configuration_name
         self._namespace = namespace
-        self._emr_profile = emr_profile
         self._description = description
         self._config = {
             'Name': configuration_name,
-            'LogUri': f's3://{emr_profile.logs_bucket.bucket_name}/elasticmapreduce/{configuration_name}',
             'ReleaseLabel': release_label,
             'Applications': self._get_applications(applications),
             'BootstrapActions': [b.resolve(self) for b in bootstrap_actions] if bootstrap_actions else [],
             'Tags': tags if tags else [],
             'Configurations': self._get_configurations(configurations, use_glue_catalog),
-            'JobFlowRole': emr_profile.roles.instance_profile_arn,
-            'ServiceRole': emr_profile.roles.service_role.role_arn,
-            'AutoScalingRole': emr_profile.roles.autoscaling_role.role_arn,
             'VisibleToAllUsers': True,
             'Instances': {
-                'EmrManagedMasterSecurityGroup': emr_profile.security_groups.master_group.security_group_id,
-                'EmrManagedSlaveSecurityGroup': emr_profile.security_groups.workers_group.security_group_id,
-                'ServiceAccessSecurityGroup': emr_profile.security_groups.service_group.security_group_id,
                 'TerminationProtected': False,
                 'KeepJobFlowAliveWhenNoSteps': True
             },
             'StepConcurrencyLevel': step_concurrency_level
         }
-
-        if emr_profile.security_configuration_name:
-            self._config['SecurityConfiguration'] = emr_profile.security_configuration_name
 
         self._ssm_parameter = ssm.CfnParameter(
             self, 'SSMParameter',
@@ -92,8 +79,6 @@ class ClusterConfiguration(core.Construct):
     def _property_values_to_json(self):
         return json.dumps({
             'ConfigurationName': self._configuration_name,
-            'EMRProfile':
-                f'{self._emr_profile.namespace}/{self._emr_profile.profile_name}',
             'Description': self._description,
             'Namespace': self._namespace,
             'ClusterConfiguration': self._config
@@ -149,10 +134,6 @@ class ClusterConfiguration(core.Construct):
         return self._namespace
 
     @property
-    def emr_profile(self) -> EMRProfile:
-        return self._emr_profile
-
-    @property
     def description(self) -> str:
         return self._description
 
@@ -185,16 +166,15 @@ class ClusterConfiguration(core.Construct):
         except ClientError as e:
             if e.response['Error']['Code'] == 'ParameterNotFound':
                 raise ClusterConfigurationNotFoundError()
+            else:
+                raise e
 
     @staticmethod
     def from_stored_configuration(scope: core.Construct, id: str, configuration_name: str, namespace: str = 'default'):
         stored_config = ClusterConfiguration.get_configuration(configuration_name, namespace)
-        cluster_config = ClusterConfiguration(scope, id, configuration_name=configuration_name)
+        cluster_config = ClusterConfiguration(scope, id, configuration_name=None)
         cluster_config._configuration_name = configuration_name
         cluster_config._namespace = namespace
-        emr_profile = stored_config['EMRProfile'].split('/')
-        cluster_config._emr_profile = EMRProfile.from_stored_profile(
-            cluster_config, 'EMRProfile', emr_profile[1], namespace=emr_profile[0])
         cluster_config._configuration_name = stored_config['ConfigurationName']
         cluster_config._config = stored_config['ClusterConfiguration']
         cluster_config._namespace = stored_config['Namespace']
@@ -206,7 +186,6 @@ class InstanceGroupConfiguration(ClusterConfiguration):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  configuration_name: str,
-                 emr_profile: EMRProfile,
                  subnet: ec2.Subnet,
                  namespace: str = 'default',
                  release_label: Optional[str] = 'emr-5.28.0',
@@ -225,7 +204,6 @@ class InstanceGroupConfiguration(ClusterConfiguration):
         super().__init__(scope, id,
                          configuration_name=configuration_name,
                          namespace=namespace,
-                         emr_profile=emr_profile,
                          release_label=release_label,
                          applications=applications,
                          bootstrap_actions=bootstrap_actions,

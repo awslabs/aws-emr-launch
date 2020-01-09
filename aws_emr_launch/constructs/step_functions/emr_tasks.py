@@ -11,7 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from typing import Optional, Mapping, List
+from typing import Optional, Mapping
 
 from aws_cdk import (
     aws_stepfunctions as sfn,
@@ -28,8 +28,11 @@ from ..iam_roles import emr_roles
 class LoadClusterConfigurationBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
-              namepspace: str,
-              cluster_configuration_name: str,
+              cluster_name: str,
+              profile_namespace: str,
+              profile_name: str,
+              configuration_namespace: str,
+              configuration_name: str,
               output_path: str = '$',
               result_path: str = '$.ClusterConfig') -> sfn.Task:
         construct = core.Construct(scope, id)
@@ -43,8 +46,11 @@ class LoadClusterConfigurationBuilder:
             task=sfn_tasks.InvokeFunction(
                 load_cluster_configuration_lambda,
                 payload={
-                    'Namespace': namepspace,
-                    'ConfigurationName': cluster_configuration_name,
+                    'ClusterName': cluster_name,
+                    'ProfileNamespace': profile_namespace,
+                    'ProfileName': profile_name,
+                    'ConfigurationNamespace': configuration_namespace,
+                    'ConfigurationName': configuration_name,
                 })
         )
 
@@ -72,7 +78,7 @@ class OverrideClusterConfigsBuilder:
                 override_cluster_configs_lambda,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'ClusterConfig': cluster_config,
+                    'ClusterConfig': sfn.TaskInput.from_data_at('$.ClusterConfig').value,
                     'AllowedClusterConfigOverrides': allowed_cluster_config_overrides
                 })
         )

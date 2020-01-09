@@ -12,6 +12,8 @@ from aws_cdk import (
 )
 
 from aws_emr_launch.constructs.emr_constructs import (
+    emr_profile,
+    cluster_configuration,
     emr_code
 )
 from aws_emr_launch.constructs.step_functions import (
@@ -29,16 +31,40 @@ stack = core.Stack(app, 'SNSTriggeredPipelineStack', env=core.Environment(
 success_topic = sns.Topic(stack, 'SuccessTopic')
 failure_topic = sns.Topic(stack, 'FailureTopic')
 
-# Use the Launch Cluster State Machine we created in the emr_launch_function example
-launch_function = emr_launch_function.EMRLaunchFunction.from_stored_function(
-    stack, 'BasicLaunchFunction', 'launch-basic-cluster')
+# Load our SSE-KMS EMR Profile created in the emr_profiles example
+sse_s3_profile = emr_profile.EMRProfile.from_stored_profile(
+    stack, 'EMRProfile', 'sse-s3-profile')
+
+# Load our Basic Cluster Configuration created in the cluster_configurations example
+cluster_config = cluster_configuration.ClusterConfiguration.from_stored_configuration(
+    stack, 'ClusterConfiguration', 'basic-instance-group-cluster')
+
+# Create a new State Machine to launch a cluster with the Basic configuration
+# Allow the Name, Instances.InstanceGroups.1.InstanceCount, and
+# Instances.InstanceGroups.1.InstanceType to be overwritten at runtime and assign
+# simple names to them. Unless specifically indicated, fail to start if a cluster
+# of the same name is already running.
+launch_function = emr_launch_function.EMRLaunchFunction(
+    stack, 'EMRLaunchFunction',
+    launch_function_name='launch-sns-triggered-pipeline-cluster',
+    cluster_configuration=cluster_config,
+    emr_profile=sse_s3_profile,
+    cluster_name='sns-triggered-pipeline',
+    success_topic=success_topic,
+    failure_topic=failure_topic,
+    default_fail_if_cluster_running=True,
+    allowed_cluster_config_overrides={
+        'Name': 'Name',
+        'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
+        'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType'
+    })
 
 # Prepare the scripts executed by our Steps for deployment
 # This uses the Artifacts bucket defined in Cluster Configuration used by our
 # Launch Function
 step_code = emr_code.Code.from_path(
     path='./step_sources',
-    deployment_bucket=launch_function.cluster_configuration.emr_profile.artifacts_bucket,
+    deployment_bucket=launch_function.emr_profile.artifacts_bucket,
     deployment_prefix='sns_triggered_pipeline/step_sources')
 
 # Create a Chain to receive Failure messages
@@ -53,7 +79,7 @@ fail = emr_chains.Fail(
 # runtime overrides
 launch_cluster = emr_chains.NestedStateMachine(
     stack, 'NestedStateMachine',
-    name='Launch Cluster StateMachine',
+    name='Launch SNS Pipeline Cluster StateMachine',
     state_machine=launch_function.state_machine,
     input={
         'ClusterConfigurationOverrides': sfn.TaskInput.from_data_at('$.ClusterConfigurationOverrides').value,
