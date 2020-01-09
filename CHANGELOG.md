@@ -4,9 +4,11 @@ Changelog for emr-launch
 0.5.0 (unreleased)
 ------------------
 
+- more examples!
+
 - BREAKING: move Tags from cluster_configuration to launch_function
 
-- decouple emr_profile and cluster_configuration
+- BREAKING: decouple emr_profile and cluster_configuration
 
 - rehydrate EMRLaunchFunction from stored function
 
