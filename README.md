@@ -49,7 +49,7 @@ $ pip install ..
 
 Deploy the `control_plane` (this only needs to be done once or after updates to the `control_plane`):
 ```
-$ cd control_plane
+$ cd control_plane/
 $ cdk deploy
 ```
 
