@@ -50,6 +50,7 @@ launch_function = emr_launch_function.EMRLaunchFunction(
         'Name': 'Name',
         'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
         'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType'
-    })
+    },
+    cluster_tags=[core.Tag('Key1', 'Value1'), core.Tag('Key2', 'Value2')])
 
 app.synth()

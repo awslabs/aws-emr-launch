@@ -55,8 +55,8 @@ high_mem_cluster_config = cluster_configuration.InstanceGroupConfiguration(
     configuration_name='high-mem-instance-group-cluster',
     subnet=subnet,
     bootstrap_actions=[bootstrap],
-    step_concurrency_level=4,
+    step_concurrency_level=5,
     core_instance_type='r5.2xlarge',
-    core_instance_count=5)
+    core_instance_count=2)
 
 app.synth()

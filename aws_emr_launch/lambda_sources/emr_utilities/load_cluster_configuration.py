@@ -53,6 +53,7 @@ def _log_and_raise(e, event):
 def handler(event, context):
     LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
     cluster_name = event.get('ClusterName', '')
+    tags = event.get('ClusterTags', [])
     profile_namespace = event.get('ProfileNamespace', '')
     profile_name = event.get('ProfileName', '')
     configuration_namespace = event.get('ConfigurationNamespace', '')
@@ -96,6 +97,7 @@ def handler(event, context):
         cluster_configuration['JobFlowRole'] = emr_profile['Roles']['InstanceRole'].split('/')[-1]
         cluster_configuration['ServiceRole'] = emr_profile['Roles']['ServiceRole'].split('/')[-1]
         cluster_configuration['AutoScalingRole'] = emr_profile['Roles']['AutoScalingRole'].split('/')[-1]
+        cluster_configuration['Tags'] = tags
         cluster_configuration['Instances']['EmrManagedMasterSecurityGroup'] = \
             emr_profile['SecurityGroups']['MasterGroup']
         cluster_configuration['Instances']['EmrManagedSlaveSecurityGroup'] = \

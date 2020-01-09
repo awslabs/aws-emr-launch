@@ -11,7 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from typing import Optional, Mapping
+from typing import Optional, Mapping, List
 
 from aws_cdk import (
     aws_stepfunctions as sfn,
@@ -29,6 +29,7 @@ class LoadClusterConfigurationBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
               cluster_name: str,
+              cluster_tags: List[core.Tag],
               profile_namespace: str,
               profile_name: str,
               configuration_namespace: str,
@@ -47,6 +48,7 @@ class LoadClusterConfigurationBuilder:
                 load_cluster_configuration_lambda,
                 payload={
                     'ClusterName': cluster_name,
+                    'ClusterTags': [{'Key': t.key, 'Value': t.value} for t in cluster_tags],
                     'ProfileNamespace': profile_namespace,
                     'ProfileName': profile_name,
                     'ConfigurationNamespace': configuration_namespace,

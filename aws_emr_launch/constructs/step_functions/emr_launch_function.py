@@ -14,7 +14,7 @@
 import json
 import boto3
 
-from typing import Optional, Mapping
+from typing import Optional, Mapping, List
 from botocore.exceptions import ClientError
 
 from aws_cdk import (
@@ -47,7 +47,8 @@ class EMRLaunchFunction(core.Construct):
                  failure_topic: Optional[sns.Topic] = None,
                  override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
                  allowed_cluster_config_overrides: Optional[Mapping[str, str]] = None,
-                 description: Optional[str] = None) -> None:
+                 description: Optional[str] = None,
+                 cluster_tags: Optional[List[core.Tag]] = None) -> None:
         super().__init__(scope, id)
 
         if launch_function_name is None:
@@ -64,6 +65,7 @@ class EMRLaunchFunction(core.Construct):
         self._override_cluster_configs_lambda = override_cluster_configs_lambda
         self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
         self._description = description
+        self._cluster_tags = cluster_tags if cluster_tags is not None else []
 
         fail = emr_chains.Fail(
             self, 'FailChain',
@@ -75,6 +77,7 @@ class EMRLaunchFunction(core.Construct):
         load_cluster_configuration = emr_tasks.LoadClusterConfigurationBuilder.build(
             self, 'LoadClusterConfigurationChain',
             cluster_name=cluster_name,
+            cluster_tags=self._cluster_tags,
             profile_namespace=emr_profile.namespace,
             profile_name=emr_profile.profile_name,
             configuration_namespace=cluster_configuration.namespace,
@@ -154,7 +157,8 @@ class EMRLaunchFunction(core.Construct):
                 else None,
             'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
             'StateMachine': self._state_machine.state_machine_arn,
-            'Description': self._description
+            'Description': self._description,
+            'ClusterTags': [{'Key': t.key, 'Value': t.value} for t in self._cluster_tags]
         })
 
     def _property_values_from_json(self, property_values):
@@ -189,6 +193,7 @@ class EMRLaunchFunction(core.Construct):
 
         self._allowed_cluster_config_overrides = property_values.get('AllowedClusterConfigOverrides', None)
         self._description = property_values.get('Description', None)
+        self._cluster_tags = [core.Tag(t['Key'], t['Value']) for t in property_values['ClusterTags']]
 
         state_machine = property_values['StateMachine']
         self._state_machine = sfn.StateMachine.from_state_machine_arn(self, 'StateMachine', state_machine)

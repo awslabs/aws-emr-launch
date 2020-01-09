@@ -42,7 +42,6 @@ class ClusterConfiguration(core.Construct):
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
-                 tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
                  step_concurrency_level: Optional[int] = 1,
                  description: Optional[str] = None):
@@ -60,7 +59,7 @@ class ClusterConfiguration(core.Construct):
             'ReleaseLabel': release_label,
             'Applications': self._get_applications(applications),
             'BootstrapActions': [b.resolve(self) for b in bootstrap_actions] if bootstrap_actions else [],
-            'Tags': tags if tags else [],
+            'Tags': [],
             'Configurations': self._get_configurations(configurations, use_glue_catalog),
             'VisibleToAllUsers': True,
             'Instances': {
@@ -197,7 +196,6 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
-                 tags: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
                  step_concurrency_level: Optional[int] = 1):
 
@@ -208,7 +206,6 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                          applications=applications,
                          bootstrap_actions=bootstrap_actions,
                          configurations=configurations,
-                         tags=tags,
                          use_glue_catalog=use_glue_catalog,
                          step_concurrency_level=step_concurrency_level)
 
