@@ -17,6 +17,7 @@ recursive-include examples *.py
 recursive-include examples *.md
 recursive-include examples *.sh
 recursive-include examples *.json
+recursive-include examples *.hql
 
 recursive-exclude examples .env/*
 recursive-exclude examples **/cdk.out/*

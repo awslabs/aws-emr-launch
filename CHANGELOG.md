@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.5.0 (unreleased)
+0.5.0 (2020-01-10)
 ------------------
 
 - Tags as core.Tag instead of dict
