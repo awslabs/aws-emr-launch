@@ -37,7 +37,7 @@ sse_s3_profile = emr_profile.EMRProfile.from_stored_profile(
 
 # Load our Basic Cluster Configuration created in the cluster_configurations example
 cluster_config = cluster_configuration.ClusterConfiguration.from_stored_configuration(
-    stack, 'ClusterConfiguration', 'basic-instance-group-cluster')
+    stack, 'ClusterConfiguration', 'high-mem-instance-group-cluster')
 
 # Create a new State Machine to launch a cluster with the Basic configuration
 # Allow the Name, Instances.InstanceGroups.1.InstanceCount, and
