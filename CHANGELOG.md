@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.5.0 (unreleased)
 ------------------
 
+- InstanceMarketType enum
+
 - more examples!
 
 - BREAKING: move Tags from cluster_configuration to launch_function

@@ -15,6 +15,7 @@ import json
 import boto3
 
 from typing import Mapping
+from enum import Enum
 from botocore.exceptions import ClientError
 
 from typing import Optional, List
@@ -31,6 +32,11 @@ SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
 
 class ClusterConfigurationNotFoundError(Exception):
     pass
+
+
+class InstanceMarketType(Enum):
+    ON_DEMAND = 'ON_DEMAND'
+    SPOT = 'SPOT'
 
 
 class ClusterConfiguration(core.Construct):
@@ -189,9 +195,9 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                  namespace: str = 'default',
                  release_label: Optional[str] = 'emr-5.28.0',
                  master_instance_type: Optional[str] = 'm5.2xlarge',
-                 master_instance_market: Optional[str] = 'ON_DEMAND',
+                 master_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
                  core_instance_type: Optional[str] = 'm5.2xlarge',
-                 core_instance_market: Optional[str] = 'ON_DEMAND',
+                 core_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
                  core_instance_count: Optional[int] = 2,
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
@@ -216,7 +222,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                 'Name': 'Master',
                 'InstanceRole': 'MASTER',
                 'InstanceType': master_instance_type,
-                'Market': master_instance_market,
+                'Market': master_instance_market.name,
                 'InstanceCount': 1,
                 'EbsConfiguration': {
                     'EbsBlockDeviceConfigs': [{
@@ -233,7 +239,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                 'Name': 'Core',
                 'InstanceRole': 'CORE',
                 'InstanceType': core_instance_type,
-                'Market': core_instance_market,
+                'Market': core_instance_market.name,
                 'InstanceCount': core_instance_count,
                 'EbsConfiguration': {
                     'EbsBlockDeviceConfigs': [{

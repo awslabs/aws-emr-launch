@@ -36,14 +36,14 @@ def test_profile_components():
     s3_key = kms.Key(stack, 'test-s3-key')
     local_disk_key = kms.Key(stack, 'test-local-disk-key')
 
-    emr_components = emr_profile.EMRProfile(
+    profile = emr_profile.EMRProfile(
         stack, 'test-emr-components',
         profile_name='TestCluster',
         vpc=vpc,
         artifacts_bucket=artifacts_bucket,
         logs_bucket=logs_bucket)
 
-    emr_components \
+    profile \
         .authorize_input_buckets([input_bucket]) \
         .authorize_output_buckets([output_bucket]) \
         .authorize_input_keys([input_key]) \
@@ -51,12 +51,11 @@ def test_profile_components():
         .set_local_disk_encryption_key(local_disk_key, ebs_encryption=True) \
         .set_tls_certificate_location('s3://null_bucket/cert')
 
-    assert emr_components.security_groups
-    assert emr_components.roles
-    assert emr_components.s3_encryption_key
-    assert emr_components.local_disk_encryption_key
-    assert emr_components.ebs_encryption
-    assert emr_components.tls_certificate_location
+    assert profile.security_groups
+    assert profile.roles
+    assert profile.s3_encryption_key
+    assert profile.local_disk_encryption_key
+    assert profile.tls_certificate_location
 
 
 def test_cluster_configurations():

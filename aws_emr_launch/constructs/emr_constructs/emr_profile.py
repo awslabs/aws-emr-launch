@@ -71,9 +71,11 @@ class EMRProfile(core.Construct):
         self._mutable_security_groups = mutable_security_groups
         self._vpc = vpc
         self._security_groups = EMRSecurityGroups(self, 'SecurityGroups', vpc=vpc)
-        self._roles = EMRRoles(self, 'Roles',
-                               role_name_prefix=profile_name,
-                               artifacts_bucket=artifacts_bucket, logs_bucket=logs_bucket)
+        self._roles = EMRRoles(
+            self, 'Roles',
+            role_name_prefix=profile_name,
+            artifacts_bucket=artifacts_bucket,
+            logs_bucket=logs_bucket)
         self._artifacts_bucket = artifacts_bucket
         self._logs_bucket = logs_bucket
         self._description = description
@@ -223,24 +225,24 @@ class EMRProfile(core.Construct):
 
         if self._s3_encryption_mode or self._local_disk_encryption_key:
             encryption_config['EnableAtRestEncryption'] = True
-            atrest_config = {}
+            at_rest_config = {}
 
             if self._s3_encryption_mode:
-                atrest_config['S3EncryptionConfiguration'] = {
+                at_rest_config['S3EncryptionConfiguration'] = {
                     'EncryptionMode': self._s3_encryption_mode.value
                 }
                 if self._s3_encryption_key:
-                    atrest_config['S3EncryptionConfiguration']['AwsKmsKey'] = self._s3_encryption_key.key_arn
+                    at_rest_config['S3EncryptionConfiguration']['AwsKmsKey'] = self._s3_encryption_key.key_arn
 
             if self._local_disk_encryption_key:
-                atrest_config['LocalDiskEncryptionConfiguration'] = {
+                at_rest_config['LocalDiskEncryptionConfiguration'] = {
                     'EncryptionKeyProviderType': 'AwsKms',
                     'AwsKmsKey': self._local_disk_encryption_key.key_arn
                 }
                 if self._ebs_encryption:
-                    atrest_config['LocalDiskEncryptionConfiguration']['EnableEbsEncryption'] = True
+                    at_rest_config['LocalDiskEncryptionConfiguration']['EnableEbsEncryption'] = True
 
-            encryption_config['AtRestEncryptionConfiguration'] = atrest_config
+            encryption_config['AtRestEncryptionConfiguration'] = at_rest_config
         else:
             encryption_config['EnableAtRestEncryption'] = False
 
