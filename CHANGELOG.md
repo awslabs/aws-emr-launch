@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.5.0 (unreleased)
 ------------------
 
+- Tags as core.Tag instead of dict
+
 - InstanceMarketType enum
 
 - more examples!
