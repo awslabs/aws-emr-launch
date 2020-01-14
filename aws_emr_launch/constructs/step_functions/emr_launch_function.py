@@ -136,11 +136,11 @@ class EMRLaunchFunction(core.Construct):
 
         self._ssm_parameter = ssm.StringParameter(
             self, 'SSMParameter',
-            string_value=self._property_values_to_json(),
+            string_value=json.dumps(self.to_json()),
             parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')
 
-    def _property_values_to_json(self):
-        return json.dumps({
+    def to_json(self):
+        return {
             'LaunchFunctionName': self._launch_function_name,
             'Namespace': self._namespace,
             'EMRProfile':
@@ -159,9 +159,9 @@ class EMRLaunchFunction(core.Construct):
             'StateMachine': self._state_machine.state_machine_arn,
             'Description': self._description,
             'ClusterTags': [{'Key': t.key, 'Value': t.value} for t in self._cluster_tags]
-        })
+        }
 
-    def _property_values_from_json(self, property_values):
+    def from_json(self, property_values):
         self._launch_function_name = property_values['LaunchFunctionName']
         self._namespace = property_values['Namespace']
 
@@ -286,4 +286,4 @@ class EMRLaunchFunction(core.Construct):
             cluster_configuration=None)
         launch_function._launch_function_name = launch_function_name
         launch_function._namespace = namespace
-        return launch_function._property_values_from_json(stored_function)
+        return launch_function.from_json(stored_function)

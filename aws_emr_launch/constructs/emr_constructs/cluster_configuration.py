@@ -78,20 +78,26 @@ class ClusterConfiguration(core.Construct):
         self._ssm_parameter = ssm.CfnParameter(
             self, 'SSMParameter',
             type='String',
-            value=self._property_values_to_json(),
+            value=json.dumps(self.to_json()),
             name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')
 
-    def _property_values_to_json(self):
-        return json.dumps({
+    def to_json(self):
+        return {
             'ConfigurationName': self._configuration_name,
             'Description': self._description,
             'Namespace': self._namespace,
             'ClusterConfiguration': self._config
-        })
+        }
+
+    def from_json(self, property_values):
+        self._configuration_name = property_values['ConfigurationName']
+        self._namespace = property_values['Namespace']
+        self._config = property_values['ClusterConfiguration']
+        self._description = property_values.get('Description', None)
 
     def _update_config(self, new_config):
         self._config = new_config
-        self._ssm_parameter.value = self._property_values_to_json()
+        self._ssm_parameter.value = json.dumps(self.to_json())
 
     @staticmethod
     def _get_applications(applications: Optional[List[str]]) -> List[dict]:
@@ -178,12 +184,7 @@ class ClusterConfiguration(core.Construct):
     def from_stored_configuration(scope: core.Construct, id: str, configuration_name: str, namespace: str = 'default'):
         stored_config = ClusterConfiguration.get_configuration(configuration_name, namespace)
         cluster_config = ClusterConfiguration(scope, id, configuration_name=None)
-        cluster_config._configuration_name = configuration_name
-        cluster_config._namespace = namespace
-        cluster_config._configuration_name = stored_config['ConfigurationName']
-        cluster_config._config = stored_config['ClusterConfiguration']
-        cluster_config._namespace = stored_config['Namespace']
-        cluster_config._description = stored_config.get('Description', None)
+        cluster_config.from_json(stored_config)
         return cluster_config
 
 

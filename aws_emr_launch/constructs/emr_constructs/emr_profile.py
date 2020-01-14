@@ -92,14 +92,14 @@ class EMRProfile(core.Construct):
         self._ssm_parameter = ssm.CfnParameter(
             self, 'SSMParameter',
             type='String',
-            value=self._property_values_to_json(),
+            value=json.dumps(self.to_json()),
             name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')
 
         self._construct_security_configuration()
 
         self._rehydrated = False
 
-    def _property_values_to_json(self):
+    def to_json(self):
         property_values = {
             'ProfileName': self._profile_name,
             'Namespace': self._namespace,
@@ -128,9 +128,9 @@ class EMRProfile(core.Construct):
             'SecurityConfigurationName': self._security_configuration_name,
             'Description': self._description
         }
-        return json.dumps(property_values)
+        return property_values
 
-    def _property_values_from_json(self, property_values):
+    def from_json(self, property_values):
         self._profile_name = property_values['ProfileName']
         self._namespace = property_values['Namespace']
         self._mutable_instance_role = property_values['MutableInstanceRole']
@@ -193,7 +193,7 @@ class EMRProfile(core.Construct):
                 and not self._tls_certificate_location):
             self._security_configuration = None
             self._security_configuration_name = None
-            self._ssm_parameter.value = self._property_values_to_json()
+            self._ssm_parameter.value = json.dumps(self.to_json())
             return
 
         if self._security_configuration is None:
@@ -204,7 +204,7 @@ class EMRProfile(core.Construct):
             )
             self._security_configuration_name = name
 
-        self._ssm_parameter.value = self._property_values_to_json()
+        self._ssm_parameter.value = json.dumps(self.to_json())
 
         if custom_security_configuration is not None:
             self._security_configuration.security_configuration = self._custom_security_configuration
@@ -421,4 +421,4 @@ class EMRProfile(core.Construct):
     def from_stored_profile(scope: core.Construct, id: str, profile_name: str, namespace: str = 'default'):
         stored_profile = EMRProfile.get_profile(profile_name, namespace)
         profile = EMRProfile(scope, id)
-        return profile._property_values_from_json(stored_profile)
+        return profile.from_json(stored_profile)
