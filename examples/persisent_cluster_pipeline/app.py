@@ -10,7 +10,6 @@ from aws_cdk import (
 )
 
 from aws_emr_launch.constructs.emr_constructs import (
-    cluster_configuration,
     emr_code
 )
 from aws_emr_launch.constructs.step_functions import (
@@ -28,7 +27,8 @@ success_topic = sns.Topic(stack, 'SuccessTopic')
 failure_topic = sns.Topic(stack, 'FailureTopic')
 
 # The bucket to deploy Step artifacts to
-artifacts_bucket = s3.Bucket.from_bucket_name(stack, 'ArtifactsBucket', 'chamcca-emr-launch-artifacts-uw2')
+artifacts_bucket = s3.Bucket.from_bucket_name(
+    stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET'])
 
 # Prepare the scripts executed by our Steps for deployment
 # This uses the Artifacts bucket defined in Cluster Configuration used by our

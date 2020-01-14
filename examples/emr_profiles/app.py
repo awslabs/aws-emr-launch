@@ -17,10 +17,13 @@ stack = core.Stack(app, 'EmrProfilesStack', env=core.Environment(
     region=os.environ["CDK_DEFAULT_REGION"]))
 
 # Load some preexisting resources from my environment
-vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_id='vpc-01c3cc44009934845')
-artifacts_bucket = s3.Bucket.from_bucket_name(stack, 'ArtifactsBucket', 'chamcca-emr-launch-artifacts-uw2')
-logs_bucket = s3.Bucket.from_bucket_name(stack, 'LogsBucket', 'chamcca-emr-launch-logs-uw2')
-data_bucket = s3.Bucket.from_bucket_name(stack, 'DataBucket', 'chamcca-emr-launch-data-uw2')
+vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_id=os.environ['EMR_LAUNCH_EXAMPLES_VPC'])
+artifacts_bucket = s3.Bucket.from_bucket_name(
+    stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET'])
+logs_bucket = s3.Bucket.from_bucket_name(
+    stack, 'LogsBucket', os.environ['EMR_LAUNCH_EXAMPLES_LOGS_BUCKET'])
+data_bucket = s3.Bucket.from_bucket_name(
+    stack, 'DataBucket', os.environ['EMR_LAUNCH_EXAMPLES_DATA_BUCKET'])
 
 # A simple EMR Profile that grants proper access to the Logs and Artifacts buckets
 # By default S3 Server Side encryption is enabled

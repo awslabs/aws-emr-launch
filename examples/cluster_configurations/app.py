@@ -18,8 +18,9 @@ stack = core.Stack(app, 'ClusterConfigurationsStack', env=core.Environment(
     account=os.environ["CDK_DEFAULT_ACCOUNT"],
     region=os.environ["CDK_DEFAULT_REGION"]))
 
-vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_id='vpc-01c3cc44009934845')
-artifacts_bucket = s3.Bucket.from_bucket_name(stack, 'ArtifactsBucket', 'chamcca-emr-launch-artifacts-uw2')
+vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_id=os.environ['EMR_LAUNCH_EXAMPLES_VPC'])
+artifacts_bucket = s3.Bucket.from_bucket_name(
+    stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET'])
 
 # This prepares the project's bootstrap_source/ folder for deployment
 # We use the Artifacts bucket configured and authorized on the EMR Profile

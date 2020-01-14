@@ -133,3 +133,4 @@ artifacts/~$+*.doc
 cdk.out
 cdk.context.json
 
+examples/environment_vars.sh
