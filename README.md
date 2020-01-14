@@ -1,7 +1,8 @@
 # EMR Launch Modules
 
-See the [docs](docs/README.md)!
-And the [exmaples](examples/README.md)...
+See the [docs](docs/)!
+
+And the [examples](examples/)...
 
 ## Development
 
