@@ -39,4 +39,4 @@ To be clear, deploying an `emr_launch_function` __does not__ create an EMR Clust
 The `emr_launch_function` is a mechanism for easily combining the resuable `emr_profile` and `cluster_configuration`.
 
 ### Chains and Tasks
-Chains and Task are preconfigured components that simplify the use of AWS Step Functions State Machines as orchestrators of data processing pipelines. These components allow the developer to easily build complex, serverless pipelines using EMR Clusters (both Transient and Persistent), Lambdas, and nested State Machines.
+Chains and Tasks are preconfigured components that simplify the use of AWS Step Functions State Machines as orchestrators of data processing pipelines. These components allow the developer to easily build complex, serverless pipelines using EMR Clusters (both Transient and Persistent), Lambdas, and nested State Machines.
