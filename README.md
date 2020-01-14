@@ -1,8 +1,8 @@
 # EMR Launch Modules
 
-See the [docs](./docs/)!
+See the __docs/__!
 
-And the [examples](./examples/)...
+And the __examples/__...
 
 ## Development
 
