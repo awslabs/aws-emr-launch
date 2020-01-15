@@ -187,6 +187,7 @@ class EMRProfile(core.Construct):
         return self
 
     def _construct_security_configuration(self, custom_security_configuration=None) -> None:
+        # Reset the SC if there are not security properties
         if (not custom_security_configuration
                 and not self._s3_encryption_mode
                 and not self._local_disk_encryption_key
@@ -212,6 +213,7 @@ class EMRProfile(core.Construct):
 
         encryption_config = {}
 
+        # Set In-Transit Encryption
         if self._tls_certificate_location:
             encryption_config['EnableInTransitEncryption'] = True
             encryption_config['InTransitEncryptionConfiguration'] = {
@@ -223,6 +225,7 @@ class EMRProfile(core.Construct):
         else:
             encryption_config['EnableInTransitEncryption'] = False
 
+        # Set At-Rest Encryption
         if self._s3_encryption_mode or self._local_disk_encryption_key:
             encryption_config['EnableAtRestEncryption'] = True
             at_rest_config = {}
@@ -390,13 +393,15 @@ class EMRProfile(core.Construct):
         return self
 
     @staticmethod
-    def get_profiles(namespace: str = 'default', next_token: Optional[str] = None) -> Mapping[str, any]:
+    def get_profiles(namespace: str = 'default', next_token: Optional[str] = None,
+                     ssm_client=None) -> List[Mapping[str, any]]:
+        ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         params = {
             'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
         }
         if next_token:
             params['NextToken'] = next_token
-        result = boto3.client('ssm').get_parameters_by_path(**params)
+        result = ssm_client('ssm').get_parameters_by_path(**params)
 
         profiles = {
             'EMRProfiles': [json.loads(p['Value']) for p in result['Parameters']]
@@ -406,9 +411,11 @@ class EMRProfile(core.Construct):
         return profiles
 
     @staticmethod
-    def get_profile(profile_name: str, namespace: str = 'default') -> Mapping[str, any]:
+    def get_profile(profile_name: str, namespace: str = 'default',
+                    ssm_client=None) -> Mapping[str, any]:
+        ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         try:
-            profile_json = boto3.client('ssm').get_parameter(
+            profile_json = ssm_client('ssm').get_parameter(
                 Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')['Parameter']['Value']
             return json.loads(profile_json)
         except ClientError as e:

@@ -153,13 +153,15 @@ class ClusterConfiguration(core.Construct):
         return self._config
 
     @staticmethod
-    def get_configurations(namespace: str = 'default', next_token: Optional[str] = None) -> Mapping[str, any]:
+    def get_configurations(namespace: str = 'default', next_token: Optional[str] = None,
+                           ssm_client=None) -> List[Mapping[str, any]]:
+        ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         params = {
             'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
         }
         if next_token:
             params['NextToken'] = next_token
-        result = boto3.client('ssm').get_parameters_by_path(**params)
+        result = ssm_client('ssm').get_parameters_by_path(**params)
 
         configurations = {
             'ClusterConfigurations': [json.loads(p['Value']) for p in result['Parameters']]
@@ -169,9 +171,11 @@ class ClusterConfiguration(core.Construct):
         return configurations
 
     @staticmethod
-    def get_configuration(configuration_name: str, namespace: str = 'default') -> Mapping[str, any]:
+    def get_configuration(configuration_name: str, namespace: str = 'default',
+                          ssm_client=None) -> Mapping[str, any]:
+        ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         try:
-            configuration_json = boto3.client('ssm').get_parameter(
+            configuration_json = ssm_client('ssm').get_parameter(
                 Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')['Parameter']['Value']
             return json.loads(configuration_json)
         except ClientError as e:

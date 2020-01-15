@@ -249,13 +249,15 @@ class EMRLaunchFunction(core.Construct):
         return self._description
 
     @staticmethod
-    def get_functions(namespace: str = 'default', next_token: Optional[str] = None) -> Mapping[str, any]:
+    def get_functions(namespace: str = 'default', next_token: Optional[str] = None,
+                      ssm_client=None) -> List[Mapping[str, any]]:
+        ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         params = {
             'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
         }
         if next_token:
             params['NextToken'] = next_token
-        result = boto3.client('ssm').get_parameters_by_path(**params)
+        result = ssm_client('ssm').get_parameters_by_path(**params)
 
         functions = {
             'EMRLaunchFunctions': [json.loads(p['Value']) for p in result['Parameters']]
@@ -265,9 +267,11 @@ class EMRLaunchFunction(core.Construct):
         return functions
 
     @staticmethod
-    def get_function(launch_function_name: str, namespace: str = 'default') -> Mapping[str, any]:
+    def get_function(launch_function_name: str, namespace: str = 'default',
+                     ssm_client=None) -> Mapping[str, any]:
+        ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         try:
-            function_json = boto3.client('ssm').get_parameter(
+            function_json = ssm_client('ssm').get_parameter(
                 Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')['Parameter']['Value']
             return json.loads(function_json)
         except ClientError as e:
