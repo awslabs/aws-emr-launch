@@ -102,7 +102,17 @@ default_config = {
         },
         'StepConcurrencyLevel': 1
     },
-    'OverrideInterfaces': {}
+    'OverrideInterfaces': {
+        'default': {
+            'Name': 'Name',
+            'MasterInstanceType': 'Instances.InstanceGroups.0.InstanceType',
+            'MasterInstanceMarket': 'Instances.InstanceGroups.0.Market',
+            'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
+            'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType',
+            'CoreInstanceMarket': 'Instances.InstanceGroups.1.Market',
+            'Subnet': 'Instances.Ec2SubnetId'
+        }
+    }
 }
 
 

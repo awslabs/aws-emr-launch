@@ -155,6 +155,7 @@ class ClusterConfiguration(core.Construct):
     def config(self) -> dict:
         return self._config
 
+    @property
     def override_interfaces(self) -> Dict[str, Dict[str, str]]:
         return self._override_interfaces
 
@@ -265,3 +266,12 @@ class InstanceGroupConfiguration(ClusterConfiguration):
             }
         ]
         self._update_config(config)
+        self.override_interfaces['default'] = {
+            'Name': 'Name',
+            'MasterInstanceType': 'Instances.InstanceGroups.0.InstanceType',
+            'MasterInstanceMarket': 'Instances.InstanceGroups.0.Market',
+            'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
+            'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType',
+            'CoreInstanceMarket': 'Instances.InstanceGroups.1.Market',
+            'Subnet': 'Instances.Ec2SubnetId'
+        }
