@@ -11,7 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from typing import Optional, Mapping, List
+from typing import Optional, Dict, List
 
 from aws_cdk import (
     aws_stepfunctions as sfn,
@@ -60,9 +60,8 @@ class LoadClusterConfigurationBuilder:
 class OverrideClusterConfigsBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
-              cluster_config: dict,
               override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
-              allowed_cluster_config_overrides: Optional[Mapping[str, str]] = None,
+              allowed_cluster_config_overrides: Optional[Dict[str, str]] = None,
               output_path: str = '$',
               result_path: str = '$.ClusterConfig') -> sfn.Task:
         construct = core.Construct(scope, id)

@@ -16,7 +16,7 @@ import boto3
 import logging
 import traceback
 
-from typing import Optional, Mapping
+from typing import Optional, Dict
 from botocore.exceptions import ClientError
 
 LOGGER = logging.getLogger()
@@ -43,7 +43,7 @@ class EMRLaunchFunctionNotFoundError(Exception):
 
 
 def _get_parameter_values(ssm_parameter_prefix: str, top_level_return: str, namespace: str = 'default',
-                          next_token: Optional[str] = None) -> Mapping[str, any]:
+                          next_token: Optional[str] = None) -> Dict[str, any]:
     params = {
         'Path': f'{ssm_parameter_prefix}/{namespace}/'
     }
@@ -59,7 +59,7 @@ def _get_parameter_values(ssm_parameter_prefix: str, top_level_return: str, name
     return return_val
 
 
-def _get_parameter_value(ssm_parameter_prefix: str, name: str, namespace: str = 'default') -> Mapping[str, any]:
+def _get_parameter_value(ssm_parameter_prefix: str, name: str, namespace: str = 'default') -> Dict[str, any]:
     configuration_json = ssm.get_parameter(
         Name=f'{ssm_parameter_prefix}/{namespace}/{name}')['Parameter']['Value']
     return json.loads(configuration_json)

@@ -4,7 +4,7 @@ Changelog for emr-launch
 0.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- add OverrideInterfaces to cluster_configuration
 
 
 0.5.0 (2020-01-10)

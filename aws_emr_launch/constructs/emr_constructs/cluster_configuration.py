@@ -14,7 +14,7 @@
 import json
 import boto3
 
-from typing import Mapping
+from typing import Dict
 from enum import Enum
 from botocore.exceptions import ClientError
 
@@ -53,6 +53,7 @@ class ClusterConfiguration(core.Construct):
                  description: Optional[str] = None):
 
         super().__init__(scope, id)
+        self._override_interfaces = {}
 
         if configuration_name is None:
             return
@@ -86,7 +87,8 @@ class ClusterConfiguration(core.Construct):
             'ConfigurationName': self._configuration_name,
             'Description': self._description,
             'Namespace': self._namespace,
-            'ClusterConfiguration': self._config
+            'ClusterConfiguration': self._config,
+            'OverrideInterfaces': self._override_interfaces
         }
 
     def from_json(self, property_values):
@@ -94,6 +96,7 @@ class ClusterConfiguration(core.Construct):
         self._namespace = property_values['Namespace']
         self._config = property_values['ClusterConfiguration']
         self._description = property_values.get('Description', None)
+        self._override_interfaces = property_values['OverrideInterfaces']
 
     def _update_config(self, new_config):
         self._config = new_config
@@ -152,9 +155,12 @@ class ClusterConfiguration(core.Construct):
     def config(self) -> dict:
         return self._config
 
+    def override_interfaces(self) -> Dict[str, Dict[str, str]]:
+        return self._override_interfaces
+
     @staticmethod
     def get_configurations(namespace: str = 'default', next_token: Optional[str] = None,
-                           ssm_client=None) -> List[Mapping[str, any]]:
+                           ssm_client=None) -> List[Dict[str, any]]:
         ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         params = {
             'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
@@ -172,7 +178,7 @@ class ClusterConfiguration(core.Construct):
 
     @staticmethod
     def get_configuration(configuration_name: str, namespace: str = 'default',
-                          ssm_client=None) -> Mapping[str, any]:
+                          ssm_client=None) -> Dict[str, any]:
         ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         try:
             configuration_json = ssm_client('ssm').get_parameter(

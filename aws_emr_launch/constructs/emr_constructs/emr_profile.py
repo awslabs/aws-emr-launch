@@ -14,7 +14,7 @@
 import json
 import boto3
 
-from typing import Mapping
+from typing import Dict
 from enum import Enum
 from botocore.exceptions import ClientError
 
@@ -394,7 +394,7 @@ class EMRProfile(core.Construct):
 
     @staticmethod
     def get_profiles(namespace: str = 'default', next_token: Optional[str] = None,
-                     ssm_client=None) -> List[Mapping[str, any]]:
+                     ssm_client=None) -> List[Dict[str, any]]:
         ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         params = {
             'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
@@ -412,7 +412,7 @@ class EMRProfile(core.Construct):
 
     @staticmethod
     def get_profile(profile_name: str, namespace: str = 'default',
-                    ssm_client=None) -> Mapping[str, any]:
+                    ssm_client=None) -> Dict[str, any]:
         ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         try:
             profile_json = ssm_client('ssm').get_parameter(

@@ -13,7 +13,7 @@
 
 import enum
 
-from typing import Optional, Mapping, Dict, List
+from typing import Optional, Dict, List
 from abc import abstractmethod
 
 from aws_cdk import (
@@ -32,7 +32,7 @@ class StepFailureAction(enum.Enum):
 
 class Resolvable:
     @abstractmethod
-    def resolve(self, scope: core.Construct) -> Mapping[str, any]:
+    def resolve(self, scope: core.Construct) -> Dict[str, any]:
         ...
 
 
@@ -62,7 +62,7 @@ class EMRCode(Code):
         self._id = id
         self._bucket_deployment = None
 
-    def resolve(self, scope: core.Construct) -> Mapping[str, any]:
+    def resolve(self, scope: core.Construct) -> Dict[str, any]:
         # If the same deployment is used multiple times, retain only the first instantiation
         if self._bucket_deployment is None:
             # Convert BucketDeploymentProps to dict
@@ -86,7 +86,7 @@ class EMRBootstrapAction(Resolvable):
         self._args = args
         self._code = code
 
-    def resolve(self, scope: core.Construct) -> Mapping[str, any]:
+    def resolve(self, scope: core.Construct) -> Dict[str, any]:
         if self._code is not None:
             self._code.resolve(scope)
 
@@ -111,7 +111,7 @@ class EMRStep(Resolvable):
         self._properties = properties
         self._code = code
 
-    def resolve(self, scope: core.Construct):
+    def resolve(self, scope: core.Construct) -> Dict[str, any]:
         if self._code is not None:
             self._code.resolve(scope)
 

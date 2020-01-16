@@ -14,7 +14,7 @@
 import json
 import boto3
 
-from typing import Optional, Mapping, List
+from typing import Optional, Dict, List
 from botocore.exceptions import ClientError
 
 from aws_cdk import (
@@ -39,14 +39,14 @@ class EMRLaunchFunction(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  launch_function_name: str,
                  emr_profile: emr_profile.EMRProfile,
-                 cluster_configuration: cluster_configuration.ClusterConfiguration,
+                 cluster_configuration: Optional[cluster_configuration.ClusterConfiguration] = None,
                  cluster_name: str = None,
                  namespace: str = 'default',
                  default_fail_if_cluster_running: bool = False,
                  success_topic: Optional[sns.Topic] = None,
                  failure_topic: Optional[sns.Topic] = None,
                  override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
-                 allowed_cluster_config_overrides: Optional[Mapping[str, str]] = None,
+                 allowed_cluster_config_overrides: Optional[Dict[str, str]] = None,
                  description: Optional[str] = None,
                  cluster_tags: Optional[List[core.Tag]] = None) -> None:
         super().__init__(scope, id)
@@ -73,6 +73,12 @@ class EMRLaunchFunction(core.Construct):
             subject='EMR Launch Function Failure',
             topic=failure_topic)
 
+        # If not cluster_configuration is provided, get configuration namespace and name at runtime
+        configuration_namespace_input = cluster_configuration.namespace \
+            if cluster_configuration is not None else sfn.TaskInput.from_data_at('ConfigurationNamespace').value
+        configuration_name_input = cluster_configuration.configuration_name \
+            if cluster_configuration is not None else sfn.TaskInput.from_data_at('ConfigurationName').value
+
         # Create Task for loading the cluster configuration from Parameter Store
         load_cluster_configuration = emr_tasks.LoadClusterConfigurationBuilder.build(
             self, 'LoadClusterConfigurationChain',
@@ -80,14 +86,13 @@ class EMRLaunchFunction(core.Construct):
             cluster_tags=self._cluster_tags,
             profile_namespace=emr_profile.namespace,
             profile_name=emr_profile.profile_name,
-            configuration_namespace=cluster_configuration.namespace,
-            configuration_name=cluster_configuration.configuration_name)
+            configuration_namespace=configuration_namespace_input,
+            configuration_name=configuration_name_input)
         load_cluster_configuration.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create Task for overriding cluster configurations
         override_cluster_configs = emr_tasks.OverrideClusterConfigsBuilder.build(
             self, 'OverrideClusterConfigsChain',
-            cluster_config=cluster_configuration.config,
             override_cluster_configs_lambda=override_cluster_configs_lambda,
             allowed_cluster_config_overrides=allowed_cluster_config_overrides)
         # Attach an error catch to the Task
@@ -237,7 +242,7 @@ class EMRLaunchFunction(core.Construct):
         return self._override_cluster_configs_lambda
 
     @property
-    def allowed_cluster_config_overrides(self) -> Mapping[str, str]:
+    def allowed_cluster_config_overrides(self) -> Dict[str, str]:
         return self._allowed_cluster_config_overrides
 
     @property
@@ -250,7 +255,7 @@ class EMRLaunchFunction(core.Construct):
 
     @staticmethod
     def get_functions(namespace: str = 'default', next_token: Optional[str] = None,
-                      ssm_client=None) -> List[Mapping[str, any]]:
+                      ssm_client=None) -> List[Dict[str, any]]:
         ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         params = {
             'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
@@ -268,7 +273,7 @@ class EMRLaunchFunction(core.Construct):
 
     @staticmethod
     def get_function(launch_function_name: str, namespace: str = 'default',
-                     ssm_client=None) -> Mapping[str, any]:
+                     ssm_client=None) -> Dict[str, any]:
         ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         try:
             function_json = ssm_client('ssm').get_parameter(
