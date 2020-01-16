@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.5.1 (unreleased)
 ------------------
 
+- make cluster_configuration optional to emr_launch_cluster
+
 - add OverrideInterfaces to cluster_configuration
 
 
