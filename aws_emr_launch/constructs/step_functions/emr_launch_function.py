@@ -262,7 +262,7 @@ class EMRLaunchFunction(core.Construct):
         }
         if next_token:
             params['NextToken'] = next_token
-        result = ssm_client('ssm').get_parameters_by_path(**params)
+        result = ssm_client.get_parameters_by_path(**params)
 
         functions = {
             'EMRLaunchFunctions': [json.loads(p['Value']) for p in result['Parameters']]
@@ -276,7 +276,7 @@ class EMRLaunchFunction(core.Construct):
                      ssm_client=None) -> Dict[str, any]:
         ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         try:
-            function_json = ssm_client('ssm').get_parameter(
+            function_json = ssm_client.get_parameter(
                 Name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')['Parameter']['Value']
             return json.loads(function_json)
         except ClientError as e:
