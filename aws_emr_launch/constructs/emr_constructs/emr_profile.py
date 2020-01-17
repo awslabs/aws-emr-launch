@@ -394,7 +394,7 @@ class EMRProfile(core.Construct):
 
     @staticmethod
     def get_profiles(namespace: str = 'default', next_token: Optional[str] = None,
-                     ssm_client=None) -> List[Dict[str, any]]:
+                     ssm_client=None) -> Dict[str, any]:
         ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         params = {
             'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'

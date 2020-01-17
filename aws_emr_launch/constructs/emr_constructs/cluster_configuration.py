@@ -161,7 +161,7 @@ class ClusterConfiguration(core.Construct):
 
     @staticmethod
     def get_configurations(namespace: str = 'default', next_token: Optional[str] = None,
-                           ssm_client=None) -> List[Dict[str, any]]:
+                           ssm_client=None) -> Dict[str, any]:
         ssm_client = boto3.client('ssm') if ssm_client is None else ssm_client
         params = {
             'Path': f'{SSM_PARAMETER_PREFIX}/{namespace}/'
@@ -265,7 +265,6 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                 }
             }
         ]
-        self._update_config(config)
         self.override_interfaces['default'] = {
             'ClusterName': 'Name',
             'MasterInstanceType': 'Instances.InstanceGroups.0.InstanceType',
@@ -275,3 +274,5 @@ class InstanceGroupConfiguration(ClusterConfiguration):
             'CoreInstanceMarket': 'Instances.InstanceGroups.1.Market',
             'Subnet': 'Instances.Ec2SubnetId'
         }
+
+        self._update_config(config)
