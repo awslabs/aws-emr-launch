@@ -267,7 +267,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
         ]
         self._update_config(config)
         self.override_interfaces['default'] = {
-            'Name': 'Name',
+            'ClusterName': 'Name',
             'MasterInstanceType': 'Instances.InstanceGroups.0.InstanceType',
             'MasterInstanceMarket': 'Instances.InstanceGroups.0.Market',
             'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
