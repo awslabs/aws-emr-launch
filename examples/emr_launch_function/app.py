@@ -33,11 +33,9 @@ cluster_config = cluster_configuration.ClusterConfiguration.from_stored_configur
     stack, 'ClusterConfiguration', 'basic-instance-group-cluster')
 
 # Create a new State Machine to launch a cluster with the Basic configuration
-# Allow the Name, Instances.InstanceGroups.1.InstanceCount, and
-# Instances.InstanceGroups.1.InstanceType to be overwritten at runtime and assign
-# simple names to them. Unless specifically indicated, fail to start if a cluster
-# of the same name is already running.
-launch_function = emr_launch_function.EMRLaunchFunction(
+# Unless specifically indicated, fail to start if a cluster of the same name
+# is already running.
+launch_function_1 = emr_launch_function.EMRLaunchFunction(
     stack, 'EMRLaunchFunction',
     launch_function_name='launch-basic-cluster',
     cluster_configuration=cluster_config,
@@ -46,11 +44,19 @@ launch_function = emr_launch_function.EMRLaunchFunction(
     success_topic=success_topic,
     failure_topic=failure_topic,
     default_fail_if_cluster_running=True,
-    allowed_cluster_config_overrides={
-        'Name': 'Name',
-        'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
-        'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType'
-    },
+    allowed_cluster_config_overrides=cluster_config.override_interfaces['default'],
     cluster_tags=[core.Tag('Key1', 'Value1'), core.Tag('Key2', 'Value2')])
+
+# Create another State Machine to launch a Cluster with the sse-kms-profile but
+# allow the cluster_configuration to be provided at function execution time
+launch_function_2 = emr_launch_function.EMRLaunchFunction(
+    stack, 'EMRLaunchFunction2',
+    launch_function_name='launch-any-cluster',
+    emr_profile=sse_kms_profile,
+    cluster_name='dynamic-cluster',
+    default_fail_if_cluster_running=True,
+    allowed_cluster_config_overrides={
+        'ClusterName': 'Name'
+    })
 
 app.synth()
