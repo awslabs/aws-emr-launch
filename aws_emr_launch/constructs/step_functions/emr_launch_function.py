@@ -75,9 +75,9 @@ class EMRLaunchFunction(core.Construct):
 
         # If not cluster_configuration is provided, get configuration namespace and name at runtime
         configuration_namespace_input = cluster_configuration.namespace \
-            if cluster_configuration is not None else sfn.TaskInput.from_data_at('ConfigurationNamespace').value
+            if cluster_configuration is not None else sfn.TaskInput.from_data_at('$.ConfigurationNamespace').value
         configuration_name_input = cluster_configuration.configuration_name \
-            if cluster_configuration is not None else sfn.TaskInput.from_data_at('ConfigurationName').value
+            if cluster_configuration is not None else sfn.TaskInput.from_data_at('$.ConfigurationName').value
 
         # Create Task for loading the cluster configuration from Parameter Store
         load_cluster_configuration = emr_tasks.LoadClusterConfigurationBuilder.build(
@@ -151,11 +151,17 @@ class EMRLaunchFunction(core.Construct):
             'EMRProfile':
                 f'{self._emr_profile.namespace}/{self._emr_profile.profile_name}',
             'ClusterConfiguration':
-                f'{self._cluster_configuration.namespace}/{self._cluster_configuration.configuration_name}',
+                f'{self._cluster_configuration.namespace}/{self._cluster_configuration.configuration_name}'
+                if self._cluster_configuration is not None
+                else None,
             'ClusterName': self._cluster_name,
             'DefaultFailIfClusterRunning': self._default_fail_if_cluster_running,
-            'SuccessTopic': self._success_topic.topic_arn if self._success_topic is not None else None,
-            'FailureTopic': self._failure_topic.topic_arn if self._failure_topic is not None else None,
+            'SuccessTopic': self._success_topic.topic_arn
+                if self._success_topic is not None
+                else None,
+            'FailureTopic': self._failure_topic.topic_arn
+                if self._failure_topic is not None
+                else None,
             'OverrideClusterConfigsLambda':
                 self._override_cluster_configs_lambda.function_arn
                 if self._override_cluster_configs_lambda is not None
