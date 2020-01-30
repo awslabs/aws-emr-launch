@@ -4,11 +4,11 @@ Changelog for emr-launch
 0.5.1 (unreleased)
 ------------------
 
+- update boto3 and cdk versions
+
 - add default override_interface to InstanceGroupConfiguration
 
-- make cluster_configuration optional to emr_launch_cluster
-
-- add OverrideInterfaces to cluster_configuration
+- add override_interfaces to cluster_configuration
 
 
 0.5.0 (2020-01-10)
