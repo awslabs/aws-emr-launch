@@ -51,38 +51,39 @@ class FailIfClusterRunningBuilder:
 
 class LoadClusterConfigurationBuilder:
     @staticmethod
-    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
+    def build(scope: core.Construct, profile_namespace: str, profile_name: str,
+              configuration_namespace: str, configuration_name: str) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
-        lambda_function = stack.node.try_find_child('LoadClusterConfiguration')
-        if lambda_function is None:
-            lambda_function = aws_lambda.Function(
-                stack,
-                'LoadClusterConfiguration',
-                code=code,
-                handler='load_cluster_configuration.handler',
-                runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1),
-                initial_policy=[
-                    iam.PolicyStatement(
-                        effect=iam.Effect.ALLOW,
-                        actions=['ssm:GetParameter'],
-                        resources=[
-                            stack.format_arn(
-                                partition=stack.partition,
-                                service='ssm',
-                                resource='parameter/emr_launch/cluster_configurations/*'
-                            ),
-                            stack.format_arn(
-                                partition=stack.partition,
-                                service='ssm',
-                                resource='parameter/emr_launch/emr_profiles/*'
-                            )
-                        ]
-                    )
-                ]
-            )
+        lambda_function = aws_lambda.Function(
+            scope,
+            'LoadClusterConfiguration',
+            code=code,
+            handler='load_cluster_configuration.handler',
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            timeout=core.Duration.minutes(1),
+            initial_policy=[
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=['ssm:GetParameter'],
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/cluster_configurations/'
+                            f'{configuration_namespace}/{configuration_name}'
+                        ),
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='ssm',
+                            resource='parameter/emr_launch/emr_profiles/'
+                            f'{profile_namespace}/{profile_name}'
+                        )
+                    ]
+                )
+            ]
+        )
         return lambda_function
 
 
