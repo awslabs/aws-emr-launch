@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.5.1 (unreleased)
 ------------------
 
+- use a LaodClusterConfig lambda per launch_function
+
 - update boto3 and cdk versions
 
 - add default override_interface to InstanceGroupConfiguration
