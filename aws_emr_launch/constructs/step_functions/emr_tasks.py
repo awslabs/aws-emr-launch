@@ -36,9 +36,15 @@ class LoadClusterConfigurationBuilder:
               configuration_name: str,
               output_path: str = '$',
               result_path: str = '$.ClusterConfig') -> sfn.Task:
+        # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
-        load_cluster_configuration_lambda = emr_lambdas.LoadClusterConfigurationBuilder.get_or_build(construct)
+        load_cluster_configuration_lambda = emr_lambdas.LoadClusterConfigurationBuilder.build(
+            construct,
+            profile_namespace=profile_namespace,
+            profile_name=profile_name,
+            configuration_namespace=configuration_namespace,
+            configuration_name=configuration_name)
 
         return sfn.Task(
             construct, 'Load Cluster Configuration',
@@ -64,6 +70,7 @@ class OverrideClusterConfigsBuilder:
               allowed_cluster_config_overrides: Optional[Dict[str, str]] = None,
               output_path: str = '$',
               result_path: str = '$.ClusterConfig') -> sfn.Task:
+        # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
         override_cluster_configs_lambda = \
@@ -90,6 +97,7 @@ class UpdateClusterTagsBuilder:
     def build(scope: core.Construct, id: str, *,
               output_path: str = '$',
               result_path: str = '$.ClusterConfig') -> sfn.Task:
+        # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
         update_cluster_tags_lambda = emr_lambdas.UpdateClusterTagsBuilder.get_or_build(construct)
@@ -110,6 +118,7 @@ class UpdateClusterTagsBuilder:
 class FailIfClusterRunningBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *, default_fail_if_cluster_running: bool) -> sfn.Task:
+        # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
         fail_if_cluster_running_lambda = emr_lambdas.FailIfClusterRunningBuilder.get_or_build(construct)
@@ -132,6 +141,7 @@ class CreateClusterBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *, roles: emr_roles.EMRRoles,
               result_path: Optional[str] = None, output_path: Optional[str] = None) -> sfn.Task:
+        # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
         run_job_flow_lambda = emr_lambdas.RunJobFlowBuilder.get_or_build(construct, roles)
@@ -156,6 +166,7 @@ class AddStepBuilder:
     def build(scope: core.Construct, id: str, *,
               name: str, emr_step: emr_code.EMRStep, cluster_id: str,
               result_path: Optional[str] = None, output_path: Optional[str] = None) -> sfn.Task:
+        # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
         add_job_flow_step_lambda = emr_lambdas.AddJobFlowStepBuilder.get_or_build(construct)
@@ -182,6 +193,7 @@ class TerminateClusterBuilder:
     def build(scope: core.Construct, id: str, *,
               name: str, cluster_id: str, result_path: Optional[str] = None,
               output_path: Optional[str] = None) -> sfn.Task:
+        # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
         terminate_job_flow_lambda = emr_lambdas.TerminateJobFlowBuilder.get_or_build(construct)

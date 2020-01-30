@@ -39,7 +39,7 @@ class EMRLaunchFunction(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  launch_function_name: str,
                  emr_profile: emr_profile.EMRProfile,
-                 cluster_configuration: Optional[cluster_configuration.ClusterConfiguration] = None,
+                 cluster_configuration: cluster_configuration.ClusterConfiguration,
                  cluster_name: str = None,
                  namespace: str = 'default',
                  default_fail_if_cluster_running: bool = False,
@@ -73,12 +73,6 @@ class EMRLaunchFunction(core.Construct):
             subject='EMR Launch Function Failure',
             topic=failure_topic)
 
-        # If not cluster_configuration is provided, get configuration namespace and name at runtime
-        configuration_namespace_input = cluster_configuration.namespace \
-            if cluster_configuration is not None else sfn.TaskInput.from_data_at('$.ConfigurationNamespace').value
-        configuration_name_input = cluster_configuration.configuration_name \
-            if cluster_configuration is not None else sfn.TaskInput.from_data_at('$.ConfigurationName').value
-
         # Create Task for loading the cluster configuration from Parameter Store
         load_cluster_configuration = emr_tasks.LoadClusterConfigurationBuilder.build(
             self, 'LoadClusterConfigurationChain',
@@ -86,8 +80,8 @@ class EMRLaunchFunction(core.Construct):
             cluster_tags=self._cluster_tags,
             profile_namespace=emr_profile.namespace,
             profile_name=emr_profile.profile_name,
-            configuration_namespace=configuration_namespace_input,
-            configuration_name=configuration_name_input)
+            configuration_namespace=cluster_configuration.namespace,
+            configuration_name=cluster_configuration.configuration_name)
         load_cluster_configuration.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create Task for overriding cluster configurations
@@ -151,9 +145,7 @@ class EMRLaunchFunction(core.Construct):
             'EMRProfile':
                 f'{self._emr_profile.namespace}/{self._emr_profile.profile_name}',
             'ClusterConfiguration':
-                f'{self._cluster_configuration.namespace}/{self._cluster_configuration.configuration_name}'
-                if self._cluster_configuration is not None
-                else None,
+                f'{self._cluster_configuration.namespace}/{self._cluster_configuration.configuration_name}',
             'ClusterName': self._cluster_name,
             'DefaultFailIfClusterRunning': self._default_fail_if_cluster_running,
             'SuccessTopic': self._success_topic.topic_arn
