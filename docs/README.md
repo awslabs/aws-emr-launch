@@ -19,6 +19,7 @@ An EMR Profile (`emr_profile`) is a reusable definition of the security profile 
 - __Master Group__: the Security Group assigned to the EMR Master Instance
 - __Workers Group__: the Security Group assigned to the EMR Worker Instances (Core and Task nodes)
 - __Security Configuration__: the Security Configuration used by the Cluster 
+- __Kerberos Attributes__: the attributes required to enable Kerberos authentication
 
 Each `emr_profile` requires a unique `profile_name`. This name and the `namespace` uniquiely identify a profile. The `namespace` is a logical grouping of profiles and has a default value of "default". 
 
