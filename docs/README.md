@@ -1,5 +1,5 @@
 # EMR Launch Docs
-The intent of the EMR Launch library is to simplify the definition, deployment, management, and use of EMR Clusters for developers by:
+The intent of the EMR Launch library is to simplify the development experience for Builders defining, deploying, managing, and using EMR Clusters by:
 
 - defining reusable Security, Resource, and Launch Configurations enabling developers to __Define Once and Reuse__ 
 - separating the reusable definition of Cluster Security Configuration and Cluster Resource Configuration enabling these to be manage by the proper responsible parties
