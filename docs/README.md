@@ -1,8 +1,14 @@
 # EMR Launch Docs
-This library utilizes the AWS CDK for deployement and management of resources. It is recommended that users familiarize themselves with the CDK's basic concepts and usage.
+The intent of the EMR Launch library is to simplify the definition, deployment, management, and use of EMR Clusters for developers by:
+
+- defining reusable Security, Resource, and Launch Configurations enabling developers to __Define Once and Reuse__ 
+- separating the reusable definition of Cluster Security Configuration and Cluster Resource Configuration enabling these to be manage by the proper responsible parties
+- providing a suite of Tools to simplify the construction of Orchestration Pipelines using Step Functions and EMR Clusters
 
 
 ## Concepts (and Constructs)
+This library utilizes the AWS CDK for deployement and management of resources. It is recommended that users familiarize themselves with the CDK's basic concepts and usage.
+
 
 ### EMR Profile
 An EMR Profile (`emr_profile`) is a reusable definition of the security profile used by an EMR Cluster. This includes:
