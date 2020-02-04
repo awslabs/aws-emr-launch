@@ -20,9 +20,9 @@ from aws_cdk import (
     core
 )
 
-from ..lambdas import emr_lambdas
-from ..emr_constructs import emr_code
-from ..iam_roles import emr_roles
+from aws_emr_launch.constructs.lambdas import emr_lambdas
+from aws_emr_launch.constructs.emr_constructs import emr_code
+from aws_emr_launch.constructs.iam_roles import emr_roles
 
 
 class LoadClusterConfigurationBuilder:

@@ -11,15 +11,10 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-from aws_cdk import (
-    core
-)
+from aws_cdk import core
 
-from .events.emr_events import EMREvents
-from .lambdas import (
-    emr_utilities,
-    apis
-)
+from aws_emr_launch.control_plane.constructs.events.emr_events import EMREvents
+from aws_emr_launch.control_plane.constructs.lambdas import emr_utilities, apis
 
 
 class ControlPlaneStack(core.Stack):

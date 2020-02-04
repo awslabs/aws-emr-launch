@@ -25,7 +25,7 @@ from aws_cdk import (
     core
 )
 
-from .emr_code import EMRBootstrapAction
+from aws_emr_launch.constructs.emr_constructs.emr_code import EMRBootstrapAction
 
 SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
 

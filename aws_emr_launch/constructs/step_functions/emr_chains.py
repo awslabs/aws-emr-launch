@@ -20,7 +20,7 @@ from aws_cdk import (
     core
 )
 
-from ..lambdas import emr_lambdas
+from aws_emr_launch.constructs.lambdas import emr_lambdas
 
 
 class Success(sfn.StateMachineFragment):

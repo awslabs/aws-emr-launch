@@ -16,7 +16,7 @@ from aws_cdk import (
     core
 )
 
-from aws_emr_launch.constructs.security_groups import EMRSecurityGroups
+from aws_emr_launch.constructs.security_groups.emr import EMRSecurityGroups
 
 
 def test_emr_security_groups():

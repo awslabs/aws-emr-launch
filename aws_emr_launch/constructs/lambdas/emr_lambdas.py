@@ -17,8 +17,8 @@ from aws_cdk import (
     core
 )
 
-from . import _lambda_path
-from ..iam_roles import emr_roles
+from aws_emr_launch.constructs.lambdas import _lambda_path
+from aws_emr_launch.constructs.iam_roles import emr_roles
 
 
 class FailIfClusterRunningBuilder:

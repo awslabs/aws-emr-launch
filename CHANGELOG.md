@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.5.1 (unreleased)
 ------------------
 
+- replace relative import paths
+
 - use a LaodClusterConfig lambda per launch_function
 
 - update boto3 and cdk versions

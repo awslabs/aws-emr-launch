@@ -28,8 +28,8 @@ from aws_cdk import (
     core
 )
 
-from ..security_groups.emr import EMRSecurityGroups
-from ..iam_roles.emr_roles import EMRRoles
+from aws_emr_launch.constructs.security_groups.emr import EMRSecurityGroups
+from aws_emr_launch.constructs.iam_roles.emr_roles import EMRRoles
 
 SSM_PARAMETER_PREFIX = '/emr_launch/emr_profiles'
 

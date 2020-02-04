@@ -25,8 +25,8 @@ from aws_cdk import (
     core
 )
 
-from . import emr_chains, emr_tasks
-from ..emr_constructs import cluster_configuration, emr_profile
+from aws_emr_launch.constructs.step_functions import emr_chains, emr_tasks
+from aws_emr_launch.constructs.emr_constructs import cluster_configuration, emr_profile
 
 SSM_PARAMETER_PREFIX = '/emr_launch/emr_launch_functions'
 
