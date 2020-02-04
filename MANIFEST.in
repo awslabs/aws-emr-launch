@@ -18,6 +18,7 @@ recursive-include examples *.md
 recursive-include examples *.sh
 recursive-include examples *.json
 recursive-include examples *.hql
+recursive-include docs *.md
 
 recursive-exclude examples .env/*
 recursive-exclude examples **/cdk.out/*
