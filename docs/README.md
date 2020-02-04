@@ -51,7 +51,8 @@ Chains and Tasks are preconfigured components that simplify the use of AWS Step 
 ### Security
 Care is taken to ensure that `emr_launch_functions` and `emr_profiles` can't be used to create clusters with elevated or unintended privileges. 
 
-- IAM policies can be used to restrict the Users and Roles that can create EMR Clusters with specific `emr_profiles` and `cluster_configurations` by granting `states:StartExecution` to specific State Machine ARNs.
+- IAM policies can be used to restrict the Users and Roles that can create EMR Clusters by granting `states:StartExecution` to specific State Machine ARNs. 
 - By storing the metadata and configuration of `emr_profiles`, `cluster_configurations`, and `emr_launch_functions` in the Systems Manager Parameter Store, IAM Policies can be used to grant or restrict Read/Write access to these
-    + Access can be managed for all metadata and configurations, specific __nameespaces__, or individual ARNs
-- 
+    + Access can be managed for *__ALL__* metadata and configurations, specific __nameespaces__, or individual ARNs
+- Each `emr_launch_function` uses a specific AWS Lambda function to load and combine its specific `emr_profile` and `cluster_configuration`. The IAM Policy associated with this Lambda allows it to read only these specific ARNs from the Parameter Store.
+- Each `emr_launch_function` is granted `iam:PassRole` to the specific EMR Roles defined in the `emr_profile` assigned to the launch function. Attempting to change the Roles used by directly modifying the metadata of the `emr_profile` in the Parameter Store will result in a cluster launch failure. 
