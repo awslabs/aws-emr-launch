@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.5.1 (unreleased)
+0.5.1 (2020-02-04)
 ------------------
 
 - replace relative import paths
