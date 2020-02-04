@@ -26,6 +26,7 @@ recursive-exclude examples **/cdk.out/*
 exclude .env
 exclude cdk.out
 exclude cdk.context.json
+exclude examples/environment_vars.sh
 
 global-exclude *.pyc
 global-exclude __pycache__
