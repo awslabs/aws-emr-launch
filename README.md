@@ -2,13 +2,15 @@
 
 ## READ THIS FIRST
 __This project is currently in Beta testing with select customers. 
-It is considered INTERNAL ONLY and should not be shared with customers outside outside of a paid ProServe engagement.__  
+It is considered INTERNAL ONLY and should not be shared with customers outside of a paid ProServe engagement.__
 
+If you're interested in using this library on an engagement, contact __chamcca@__  
+
+## Development
 See the __docs/__!
 
 And the __examples/__...
 
-## Development
 
 ### Install Project Dependencies
 
