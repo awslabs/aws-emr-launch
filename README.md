@@ -1,5 +1,9 @@
 # EMR Launch Modules
 
+## READ THIS FIRST
+__This project is currently in Beta testing with select customers. 
+It is considered INTERNAL ONLY and should not be shared with customers outside outside of a paid ProServe engagement.__  
+
 See the __docs/__!
 
 And the __examples/__...
