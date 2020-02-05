@@ -44,7 +44,7 @@ class ClusterConfiguration(core.Construct):
     def __init__(self, scope: core.Construct, id: str, *,
                  configuration_name: str,
                  namespace: str = 'default',
-                 release_label: Optional[str] = 'emr-5.28.0',
+                 release_label: Optional[str] = 'emr-5.29.0',
                  applications: Optional[List[str]] = None,
                  bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
