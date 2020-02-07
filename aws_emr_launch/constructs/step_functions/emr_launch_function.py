@@ -133,10 +133,12 @@ class EMRLaunchFunction(core.Construct):
             self, 'StateMachine',
             state_machine_name=f'{namespace}_{launch_function_name}', definition=definition)
 
-        self._ssm_parameter = ssm.StringParameter(
+        self._ssm_parameter = ssm.CfnParameter(
             self, 'SSMParameter',
-            string_value=json.dumps(self.to_json()),
-            parameter_name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')
+            type='String',
+            value=json.dumps(self.to_json()),
+            tier='Intelligent-Tiering',
+            name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}')
 
     def to_json(self):
         return {

@@ -4,7 +4,7 @@ Changelog for emr-launch
 0.5.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Use Intelligent-Tiering to manage Advanced SSM Parameters
 
 
 0.5.1 (2020-02-04)

@@ -93,6 +93,7 @@ class EMRProfile(core.Construct):
             self, 'SSMParameter',
             type='String',
             value=json.dumps(self.to_json()),
+            tier='Intelligent-Tiering',
             name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}')
 
         self._construct_security_configuration()

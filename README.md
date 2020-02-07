@@ -1,4 +1,4 @@
-# EMR Launch Modules
+# EMR Launch
 
 ## READ THIS FIRST
 __This project is currently in Beta testing with select customers. 

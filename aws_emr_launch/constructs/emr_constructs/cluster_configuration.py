@@ -14,11 +14,10 @@
 import json
 import boto3
 
-from typing import Dict
 from enum import Enum
 from botocore.exceptions import ClientError
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 from aws_cdk import (
     aws_ec2 as ec2,
     aws_ssm as ssm,
@@ -80,6 +79,7 @@ class ClusterConfiguration(core.Construct):
             self, 'SSMParameter',
             type='String',
             value=json.dumps(self.to_json()),
+            tier='Intelligent-Tiering',
             name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')
 
     def to_json(self):
@@ -98,8 +98,9 @@ class ClusterConfiguration(core.Construct):
         self._description = property_values.get('Description', None)
         self._override_interfaces = property_values['OverrideInterfaces']
 
-    def _update_config(self, new_config):
-        self._config = new_config
+    def update_config(self, new_config: dict = None):
+        if new_config is not None:
+            self._config = new_config
         self._ssm_parameter.value = json.dumps(self.to_json())
 
     @staticmethod
@@ -108,33 +109,32 @@ class ClusterConfiguration(core.Construct):
 
     @staticmethod
     def _get_configurations(configurations: Optional[List[dict]], use_glue_catalog: bool) -> List[dict]:
-        found_hive_site = False
-        found_spark_hive_site = False
-
+        configurations = [] if configurations is None else configurations
         metastore_property = {} if not use_glue_catalog else {
             'hive.metastore.client.factory.class':
                 'com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory'
         }
 
-        configurations = [] if configurations is None else configurations
-        for config in configurations:
-            classification = config.get('Classification', '')
-            if classification == 'hive-site':
-                found_hive_site = True
-                config['Properties'] = dict(config.get('Properties', {}), **metastore_property)
-            elif classification == 'spark-hive-site':
-                found_spark_hive_site = True
-                config['Properties'] = dict(config.get('Properties', {}), **metastore_property)
+        configurations = ClusterConfiguration.update_configurations(
+            configurations, 'hive-site', metastore_property)
+        configurations = ClusterConfiguration.update_configurations(
+            configurations, 'spark-hive-site', metastore_property)
 
-        if not found_hive_site:
+        return configurations
+
+    @staticmethod
+    def update_configurations(configurations: List[dict], classification: str, properties: Dict[str, str]):
+        found_classification = False
+        for config in configurations:
+            cls = config.get('Classification', '')
+            if cls == classification:
+                found_classification = True
+                config['Properties'] = dict(config.get('Properties', {}), **properties)
+
+        if not found_classification:
             configurations.append({
-                'Classification': 'hive-site',
-                'Properties': metastore_property
-            })
-        if not found_spark_hive_site:
-            configurations.append({
-                'Classification': 'spark-hive-site',
-                'Properties': metastore_property
+                'Classification': classification,
+                'Properties': properties
             })
 
         return configurations
@@ -275,4 +275,4 @@ class InstanceGroupConfiguration(ClusterConfiguration):
             'Subnet': 'Instances.Ec2SubnetId'
         }
 
-        self._update_config(config)
+        self.update_config(config)
