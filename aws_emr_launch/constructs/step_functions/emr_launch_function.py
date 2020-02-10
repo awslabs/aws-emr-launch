@@ -71,7 +71,9 @@ class EMRLaunchFunction(core.Construct):
             self, 'FailChain',
             message=sfn.TaskInput.from_data_at('$.Error'),
             subject='EMR Launch Function Failure',
-            topic=failure_topic)
+            topic=failure_topic,
+            error='Failed to Launch Cluster',
+            cause='See Execution Event "FailStateEntered" for complete error cause')
 
         # Create Task for loading the cluster configuration from Parameter Store
         load_cluster_configuration = emr_tasks.LoadClusterConfigurationBuilder.build(
@@ -96,7 +98,7 @@ class EMRLaunchFunction(core.Construct):
         # running, based on user input
         fail_if_cluster_running = emr_tasks.FailIfClusterRunningBuilder.build(
             self, 'FailIfClusterRunningTask',
-            default_fail_if_cluster_running=default_fail_if_cluster_running)
+            default_fail_if_cluster_running=default_fail_if_cluster_running,)
         # Attach an error catch to the task
         fail_if_cluster_running.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 

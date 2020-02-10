@@ -215,7 +215,8 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                  bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
-                 step_concurrency_level: Optional[int] = 1):
+                 step_concurrency_level: Optional[int] = 1,
+                 description: Optional[str] = None):
 
         super().__init__(scope, id,
                          configuration_name=configuration_name,
@@ -225,7 +226,8 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                          bootstrap_actions=bootstrap_actions,
                          configurations=configurations,
                          use_glue_catalog=use_glue_catalog,
-                         step_concurrency_level=step_concurrency_level)
+                         step_concurrency_level=step_concurrency_level,
+                         description=description)
 
         config = self.config
         config['Instances']['Ec2SubnetId'] = subnet.subnet_id
