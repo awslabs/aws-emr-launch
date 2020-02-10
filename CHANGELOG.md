@@ -4,6 +4,8 @@ Changelog for emr-launch
 0.5.2 (unreleased)
 ------------------
 
+- public cluster_configuration.update_config()
+
 - implement description on InstanceGroupConfiguration
 
 - Use Intelligent-Tiering to manage Advanced SSM Parameters
