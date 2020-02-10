@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.5.2 (unreleased)
+0.5.2 (2020-02-10)
 ------------------
 
 - public cluster_configuration.update_configurations()
