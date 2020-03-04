@@ -32,11 +32,12 @@ sse_s3_profile = emr_profile.EMRProfile(
     profile_name='sse-s3-profile',
     vpc=vpc,
     artifacts_bucket=artifacts_bucket,
-    logs_bucket=logs_bucket)
+    logs_bucket=logs_bucket
+)
 
 sse_s3_profile \
-    .authorize_input_buckets([data_bucket]) \
-    .authorize_output_buckets([data_bucket])
+    .authorize_input_bucket(data_bucket) \
+    .authorize_output_bucket(data_bucket)
 
 # Here we create a KMS Key to use for At Rest Encryption in S3 and Locally
 kms_key = kms.Key(stack, 'AtRestKMSKey')
@@ -52,10 +53,10 @@ sse_kms_profile = emr_profile.EMRProfile(
 
 # Authorize the profile for the Data Bucket and set the At Rest Encryption type
 sse_kms_profile \
-    .authorize_input_buckets([data_bucket]) \
-    .authorize_output_buckets([data_bucket]) \
+    .authorize_input_bucket(data_bucket) \
+    .authorize_output_bucket(data_bucket) \
     .set_s3_encryption(emr_profile.S3EncryptionMode.SSE_KMS, encryption_key=kms_key) \
-    .set_local_disk_encryption_key(kms_key, ebs_encryption=True) \
+    .set_local_disk_encryption_key(kms_key, ebs_encryption=True)
 
 
 app.synth()
