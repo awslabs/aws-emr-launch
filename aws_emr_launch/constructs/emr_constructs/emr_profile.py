@@ -18,7 +18,7 @@ from typing import Dict
 from enum import Enum
 from botocore.exceptions import ClientError
 
-from typing import Optional, List
+from typing import Optional
 from aws_cdk import (
     aws_s3 as s3,
     aws_kms as kms,
@@ -361,36 +361,32 @@ class EMRProfile(core.Construct):
         self._construct_security_configuration(security_configuration)
         return self
 
-    def authorize_input_buckets(self, input_buckets: List[s3.Bucket]):
-        if self._rehydrated:
+    def authorize_input_bucket(self, bucket: s3.Bucket, objects_key_pattern: Optional[str] = None):
+        if self._rehydrated and not self._mutable_instance_role:
             raise ReadOnlyEMRProfileError()
 
-        for bucket in input_buckets:
-            bucket.grant_read(self._roles.instance_role)
+        bucket.grant_read(self._roles.instance_role, objects_key_pattern).assert_success()
         return self
 
-    def authorize_output_buckets(self, output_buckets: List[s3.Bucket]):
-        if self._rehydrated:
+    def authorize_output_bucket(self, bucket: s3.Bucket, objects_key_pattern: Optional[str] = None):
+        if self._rehydrated and not self._mutable_instance_role:
             raise ReadOnlyEMRProfileError()
 
-        for bucket in output_buckets:
-            bucket.grant_write(self._roles.instance_role)
+        bucket.grant_write(self._roles.instance_role, objects_key_pattern).assert_success()
         return self
 
-    def authorize_input_keys(self, input_keys: List[kms.Key]):
-        if self._rehydrated:
+    def authorize_input_key(self, key: kms.Key):
+        if self._rehydrated and not self._mutable_instance_role:
             raise ReadOnlyEMRProfileError()
 
-        for key in input_keys:
-            key.grant_decrypt(self._roles.instance_role)
+        key.grant_decrypt(self._roles.instance_role).assert_success()
         return self
 
-    def authorize_output_keys(self, output_keys: List[kms.Key]):
-        if self._rehydrated:
+    def authorize_output_key(self, key: kms.Key):
+        if self._rehydrated and not self._mutable_instance_role:
             raise ReadOnlyEMRProfileError()
 
-        for key in output_keys:
-            key.grant_encrypt(self._roles.instance_role)
+        key.grant_encrypt(self._roles.instance_role).assert_success()
         return self
 
     @staticmethod
