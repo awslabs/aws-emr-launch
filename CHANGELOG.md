@@ -4,7 +4,7 @@ Changelog for emr-launch
 0.5.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Correctly handle immutable instance_profiles
 
 
 0.5.2 (2020-02-10)
