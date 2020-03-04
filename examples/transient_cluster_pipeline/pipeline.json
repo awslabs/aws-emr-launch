@@ -1,0 +1,425 @@
+{
+    "StartAt": "Launch Cluster StateMachine",
+    "States": {
+        "Launch Cluster StateMachine": {
+            "Next": "Parse JSON Output",
+            "Catch": [{
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.Error",
+                "Next": "Failure Notification"
+            }],
+            "Parameters": {
+                "Input": {
+                    "ClusterConfigurationOverrides.$": "$.ClusterConfigurationOverrides",
+                    "Tags.$": "$.Tags"
+                },
+                "StateMachineArn": "arn:aws:states:us-west-2:876929970656:stateMachine:default_launch-basic-cluster"
+            },
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync"
+        },
+        "Parse JSON Output": {
+            "Next": "Phase1",
+            "Catch": [{
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.Error",
+                "Next": "Failure Notification"
+            }],
+            "Parameters": {
+                "JsonString.$": "$.Output"
+            },
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-west-2:876929970656:function:TransientPipelineStack-ParseJsonString859DB4F0-12MT0T2RXYK1E",
+            "ResultPath": "$"
+        },
+        "Phase1": {
+            "Type": "Parallel",
+            "ResultPath": "$.Result.Phase1",
+            "Next": "Validate Phase 1",
+            "Catch": [{
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.Error",
+                "Next": "Failure Notification"
+            }],
+            "Branches": [{
+                "StartAt": "Phase 1 - Step 0",
+                "States": {
+                    "Phase 1 - Step 0": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 1 - Step 0",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar",
+                                        "Args": ["s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_1/test_step_0.sh", "Arg1", "Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }, {
+                "StartAt": "Phase 1 - Step 1",
+                "States": {
+                    "Phase 1 - Step 1": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 1 - Step 1",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar",
+                                        "Args": ["s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_1/test_step_1.sh", "Arg1", "Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }, {
+                "StartAt": "Phase 1 - Step 2",
+                "States": {
+                    "Phase 1 - Step 2": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 1 - Step 2",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar",
+                                        "Args": ["s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_1/test_step_2.sh", "Arg1", "Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }, {
+                "StartAt": "Phase 1 - Step 3",
+                "States": {
+                    "Phase 1 - Step 3": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 1 - Step 3",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar",
+                                        "Args": ["s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_1/test_step_3.sh", "Arg1", "Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }, {
+                "StartAt": "Phase 1 - Step 4",
+                "States": {
+                    "Phase 1 - Step 4": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 1 - Step 4",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar",
+                                        "Args": ["s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_1/test_step_4.sh", "Arg1", "Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }]
+        },
+        "Validate Phase 1": {
+            "Next": "Phase2",
+            "Catch": [{
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.Error",
+                "Next": "Failure Notification"
+            }],
+            "Parameters": {
+                "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                "Payload": {
+                    "ExecutionInput.$": "$$.Execution.Input",
+                    "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                    "Step": {
+                        "Name": "Validate Phase 1",
+                        "ActionOnFailure": "CONTINUE",
+                        "HadoopJarStep": {
+                            "Jar": "s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar",
+                            "Args": ["s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_1/test_validation.sh"],
+                            "Properties": []
+                        }
+                    },
+                    "TaskToken.$": "$$.Task.Token"
+                }
+            },
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+            "ResultPath": "$.ValidatePhase1Result"
+        },
+        "Phase2": {
+            "Type": "Parallel",
+            "ResultPath": "$.Result.Phase2",
+            "Next": "Validate Phase 2",
+            "Catch": [{
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.Error",
+                "Next": "Failure Notification"
+            }],
+            "Branches": [{
+                "StartAt": "Phase 2 - Step 0",
+                "States": {
+                    "Phase 2 - Step 0": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 2 - Step 0",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "command-runner.jar",
+                                        "Args": ["hive-script", "--run-hive-script", "--args", "-f", "s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_2/test_step_0.hql", "-dARG1=Arg1", "-d", "ARG2=Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }, {
+                "StartAt": "Phase 2 - Step 1",
+                "States": {
+                    "Phase 2 - Step 1": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 2 - Step 1",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "command-runner.jar",
+                                        "Args": ["hive-script", "--run-hive-script", "--args", "-f", "s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_2/test_step_1.hql", "-dARG1=Arg1", "-d", "ARG2=Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }, {
+                "StartAt": "Phase 2 - Step 2",
+                "States": {
+                    "Phase 2 - Step 2": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 2 - Step 2",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "command-runner.jar",
+                                        "Args": ["hive-script", "--run-hive-script", "--args", "-f", "s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_2/test_step_2.hql", "-dARG1=Arg1", "-d", "ARG2=Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }, {
+                "StartAt": "Phase 2 - Step 3",
+                "States": {
+                    "Phase 2 - Step 3": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 2 - Step 3",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "command-runner.jar",
+                                        "Args": ["hive-script", "--run-hive-script", "--args", "-f", "s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_2/test_step_3.hql", "-dARG1=Arg1", "-d", "ARG2=Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }, {
+                "StartAt": "Phase 2 - Step 4",
+                "States": {
+                    "Phase 2 - Step 4": {
+                        "End": true,
+                        "Parameters": {
+                            "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                            "Payload": {
+                                "ExecutionInput.$": "$$.Execution.Input",
+                                "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                                "Step": {
+                                    "Name": "Phase 2 - Step 4",
+                                    "ActionOnFailure": "CONTINUE",
+                                    "HadoopJarStep": {
+                                        "Jar": "command-runner.jar",
+                                        "Args": ["hive-script", "--run-hive-script", "--args", "-f", "s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_2/test_step_4.hql", "-dARG1=Arg1", "-d", "ARG2=Arg2"],
+                                        "Properties": []
+                                    }
+                                },
+                                "TaskToken.$": "$$.Task.Token"
+                            }
+                        },
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken"
+                    }
+                }
+            }]
+        },
+        "Validate Phase 2": {
+            "Next": "Terminate Cluster",
+            "Catch": [{
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.Error",
+                "Next": "Failure Notification"
+            }],
+            "Parameters": {
+                "FunctionName": "TransientPipelineStack-AddJobFlowStep22C101CE-17XI2VKSJB97F",
+                "Payload": {
+                    "ExecutionInput.$": "$$.Execution.Input",
+                    "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                    "Step": {
+                        "Name": "Validate Phase 2",
+                        "ActionOnFailure": "CONTINUE",
+                        "HadoopJarStep": {
+                            "Jar": "command-runner.jar",
+                            "Args": ["hive-script", "--run-hive-script", "--args", "-f", "s3://chamcca-emr-launch-artifacts-uw2/transient_pipeline/step_sources/phase_2/test_validation.hql"],
+                            "Properties": []
+                        }
+                    },
+                    "TaskToken.$": "$$.Task.Token"
+                }
+            },
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+            "ResultPath": "$.ValidatePhase2Result"
+        },
+        "Terminate Cluster": {
+            "Next": "Success Notification",
+            "Catch": [{
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.Error",
+                "Next": "Failure Notification"
+            }],
+            "Parameters": {
+                "FunctionName": "TransientPipelineStack-TerminateJobFlow6126BA7C-HQS2NRZRR5PK",
+                "Payload": {
+                    "ExecutionInput.$": "$$.Execution.Input",
+                    "ClusterId.$": "$.LaunchClusterResult.ClusterId",
+                    "TaskToken.$": "$$.Task.Token"
+                }
+            },
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+            "ResultPath": "$.TerminateResult"
+        },
+        "Success Notification": {
+            "Next": "Succeeded",
+            "InputPath": "$",
+            "Parameters": {
+                "TopicArn": "arn:aws:sns:us-west-2:876929970656:TransientPipelineStack-SuccessTopic495EEDDD-116KQ989OF0XG",
+                "Message.$": "$.TerminateResult",
+                "Subject": "Pipeline Succeeded"
+            },
+            "OutputPath": "$",
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "ResultPath": "$.PublishResult"
+        },
+        "Succeeded": {
+            "Type": "Succeed"
+        },
+        "Failure Notification": {
+            "Next": "Execution Failed",
+            "InputPath": "$",
+            "Parameters": {
+                "TopicArn": "arn:aws:sns:us-west-2:876929970656:TransientPipelineStack-FailureTopic74C6EA16-1T4KCVFMKQ0NG",
+                "Message.$": "$.Error",
+                "Subject": "Pipeline Failure"
+            },
+            "OutputPath": "$",
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "ResultPath": "$.PublishResult"
+        },
+        "Execution Failed": {
+            "Type": "Fail"
+        }
+    }
+}
