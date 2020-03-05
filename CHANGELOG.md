@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-0.5.3 (unreleased)
+1.0.0 (unreleased)
 ------------------
 
 - implement EMR/Step Functons integrations
@@ -26,7 +26,7 @@ Changelog for emr-launch
 
 - replace relative import paths
 
-- use a LaodClusterConfig lambda per launch_function
+- use a LoadClusterConfig lambda per launch_function
 
 - update boto3 and cdk versions
 
