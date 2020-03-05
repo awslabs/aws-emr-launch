@@ -86,7 +86,8 @@ def handler(event, context):
     except ClientError as e:
         if e.response['Error']['Code'] == 'ParameterNotFound':
             LOGGER.error(f'ConfigurationNotFound: {configuration_namespace}/{configuration_name}')
-            raise ClusterConfigurationNotFoundError(f'ConfigurationNotFound: {configuration_namespace}/{configuration_name}')
+            raise ClusterConfigurationNotFoundError(
+                f'ConfigurationNotFound: {configuration_namespace}/{configuration_name}')
         else:
             _log_and_raise(e, event)
 
@@ -96,14 +97,16 @@ def handler(event, context):
             f's3://{emr_profile["LogsBucket"]}/elasticmapreduce/{cluster_name}'
         cluster_configuration['JobFlowRole'] = emr_profile['Roles']['InstanceRole'].split('/')[-1]
         cluster_configuration['ServiceRole'] = emr_profile['Roles']['ServiceRole'].split('/')[-1]
-        cluster_configuration['AutoScalingRole'] = emr_profile['Roles']['AutoScalingRole'].split('/')[-1]
+        cluster_configuration['AutoScalingRole'] = emr_profile['Roles']['AutoScalingRole'].split('/')[-1] \
+            if 'InstanceFleets' not in cluster_configuration['Instances'] else None
         cluster_configuration['Tags'] = tags
         cluster_configuration['Instances']['EmrManagedMasterSecurityGroup'] = \
             emr_profile['SecurityGroups']['MasterGroup']
         cluster_configuration['Instances']['EmrManagedSlaveSecurityGroup'] = \
             emr_profile['SecurityGroups']['WorkersGroup']
         cluster_configuration['Instances']['ServiceAccessSecurityGroup'] = \
-            emr_profile['SecurityGroups']['ServiceGroup']
+            emr_profile['SecurityGroups']['ServiceGroup'] \
+            if 'ServiceGroup' in emr_profile['SecurityGroups'] else None
         cluster_configuration['SecurityConfiguration'] = emr_profile.get('SecurityConfigurationName', None)
 
         LOGGER.info(f'ClusterConfig: {json.dumps(cluster_configuration)}')

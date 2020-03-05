@@ -61,18 +61,47 @@ class ClusterConfiguration(core.Construct):
         self._namespace = namespace
         self._description = description
         self._config = {
-            'Name': configuration_name,
-            'ReleaseLabel': release_label,
+            'AdditionalInfo': None,
+            'AmiVersion': None,
             'Applications': self._get_applications(applications),
+            'AutoScalingRole': None,
             'BootstrapActions': [b.resolve(self) for b in bootstrap_actions] if bootstrap_actions else [],
-            'Tags': [],
             'Configurations': self._get_configurations(configurations, use_glue_catalog),
-            'VisibleToAllUsers': True,
+            'CustomAmiId': None,
+            'EbsRootVolumeSize': None,
             'Instances': {
+                'AdditionalMasterSecurityGroups': None,
+                'AdditionalSlaveSecurityGroups': None,
+                'Ec2KeyName': None,
+                'Ec2SubnetId': None,
+                'Ec2SubnetIds': None,
+                'EmrManagedMasterSecurityGroup': None,
+                'EmrManagedSlaveSecurityGroup': None,
+                'HadoopVersion': None,
+                'InstanceCount': None,
+                'InstanceFleets': None,
+                'InstanceGroups': None,
+                'KeepJobFlowAliveWhenNoSteps': True,
+                'MasterInstanceType': None,
+                'Placement': None,
+                'ServiceAccessSecurityGroup': None,
+                'SlaveInstanceType': None,
                 'TerminationProtected': False,
-                'KeepJobFlowAliveWhenNoSteps': True
             },
-            'StepConcurrencyLevel': step_concurrency_level
+            'JobFlowRole': None,
+            'KerberosAttributes': None,
+            'LogUri': None,
+            'Name': configuration_name,
+            'NewSupportedProducts': None,
+            'ReleaseLabel': release_label,
+            'RepoUpgradeOnBoot': None,
+            'ScaleDownBehavior': None,
+            'SecurityConfiguration': None,
+            'ServiceRole': None,
+            'StepConcurrencyLevel': step_concurrency_level,
+            'SupportedProducts': None,
+            'Tags': [],
+            'VisibleToAllUsers': True,
         }
 
         self._ssm_parameter = ssm.CfnParameter(

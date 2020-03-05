@@ -25,7 +25,7 @@ LOGGER.setLevel(logging.INFO)
 def handler(event, context):
     LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
     new_tags = event.get('ExecutionInput', {}).get('Tags', [])
-    cluster_config = event.get('ClusterConfig', {})
+    cluster_config = event.get('ClusterConfiguration', {})
     current_tags = cluster_config.get('Tags', [])
 
     try:

@@ -36,7 +36,7 @@ def handler(event, context):
         overrides = event.get('ExecutionInput', {}).get('ClusterConfigOverrides', {})
 
     allowed_overrides = event.get('AllowedClusterConfigOverrides', None)
-    cluster_config = event.get('ClusterConfig', {})
+    cluster_config = event.get('ClusterConfiguration', {})
 
     try:
         for path, new_value in overrides.items():
