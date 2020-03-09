@@ -13,15 +13,12 @@
 
 import boto3
 import json
-import logging
-import traceback
 
+from logzero import logger
+from typing import Dict, List
 from botocore.exceptions import ClientError
 
 emr = boto3.client('emr')
-
-LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.INFO)
 
 PROFILES_SSM_PARAMETER_PREFIX = '/emr_launch/emr_profiles'
 CONFIGURATIONS_SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
@@ -37,21 +34,37 @@ class ClusterConfigurationNotFoundError(Exception):
     pass
 
 
-def _get_parameter_value(ssm_parameter_prefix: str, name: str, namespace: str = 'default'):
+def get_parameter_value(ssm_parameter_prefix: str, name: str, namespace: str = 'default'):
     configuration_json = ssm.get_parameter(
         Name=f'{ssm_parameter_prefix}/{namespace}/{name}')['Parameter']['Value']
     return json.loads(configuration_json)
 
 
-def _log_and_raise(e, event):
-    trc = traceback.format_exc()
-    s = 'Error processing event {}: {}\n\n{}'.format(str(event), str(e), trc)
-    LOGGER.error(s)
+def log_and_raise(e, event):
+    logger.error(f'Error processing event {json.dumps(event)}')
+    logger.exception(e)
     raise e
 
 
+def update_configurations(configurations: List[dict], classification: str, properties: Dict[str, str]):
+    found_classification = False
+    for config in configurations:
+        cls = config.get('Classification', '')
+        if cls == classification:
+            found_classification = True
+            config['Properties'] = dict(config.get('Properties', {}), **properties)
+
+    if not found_classification:
+        configurations.append({
+            'Classification': classification,
+            'Properties': properties
+        })
+
+    return configurations
+
+
 def handler(event, context):
-    LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
+    logger.info(f'Lambda metadata: {json.dumps(event)} (type = {type(event)})')
     cluster_name = event.get('ClusterName', '')
     tags = event.get('ClusterTags', [])
     profile_namespace = event.get('ProfileNamespace', '')
@@ -66,30 +79,28 @@ def handler(event, context):
     cluster_configuration = None
 
     try:
-        emr_profile = _get_parameter_value(
+        emr_profile = get_parameter_value(
             ssm_parameter_prefix=PROFILES_SSM_PARAMETER_PREFIX,
             namespace=profile_namespace,
             name=profile_name)
-        LOGGER.info(f'ProfileFound: {json.dumps(emr_profile)}')
+        logger.info(f'ProfileFound: {json.dumps(emr_profile)}')
     except ClientError as e:
         if e.response['Error']['Code'] == 'ParameterNotFound':
-            LOGGER.error(f'ProfileNotFound: {profile_namespace}/{profile_name}')
-            raise EMRProfileNotFoundError(f'ProfileNotFound: {profile_namespace}/{profile_name}')
+            log_and_raise(EMRProfileNotFoundError(f'ProfileNotFound: {profile_namespace}/{profile_name}'), event)
         else:
-            _log_and_raise(e, event)
+            log_and_raise(e, event)
     try:
-        cluster_configuration = _get_parameter_value(
+        cluster_configuration = get_parameter_value(
             ssm_parameter_prefix=CONFIGURATIONS_SSM_PARAMETER_PREFIX,
             namespace=configuration_namespace,
             name=configuration_name)['ClusterConfiguration']
-        LOGGER.info(f'ConfigurationFound: {json.dumps(cluster_configuration)}')
+        logger.info(f'ConfigurationFound: {json.dumps(cluster_configuration)}')
     except ClientError as e:
         if e.response['Error']['Code'] == 'ParameterNotFound':
-            LOGGER.error(f'ConfigurationNotFound: {configuration_namespace}/{configuration_name}')
-            raise ClusterConfigurationNotFoundError(
-                f'ConfigurationNotFound: {configuration_namespace}/{configuration_name}')
+            log_and_raise(ClusterConfigurationNotFoundError(
+                f'ConfigurationNotFound: {configuration_namespace}/{configuration_name}'), event)
         else:
-            _log_and_raise(e, event)
+            log_and_raise(e, event)
 
     try:
         cluster_configuration['Name'] = cluster_name
@@ -109,8 +120,8 @@ def handler(event, context):
             if 'ServiceGroup' in emr_profile['SecurityGroups'] else None
         cluster_configuration['SecurityConfiguration'] = emr_profile.get('SecurityConfigurationName', None)
 
-        LOGGER.info(f'ClusterConfig: {json.dumps(cluster_configuration)}')
+        logger.info(f'ClusterConfig: {json.dumps(cluster_configuration)}')
         return cluster_configuration
 
     except Exception as e:
-        _log_and_raise(e, event)
+        log_and_raise(e, event)

@@ -13,15 +13,11 @@
 
 import boto3
 import json
-import logging
-import traceback
 
+from logzero import logger
 from dictor import dictor
 
 emr = boto3.client('emr')
-
-LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.INFO)
 
 
 class InvalidOverrideError(Exception):
@@ -29,7 +25,7 @@ class InvalidOverrideError(Exception):
 
 
 def handler(event, context):
-    LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
+    logger.info(f'Lambda metadata: {json.dumps(event)} (type = {type(event)})')
     # This will work with ClusterConfigurationOverrides or ClusterConfigOverrides
     overrides = event.get('ExecutionInput', {}).get('ClusterConfigurationOverrides', None)
     if overrides is None:
@@ -58,13 +54,12 @@ def handler(event, context):
             if update_attr is None or update_attr.get(update_key, None) is None:
                 raise InvalidOverrideError(f'The update path "{path}" was not found in the cluster configuration')
 
-            LOGGER.info(f'Path: "{key_path}" CurrentValue: "{update_attr[update_key]}" NewValue: "{new_value}"')
+            logger.info(f'Path: "{key_path}" CurrentValue: "{update_attr[update_key]}" NewValue: "{new_value}"')
             update_attr[update_key] = new_value
 
         return cluster_config
 
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Failed overriding configs {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
+        logger.error(f'Error processing event {json.dumps(event)}')
+        logger.exception(e)
         raise e

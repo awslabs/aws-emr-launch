@@ -27,12 +27,23 @@ Then install this project's development dependencies using
 pipenv install --dev
 ```
 
-Finally install this project's dependencies using
+Install this project's dependencies using
 
 ```sh
 pipenv install '-e .'
 ```
 
+#### Installing New Layer Packages
+The following will install 
+1. Update the `lambda_layer_requirements.txt` adding the new package(s)
+2. Install new package(s): `pipenv run pip install -r lambda_layer_requirements.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/`
+   - This will skip upgrades of previously installed packages
+
+#### Updating Lambda Layer Packages
+To Update the Lambda Layer packages it is recommended that you first delete the entire layer contents to eliminate bloat.
+1. Remove packages: `rm -fr aws_emr_launch/lambda_sources/layers/emr_config_utils/*`
+2. Update the `lambda_layer_requirements.txt`
+3. Reinstall packages: `pipenv run pip install -r lambda_layer_requirements.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/`
 
 ### Testing
 

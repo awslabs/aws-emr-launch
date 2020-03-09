@@ -12,22 +12,18 @@
 # permissions and limitations under the License.
 
 import json
-import logging
-import traceback
 
-LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.INFO)
+from logzero import logger
 
 
 def handler(event, context):
-    LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
+    logger.info(f'Lambda metadata: {json.dumps(event)} (type = {type(event)})')
     json_string = event.get('JsonString', {})
 
     try:
         return json.loads(json_string)
 
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Failed parsing JSON {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
+        logger.error(f'Error processing event {json.dumps(event)}')
+        logger.exception(e)
         raise e

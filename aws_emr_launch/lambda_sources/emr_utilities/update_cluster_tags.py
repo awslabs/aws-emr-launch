@@ -13,17 +13,14 @@
 
 import boto3
 import json
-import logging
-import traceback
+
+from logzero import logger
 
 emr = boto3.client('emr')
 
-LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.INFO)
-
 
 def handler(event, context):
-    LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
+    logger.info(f'Lambda metadata: {json.dumps(event)} (type = {type(event)})')
     new_tags = event.get('ExecutionInput', {}).get('Tags', [])
     cluster_config = event.get('ClusterConfiguration', {})
     current_tags = cluster_config.get('Tags', [])
@@ -39,7 +36,6 @@ def handler(event, context):
         return cluster_config
 
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Failed updating cluster tags {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
+        logger.error(f'Error processing event {json.dumps(event)}')
+        logger.exception(e)
         raise e

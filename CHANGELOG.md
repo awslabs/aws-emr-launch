@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.0.0 (unreleased)
 ------------------
 
-- implement EMR/Step Functons integrations
+- implement EMR/Step Functions integrations
 
 - Correctly handle immutable instance_profiles
 

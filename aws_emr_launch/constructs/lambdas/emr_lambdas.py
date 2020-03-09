@@ -27,6 +27,8 @@ class FailIfClusterRunningBuilder:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
+        layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
+
         lambda_function = stack.node.try_find_child('FailIfClusterRunning')
         if lambda_function is None:
             lambda_function = aws_lambda.Function(
@@ -36,6 +38,7 @@ class FailIfClusterRunningBuilder:
                 handler='fail_if_cluster_running.handler',
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
+                layers=[layer],
                 initial_policy=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
@@ -56,6 +59,8 @@ class LoadClusterConfigurationBuilder:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
+        layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
+
         lambda_function = aws_lambda.Function(
             scope,
             'LoadClusterConfiguration',
@@ -63,6 +68,7 @@ class LoadClusterConfigurationBuilder:
             handler='load_cluster_configuration.handler',
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             timeout=core.Duration.minutes(1),
+            layers=[layer],
             initial_policy=[
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
@@ -115,6 +121,8 @@ class UpdateClusterTagsBuilder:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
+        layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
+
         lambda_function = stack.node.try_find_child('UpdateClusterTags')
         if lambda_function is None:
             lambda_function = aws_lambda.Function(
@@ -123,7 +131,8 @@ class UpdateClusterTagsBuilder:
                 code=code,
                 handler='update_cluster_tags.handler',
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1)
+                timeout=core.Duration.minutes(1),
+                layers=[layer]
             )
         return lambda_function
 
@@ -134,6 +143,8 @@ class ParseJsonStringBuilder:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
         stack = core.Stack.of(scope)
 
+        layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
+
         lambda_function = stack.node.try_find_child('ParseJsonString')
         if lambda_function is None:
             lambda_function = aws_lambda.Function(
@@ -142,7 +153,8 @@ class ParseJsonStringBuilder:
                 code=code,
                 handler='parse_json_string.handler',
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1)
+                timeout=core.Duration.minutes(1),
+                layers=[layer]
             )
         return lambda_function
 

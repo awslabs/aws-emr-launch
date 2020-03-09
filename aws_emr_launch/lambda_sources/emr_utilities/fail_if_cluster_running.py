@@ -13,13 +13,10 @@
 
 import boto3
 import json
-import logging
-import traceback
+
+from logzero import logger
 
 emr = boto3.client('emr')
-
-LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.INFO)
 
 
 class ClusterRunningError(Exception):
@@ -33,7 +30,7 @@ def parse_bool(v: str) -> bool:
 def handler(event, context):
 
     try:
-        LOGGER.info('Lambda metadata: {} (type = {})'.format(json.dumps(event), type(event)))
+        logger.info(f'Lambda metadata: {json.dumps(event)} (type = {type(event)})')
         default_fail_if_cluster_running = parse_bool(event.get('DefaultFailIfClusterRunning', False))
 
         # This will work for {"JobInput": {"FailIfClusterRunning": true}} or {"FailIfClusterRunning": true}
@@ -44,14 +41,13 @@ def handler(event, context):
         if fail_if_cluster_running:
             cluster_name = event.get('ClusterConfiguration', {}).get('Name', '')
             cluster_is_running = False
-            LOGGER.info('Checking if job flow {} is running already'.format(cluster_name))
+            logger.info(f'Checking if job flow "{cluster_name}" is running already')
             response = emr.list_clusters(ClusterStates=['STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING'])
             for job_flow_running in response['Clusters']:
                 jf_name = job_flow_running['Name']
                 cluster_id = job_flow_running['Id']
                 if jf_name == cluster_name:
-                    LOGGER.info('Job flow {} is already running: terminate? {}'
-                                .format(cluster_name, str(fail_if_cluster_running)))
+                    logger.info(f'Job flow {cluster_name} is already running: terminate? {fail_if_cluster_running}')
                     cluster_is_running = True
                     break
 
@@ -66,7 +62,6 @@ def handler(event, context):
             return event
 
     except Exception as e:
-        trc = traceback.format_exc()
-        s = 'Failed checking flow {}: {}\n\n{}'.format(str(event), str(e), trc)
-        LOGGER.error(s)
+        logger.error(f'Error processing event {json.dumps(event)}')
+        logger.exception(e)
         raise e
