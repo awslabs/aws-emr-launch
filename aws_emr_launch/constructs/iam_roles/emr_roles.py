@@ -11,6 +11,8 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import os
+
 from typing import Optional
 from aws_cdk import (
     aws_iam as iam,
@@ -20,8 +22,12 @@ from aws_cdk import (
 
 
 class EMRRoles(core.Construct):
-    def __init__(self, scope: core.Construct, id: str, *, role_name_prefix: Optional[str] = None,
-                 artifacts_bucket: Optional[s3.Bucket] = None, logs_bucket: Optional[s3.Bucket] = None) -> None:
+    def __init__(self, scope: core.Construct, id: str, *,
+                 role_name_prefix: Optional[str] = None,
+                 artifacts_bucket: Optional[s3.Bucket] = None,
+                 artifacts_path: Optional[str] = None,
+                 logs_bucket: Optional[s3.Bucket] = None,
+                 logs_path: Optional[str] = None) -> None:
         super().__init__(scope, id)
 
         if role_name_prefix:
@@ -39,12 +45,20 @@ class EMRRoles(core.Construct):
             self._instance_profile_arn = self._instance_profile.attr_arn
 
         if artifacts_bucket:
-            artifacts_bucket.grant_read(self._service_role)
-            artifacts_bucket.grant_read(self._instance_role)
+            artifacts_bucket.grant_read(
+                self._service_role,
+                os.path.join(artifacts_path, '*') if artifacts_path else artifacts_path).assert_success()
+            artifacts_bucket.grant_read(
+                self._instance_role,
+                os.path.join(artifacts_path, '*') if artifacts_path else artifacts_path).assert_success()
 
         if logs_bucket:
-            logs_bucket.grant_read_write(self._service_role)
-            logs_bucket.grant_read_write(self._instance_role)
+            logs_bucket.grant_read_write(
+                self._service_role,
+                os.path.join(logs_path, '*') if logs_path else logs_path).assert_success()
+            logs_bucket.grant_read_write(
+                self._instance_role,
+                os.path.join(logs_path, '*') if logs_path else logs_path).assert_success()
 
     @staticmethod
     def _glue_catalog_policy(scope: core.Construct) -> iam.PolicyDocument:

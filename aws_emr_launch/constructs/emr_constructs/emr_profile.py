@@ -56,9 +56,11 @@ class EMRProfile(core.Construct):
                  namespace: str = 'default',
                  vpc: Optional[ec2.Vpc] = None,
                  artifacts_bucket: Optional[s3.Bucket] = None,
+                 artifacts_path: Optional[str] = None,
                  logs_bucket: Optional[s3.Bucket] = None,
-                 mutable_instance_role: bool = False,
-                 mutable_security_groups: bool = False,
+                 logs_path: Optional[str] = 'elasticmapreduce/',
+                 mutable_instance_role: bool = True,
+                 mutable_security_groups: bool = True,
                  description: Optional[str] = None) -> None:
         super().__init__(scope, id)
 
@@ -75,9 +77,13 @@ class EMRProfile(core.Construct):
             self, 'Roles',
             role_name_prefix=profile_name,
             artifacts_bucket=artifacts_bucket,
-            logs_bucket=logs_bucket)
+            artifacts_path=artifacts_path,
+            logs_bucket=logs_bucket,
+            logs_path=logs_path)
         self._artifacts_bucket = artifacts_bucket
+        self._artifacts_path = artifacts_path
         self._logs_bucket = logs_bucket
+        self._logs_path = logs_path
         self._description = description
 
         self._s3_encryption_mode = S3EncryptionMode.SSE_S3
@@ -119,7 +125,9 @@ class EMRProfile(core.Construct):
                 'AutoScalingRole': self._roles.autoscaling_role.role_arn
             },
             'ArtifactsBucket': self._artifacts_bucket.bucket_name if self._artifacts_bucket else None,
+            'ArtifactsPath': self._artifacts_path,
             'LogsBucket': self._logs_bucket.bucket_name if self._logs_bucket else None,
+            'LogsPath': self._logs_path,
             'S3EncryptionMode': self._s3_encryption_mode.name if self._s3_encryption_mode else None,
             'S3EncryptionKey': self._s3_encryption_key.key_arn if self._s3_encryption_key else None,
             'LocalDiskEncryptionKey':
@@ -158,11 +166,13 @@ class EMRProfile(core.Construct):
         self._artifacts_bucket = s3.Bucket.from_bucket_name(self, 'ArtifactsBucket', artifacts_bucket)\
             if artifacts_bucket \
             else None
+        self._artifacts_path = property_values.get('ArtifactsPath', None)
 
         logs_bucket = property_values.get('LogsBucket', None)
         self._logs_bucket = s3.Bucket.from_bucket_name(self, 'LogsBucket', logs_bucket) \
             if logs_bucket \
             else None
+        self._logs_path = property_values.get('LogsPath', None)
 
         s3_encryption_mode = property_values.get('S3EncryptionMode', None)
         self._s3_encryption_mode = S3EncryptionMode[s3_encryption_mode] \

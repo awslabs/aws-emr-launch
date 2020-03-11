@@ -14,11 +14,13 @@
 import json
 import boto3
 
+from logzero import logger
 from typing import Optional, Dict, List
 from botocore.exceptions import ClientError
 
 from aws_cdk import (
     aws_lambda,
+    aws_s3 as s3,
     aws_sns as sns,
     aws_ssm as ssm,
     aws_stepfunctions as sfn,
@@ -66,6 +68,19 @@ class EMRLaunchFunction(core.Construct):
         self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
         self._description = description
         self._cluster_tags = cluster_tags if cluster_tags is not None else []
+
+        if len(cluster_configuration.configuration_artifacts) > 0:
+            if emr_profile.mutable_instance_role:
+                for configuration_artifact in cluster_configuration.configuration_artifacts:
+                    bucket = s3.Bucket.from_bucket_name(configuration_artifact['Bucket'])
+                    path = configuration_artifact['Path']
+                    bucket.grant_read(emr_profile.roles.instance_role, path)
+            else:
+                logger.warn('--------------------------------------------------------------------------')
+                logger.warn('Unable to authorize the artifacts in the ClusterConfiguration')
+                logger.warn(f'The EMRProfile {emr_profile.profile_name} has an immutable Instance Role')
+                logger.warn('Use of these artifacts will require direct authorization on the EMRProfile')
+                logger.warn('--------------------------------------------------------------------------')
 
         fail = emr_chains.Fail(
             self, 'FailChain',

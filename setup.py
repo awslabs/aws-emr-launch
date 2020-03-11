@@ -26,6 +26,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
 
     install_requires=[
+        'logzero',
         f'boto3{boto3_version}',
         f'aws-cdk.core{cdk_version}',
         f'aws-cdk-aws.iam{cdk_version}',

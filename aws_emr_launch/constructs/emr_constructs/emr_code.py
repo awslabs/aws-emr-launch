@@ -75,6 +75,14 @@ class EMRCode(Code):
         return {'S3Path': self.s3_path}
 
     @property
+    def deployment_bucket(self) -> s3.Bucket:
+        return self._deployment_bucket
+
+    @property
+    def deployment_prefix(self):
+        return self._deployment_prefix
+
+    @property
     def s3_path(self) -> str:
         return f's3://{self._deployment_bucket.bucket_name}/{self._deployment_prefix}'
 
@@ -97,6 +105,22 @@ class EMRBootstrapAction(Resolvable):
                 'Args': self._args if self._args else []
             }
         }
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def path(self) -> str:
+        return self._path
+
+    @property
+    def args(self) -> List[str]:
+        return self._args
+
+    @property
+    def code(self) -> EMRCode:
+        return self._code
 
 
 class EMRStep(Resolvable):

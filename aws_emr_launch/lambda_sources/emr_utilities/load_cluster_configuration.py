@@ -11,6 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import os
 import boto3
 import json
 
@@ -103,9 +104,12 @@ def handler(event, context):
             log_and_raise(e, event)
 
     try:
+        logs_bucket = emr_profile.get('LogsBucket', None)
+        logs_path = emr_profile.get('LogsPath', '')
+
         cluster_configuration['Name'] = cluster_name
         cluster_configuration['LogUri'] = \
-            f's3://{emr_profile["LogsBucket"]}/elasticmapreduce/{cluster_name}'
+            os.path.join(f's3://{logs_bucket}', logs_path, cluster_name) if logs_bucket else None
         cluster_configuration['JobFlowRole'] = emr_profile['Roles']['InstanceRole'].split('/')[-1]
         cluster_configuration['ServiceRole'] = emr_profile['Roles']['ServiceRole'].split('/')[-1]
         cluster_configuration['AutoScalingRole'] = emr_profile['Roles']['AutoScalingRole'].split('/')[-1] \

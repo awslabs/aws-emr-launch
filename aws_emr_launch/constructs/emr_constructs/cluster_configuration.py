@@ -11,6 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import os
 import json
 import boto3
 
@@ -21,6 +22,7 @@ from typing import Optional, List, Dict
 from aws_cdk import (
     aws_ec2 as ec2,
     aws_iam as iam,
+    aws_s3 as s3,
     aws_ssm as ssm,
     core
 )
@@ -61,6 +63,7 @@ class ClusterConfiguration(core.Construct):
         self._configuration_name = configuration_name
         self._namespace = namespace
         self._description = description
+        self._bootstrap_actions = bootstrap_actions
         self._config = {
             'AdditionalInfo': None,
             'AmiVersion': None,
@@ -105,6 +108,14 @@ class ClusterConfiguration(core.Construct):
             'VisibleToAllUsers': True,
         }
 
+        self._configuration_artifacts = []
+        for bootstrap_action in bootstrap_actions:
+            if bootstrap_action.code is not None:
+                self._configuration_artifacts.append({
+                    'Bucket': bootstrap_action.code.deployment_bucket.bucket_name,
+                    'Path': os.path.join(bootstrap_action.code.deployment_prefix, '*')
+                })
+
         self._ssm_parameter = ssm.CfnParameter(
             self, 'SSMParameter',
             type='String',
@@ -118,7 +129,8 @@ class ClusterConfiguration(core.Construct):
             'Description': self._description,
             'Namespace': self._namespace,
             'ClusterConfiguration': self._config,
-            'OverrideInterfaces': self._override_interfaces
+            'OverrideInterfaces': self._override_interfaces,
+            'ConfigurationArtifacts': self._configuration_artifacts
         }
 
     def from_json(self, property_values):
@@ -127,6 +139,7 @@ class ClusterConfiguration(core.Construct):
         self._config = property_values['ClusterConfiguration']
         self._description = property_values.get('Description', None)
         self._override_interfaces = property_values['OverrideInterfaces']
+        self._configuration_artifacts = property_values['ConfigurationArtifacts']
 
     def update_config(self, new_config: dict = None):
         if new_config is not None:
@@ -188,6 +201,10 @@ class ClusterConfiguration(core.Construct):
     @property
     def override_interfaces(self) -> Dict[str, Dict[str, str]]:
         return self._override_interfaces
+
+    @property
+    def configuration_artifacts(self) -> List[Dict[str, str]]:
+        return self._configuration_artifacts
 
     @staticmethod
     def get_configurations(namespace: str = 'default', next_token: Optional[str] = None,

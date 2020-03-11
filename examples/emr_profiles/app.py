@@ -31,7 +31,6 @@ sse_s3_profile = emr_profile.EMRProfile(
     stack, 'SSES3Profile',
     profile_name='sse-s3-profile',
     vpc=vpc,
-    artifacts_bucket=artifacts_bucket,
     logs_bucket=logs_bucket
 )
 
@@ -47,7 +46,6 @@ sse_kms_profile = emr_profile.EMRProfile(
     stack, 'SSEKMSProfile',
     profile_name='sse-kms-profile',
     vpc=vpc,
-    artifacts_bucket=artifacts_bucket,
     logs_bucket=logs_bucket
 )
 
@@ -56,7 +54,6 @@ sse_kms_profile \
     .authorize_input_bucket(data_bucket) \
     .authorize_output_bucket(data_bucket) \
     .set_s3_encryption(emr_profile.S3EncryptionMode.SSE_KMS, encryption_key=kms_key) \
-    .set_local_disk_encryption_key(kms_key, ebs_encryption=True)
-
+    .set_local_disk_encryption_key(kms_key, ebs_encryption=True) 
 
 app.synth()
