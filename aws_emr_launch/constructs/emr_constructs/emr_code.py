@@ -11,7 +11,9 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+import os
 import enum
+import glob
 
 from typing import Optional, Dict, List
 from abc import abstractmethod
@@ -36,26 +38,8 @@ class Resolvable:
         ...
 
 
-class Code(Resolvable):
-    @staticmethod
-    def from_path(path: str, deployment_bucket: s3.Bucket, deployment_prefix: str):
-        return EMRCode(s3_deployment.BucketDeploymentProps(
-            sources=[s3_deployment.Source.asset(path)],
-            destination_bucket=deployment_bucket,
-            destination_key_prefix=deployment_prefix))
-
-    @staticmethod
-    def from_props(deployment_props: s3_deployment.BucketDeploymentProps):
-        return EMRCode(deployment_props)
-
-    @property
-    @abstractmethod
-    def s3_path(self) -> str:
-        ...
-
-
-class EMRCode(Code):
-    def __init__(self, deployment_props: s3_deployment.BucketDeploymentProps, id: Optional[str] = None):
+class EMRCode(Resolvable):
+    def __init__(self, *, deployment_props: s3_deployment.BucketDeploymentProps, id: Optional[str] = None):
         self._deployment_props = deployment_props
         self._deployment_bucket = deployment_props.destination_bucket
         self._deployment_prefix = deployment_props.destination_key_prefix
@@ -84,7 +68,26 @@ class EMRCode(Code):
 
     @property
     def s3_path(self) -> str:
-        return f's3://{self._deployment_bucket.bucket_name}/{self._deployment_prefix}'
+        return os.path.join(f's3://{self._deployment_bucket.bucket_name}', self._deployment_prefix)
+
+
+class Code:
+    @staticmethod
+    def from_path(path: str, deployment_bucket: s3.Bucket, deployment_prefix: str, id: Optional[str] = None) -> EMRCode:
+        return EMRCode(id=id,deployment_props=s3_deployment.BucketDeploymentProps(
+            sources=[s3_deployment.Source.asset(path)],
+            destination_bucket=deployment_bucket,
+            destination_key_prefix=deployment_prefix))
+
+    @staticmethod
+    def from_props(deployment_props: s3_deployment.BucketDeploymentProps, id: Optional[str] = None):
+        return EMRCode(id=id, deployment_props=deployment_props)
+
+    @staticmethod
+    def files_in_path(path: str, filter: str = '*.*'):
+        search_path = os.path.join(path, '')
+        files = glob.glob(os.path.join(search_path, f'**/{filter}'), recursive=True)
+        return [f.replace(search_path, '') for f in files]
 
 
 class EMRBootstrapAction(Resolvable):

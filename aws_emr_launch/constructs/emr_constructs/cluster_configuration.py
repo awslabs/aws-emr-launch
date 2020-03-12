@@ -13,6 +13,7 @@
 
 import os
 import json
+import glob
 import boto3
 
 from enum import Enum
@@ -21,18 +22,20 @@ from botocore.exceptions import ClientError
 from typing import Optional, List, Dict
 from aws_cdk import (
     aws_ec2 as ec2,
-    aws_iam as iam,
-    aws_s3 as s3,
     aws_ssm as ssm,
     core
 )
 
-from aws_emr_launch.constructs.emr_constructs.emr_code import EMRBootstrapAction
+from aws_emr_launch.constructs.emr_constructs import emr_code
 
 SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
 
 
 class ClusterConfigurationNotFoundError(Exception):
+    pass
+
+
+class ReadOnlyClusterConfigurationError(Exception):
     pass
 
 
@@ -48,7 +51,7 @@ class ClusterConfiguration(core.Construct):
                  namespace: str = 'default',
                  release_label: Optional[str] = 'emr-5.29.0',
                  applications: Optional[List[str]] = None,
-                 bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
+                 bootstrap_actions: Optional[List[emr_code.EMRBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
                  step_concurrency_level: Optional[int] = 1,
@@ -64,12 +67,22 @@ class ClusterConfiguration(core.Construct):
         self._namespace = namespace
         self._description = description
         self._bootstrap_actions = bootstrap_actions
+        self._spark_packages = []
+        self._spark_jars = []
+
+        if bootstrap_actions:
+            # Create a nested Construct to avoid Construct id collisions
+            construct = core.Construct(self, 'BootstrapActions')
+            resolved_bootstrap_actions = [b.resolve(construct) for b in bootstrap_actions]
+        else:
+            resolved_bootstrap_actions = []
+
         self._config = {
             'AdditionalInfo': None,
             'AmiVersion': None,
             'Applications': self._get_applications(applications),
             'AutoScalingRole': None,
-            'BootstrapActions': [b.resolve(self) for b in bootstrap_actions] if bootstrap_actions else [],
+            'BootstrapActions': resolved_bootstrap_actions,
             'Configurations': self._get_configurations(configurations, use_glue_catalog),
             'CustomAmiId': None,
             'EbsRootVolumeSize': None,
@@ -122,6 +135,8 @@ class ClusterConfiguration(core.Construct):
             value=json.dumps(self.to_json()),
             tier='Intelligent-Tiering',
             name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')
+
+        self._rehydrated = False
 
     def to_json(self):
         return {
@@ -181,6 +196,46 @@ class ClusterConfiguration(core.Construct):
             })
 
         return configurations
+
+    def add_spark_package(self, package: str):
+        if self._rehydrated:
+            raise ReadOnlyClusterConfigurationError()
+
+        self._spark_packages.append(package)
+        config = self.config
+        config['Configurations'] = self.update_configurations(
+            config['Configurations'], 'spark-defaults', {
+                'spark.jars.packages': ','.join(self._spark_packages)
+            })
+        self.update_config(config)
+        return self
+
+    def add_spark_jars(self, code: emr_code.EMRCode, jars_in_code: List[str]):
+        if self._rehydrated:
+            raise ReadOnlyClusterConfigurationError()
+
+        self._configuration_artifacts.append({
+            'Bucket': code.deployment_bucket.bucket_name,
+            'Path': os.path.join(code.deployment_prefix, '*')
+        })
+
+        # We use a nested Construct to avoid Constuct id collisions
+        # First attempt to find a previous Construct with this id
+        construct_id = os.path.join(code.deployment_bucket.bucket_name, code.deployment_prefix)
+        construct = self.node.try_find_child(construct_id)
+        # If we didn't find a previous Construct, construct a new one
+        construct = core.Construct(self, construct_id) if construct is None else construct
+
+        bucket_path = code.resolve(construct)['S3Path']
+        for jar in jars_in_code:
+            self._spark_jars.append(os.path.join(bucket_path, jar))
+        config = self.config
+        config['Configurations'] = self.update_configurations(
+            config['Configurations'], 'spark-defaults', {
+                'spark.jars': ','.join(self._spark_jars)
+            })
+        self.update_config(config)
+        return self
 
     @property
     def configuration_name(self) -> str:
@@ -243,6 +298,7 @@ class ClusterConfiguration(core.Construct):
         stored_config = ClusterConfiguration.get_configuration(configuration_name, namespace)
         cluster_config = ClusterConfiguration(scope, id, configuration_name=None)
         cluster_config.from_json(stored_config)
+        cluster_config._rehydrated = True
         return cluster_config
 
 
@@ -259,7 +315,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                  core_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
                  core_instance_count: Optional[int] = 2,
                  applications: Optional[List[str]] = None,
-                 bootstrap_actions: Optional[List[EMRBootstrapAction]] = None,
+                 bootstrap_actions: Optional[List[emr_code.EMRBootstrapAction]] = None,
                  configurations: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
                  step_concurrency_level: Optional[int] = 1,

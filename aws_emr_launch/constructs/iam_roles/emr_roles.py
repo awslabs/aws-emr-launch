@@ -46,9 +46,6 @@ class EMRRoles(core.Construct):
 
         if artifacts_bucket:
             artifacts_bucket.grant_read(
-                self._service_role,
-                os.path.join(artifacts_path, '*') if artifacts_path else artifacts_path).assert_success()
-            artifacts_bucket.grant_read(
                 self._instance_role,
                 os.path.join(artifacts_path, '*') if artifacts_path else artifacts_path).assert_success()
 

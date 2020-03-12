@@ -49,6 +49,15 @@ basic_cluster_config = cluster_configuration.InstanceGroupConfiguration(
     bootstrap_actions=[bootstrap],
     step_concurrency_level=2)
 
+basic_cluster_config.add_spark_package('com.amazon.deequ:deequ:1.0.2')
+
+basic_cluster_config.add_spark_jars(
+    emr_code.Code.from_path(
+        path='./jars',
+        deployment_bucket=artifacts_bucket,
+        deployment_prefix='emr_launch_testing/jars'),
+    emr_code.Code.files_in_path('./jars', '*.jar'))
+
 # Here we create another Cluster Configuration using the same subnet, bootstrap, and
 # EMR Profile while customizing the default Instance Type and Instance Count
 high_mem_cluster_config = cluster_configuration.InstanceGroupConfiguration(
