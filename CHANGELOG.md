@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.0.0 (unreleased)
 ------------------
 
+- Helper functions to add spark packages and jars
+
 - implement EMR/Step Functions integrations
 
 - Correctly handle immutable instance_profiles
