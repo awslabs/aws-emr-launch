@@ -3,13 +3,13 @@
 import os
 
 from aws_cdk import (
+    aws_s3 as s3,
     aws_sns as sns,
     aws_stepfunctions as sfn,
     core
 )
 
 from aws_emr_launch.constructs.emr_constructs import (
-    cluster_configuration,
     emr_code
 )
 from aws_emr_launch.constructs.step_functions import (
@@ -31,12 +31,17 @@ failure_topic = sns.Topic(stack, 'FailureTopic')
 launch_function = emr_launch_function.EMRLaunchFunction.from_stored_function(
     stack, 'BasicLaunchFunction', 'launch-basic-cluster')
 
+deployment_bucket = s3.Bucket.from_bucket_name(
+    stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET']) \
+    if launch_function.emr_profile.artifacts_bucket is None \
+    else launch_function.emr_profile.artifacts_bucket
+
 # Prepare the scripts executed by our Steps for deployment
 # This uses the Artifacts bucket defined in Cluster Configuration used by our
 # Launch Function
 step_code = emr_code.Code.from_path(
     path='./step_sources',
-    deployment_bucket=launch_function.emr_profile.artifacts_bucket,
+    deployment_bucket=deployment_bucket,
     deployment_prefix='transient_pipeline/step_sources')
 
 # Create a Chain to receive Failure messages

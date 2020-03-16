@@ -13,7 +13,6 @@
 
 import os
 import json
-import glob
 import boto3
 
 from enum import Enum
@@ -22,6 +21,7 @@ from botocore.exceptions import ClientError
 from typing import Optional, List, Dict
 from aws_cdk import (
     aws_ec2 as ec2,
+    aws_secretsmanager as secretsmanager,
     aws_ssm as ssm,
     core
 )
@@ -55,7 +55,8 @@ class ClusterConfiguration(core.Construct):
                  configurations: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
                  step_concurrency_level: Optional[int] = 1,
-                 description: Optional[str] = None):
+                 description: Optional[str] = None,
+                 secure_configurations: Optional[Dict[str, secretsmanager.Secret]] = None):
 
         super().__init__(scope, id)
         self._override_interfaces = {}
@@ -67,6 +68,7 @@ class ClusterConfiguration(core.Construct):
         self._namespace = namespace
         self._description = description
         self._bootstrap_actions = bootstrap_actions
+        self._secure_configurations = secure_configurations
         self._spark_packages = []
         self._spark_jars = []
 
@@ -145,7 +147,10 @@ class ClusterConfiguration(core.Construct):
             'Namespace': self._namespace,
             'ClusterConfiguration': self._config,
             'OverrideInterfaces': self._override_interfaces,
-            'ConfigurationArtifacts': self._configuration_artifacts
+            'ConfigurationArtifacts': self._configuration_artifacts,
+            'SecureConfigurations':
+                {k: v.secret_arn for k, v in self._secure_configurations.items()}
+                if self._secure_configurations else None
         }
 
     def from_json(self, property_values):
@@ -155,6 +160,12 @@ class ClusterConfiguration(core.Construct):
         self._description = property_values.get('Description', None)
         self._override_interfaces = property_values['OverrideInterfaces']
         self._configuration_artifacts = property_values['ConfigurationArtifacts']
+
+        secure_configurations = property_values.get('SecureConfigurations', None)
+        self._secure_configurations = \
+            {k: secretsmanager.Secret.from_secret_arn(
+                self, f'Secret_{k}', v) for k, v in secure_configurations.items()} \
+            if secure_configurations else None
 
     def update_config(self, new_config: dict = None):
         if new_config is not None:
@@ -261,6 +272,10 @@ class ClusterConfiguration(core.Construct):
     def configuration_artifacts(self) -> List[Dict[str, str]]:
         return self._configuration_artifacts
 
+    @property
+    def secure_configurations(self) -> Dict[str, secretsmanager.Secret]:
+        return self._secure_configurations
+
     @staticmethod
     def get_configurations(namespace: str = 'default', next_token: Optional[str] = None,
                            ssm_client=None) -> Dict[str, any]:
@@ -319,7 +334,8 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                  configurations: Optional[List[dict]] = None,
                  use_glue_catalog: Optional[bool] = True,
                  step_concurrency_level: Optional[int] = 1,
-                 description: Optional[str] = None):
+                 description: Optional[str] = None,
+                 secure_configurations: Optional[Dict[str, secretsmanager.Secret]] = None):
 
         super().__init__(scope, id,
                          configuration_name=configuration_name,
@@ -330,7 +346,8 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                          configurations=configurations,
                          use_glue_catalog=use_glue_catalog,
                          step_concurrency_level=step_concurrency_level,
-                         description=description)
+                         description=description,
+                         secure_configurations=secure_configurations)
 
         config = self.config
         config['Instances']['Ec2SubnetId'] = subnet.subnet_id

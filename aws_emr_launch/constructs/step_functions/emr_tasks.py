@@ -18,6 +18,7 @@ from typing import Optional, Dict, List
 from aws_cdk import (
     aws_lambda as aws_lambda,
     aws_iam as iam,
+    aws_secretsmanager as secretsmanager,
     aws_stepfunctions as sfn,
     aws_stepfunctions_tasks as sfn_tasks,
     core
@@ -201,7 +202,8 @@ class LoadClusterConfigurationBuilder:
               configuration_namespace: str,
               configuration_name: str,
               output_path: str = '$',
-              result_path: str = '$.ClusterConfiguration') -> sfn.Task:
+              result_path: str = '$.ClusterConfiguration',
+              secrets: List[secretsmanager.Secret] = None) -> sfn.Task:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -211,6 +213,10 @@ class LoadClusterConfigurationBuilder:
             profile_name=profile_name,
             configuration_namespace=configuration_namespace,
             configuration_name=configuration_name)
+
+        if secrets:
+            for secret in secrets:
+                secret.grant_read(load_cluster_configuration_lambda)
 
         return sfn.Task(
             construct, 'Load Cluster Configuration',

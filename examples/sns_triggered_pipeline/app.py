@@ -6,6 +6,7 @@ from aws_cdk import (
     aws_lambda,
     aws_lambda_event_sources as sources,
     aws_iam as iam,
+    aws_s3 as s3,
     aws_sns as sns,
     aws_stepfunctions as sfn,
     core
@@ -59,12 +60,17 @@ launch_function = emr_launch_function.EMRLaunchFunction(
         'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType'
     })
 
+deployment_bucket = s3.Bucket.from_bucket_name(
+    stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET']) \
+    if launch_function.emr_profile.artifacts_bucket is None \
+    else launch_function.emr_profile.artifacts_bucket
+
 # Prepare the scripts executed by our Steps for deployment
 # This uses the Artifacts bucket defined in Cluster Configuration used by our
 # Launch Function
 step_code = emr_code.Code.from_path(
     path='./step_sources',
-    deployment_bucket=launch_function.emr_profile.artifacts_bucket,
+    deployment_bucket=deployment_bucket,
     deployment_prefix='sns_triggered_pipeline/step_sources')
 
 # Create a Chain to receive Failure messages
@@ -95,21 +101,21 @@ steps.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
 # Create 5 Phase 1 Parallel Steps. The number of concurrently running Steps is
 # defined in the Cluster Configuration
-for i in range(5):
+for file in emr_code.Code.files_in_path('./step_sources', 'test_step_*.py'):
     # Define the EMR Step Using S3 Paths created by our Code deployment
     emr_step = emr_code.EMRStep(
-        name=f'Step {i}',
+        name=f'Step - {file}',
         jar='command-runner.jar',
         args=[
             'spark-submit',
-            f'{step_code.s3_path}/test_step_{i}.py'
+            f'{step_code.s3_path}/{file}'
         ],
         code=step_code
     )
     # Define an AddStep Task for Each Step
     step_task = emr_tasks.AddStepBuilder.build(
-        stack, f'Step{i}',
-        name=f'Step {i}',
+        stack, f'Step_{file}',
+        name=f'Step - {file}',
         emr_step=emr_step,
         cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value)
     steps.branch(step_task)
