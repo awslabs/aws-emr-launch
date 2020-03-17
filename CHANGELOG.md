@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.0.0 (unreleased)
 ------------------
 
-- Secure cluster Configurations loaded from SecretsManager
+- Secret cluster configurations loaded from SecretsManager
 
 - Helper functions to add spark packages and jars
 

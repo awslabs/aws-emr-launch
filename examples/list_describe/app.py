@@ -12,8 +12,8 @@ from aws_emr_launch.constructs.step_functions import emr_launch_function
 
 app = core.App()
 
-print(emr_profile.EMRProfile.get_profiles())
-print(emr_profile.EMRProfile.get_profile('test-emr-profile'))
+print(emr_profile.EMRProfile.get_profiles(namespace='chauncysteam'))
+print(emr_profile.EMRProfile.get_profile(profile_name='test-emr-profile', namespace='chauncysteam'))
 
 print(cluster_configuration.ClusterConfiguration.get_configurations())
 print(cluster_configuration.ClusterConfiguration.get_configuration('test-cluster'))

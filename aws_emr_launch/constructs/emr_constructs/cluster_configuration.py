@@ -56,7 +56,7 @@ class ClusterConfiguration(core.Construct):
                  use_glue_catalog: Optional[bool] = True,
                  step_concurrency_level: Optional[int] = 1,
                  description: Optional[str] = None,
-                 secure_configurations: Optional[Dict[str, secretsmanager.Secret]] = None):
+                 secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None):
 
         super().__init__(scope, id)
         self._override_interfaces = {}
@@ -68,7 +68,7 @@ class ClusterConfiguration(core.Construct):
         self._namespace = namespace
         self._description = description
         self._bootstrap_actions = bootstrap_actions
-        self._secure_configurations = secure_configurations
+        self._secret_configurations = secret_configurations
         self._spark_packages = []
         self._spark_jars = []
 
@@ -148,9 +148,9 @@ class ClusterConfiguration(core.Construct):
             'ClusterConfiguration': self._config,
             'OverrideInterfaces': self._override_interfaces,
             'ConfigurationArtifacts': self._configuration_artifacts,
-            'SecureConfigurations':
-                {k: v.secret_arn for k, v in self._secure_configurations.items()}
-                if self._secure_configurations else None
+            'SecretConfigurations':
+                {k: v.secret_arn for k, v in self._secret_configurations.items()}
+                if self._secret_configurations else None
         }
 
     def from_json(self, property_values):
@@ -161,11 +161,11 @@ class ClusterConfiguration(core.Construct):
         self._override_interfaces = property_values['OverrideInterfaces']
         self._configuration_artifacts = property_values['ConfigurationArtifacts']
 
-        secure_configurations = property_values.get('SecureConfigurations', None)
-        self._secure_configurations = \
+        secret_configurations = property_values.get('SecretConfigurations', None)
+        self._secret_configurations = \
             {k: secretsmanager.Secret.from_secret_arn(
-                self, f'Secret_{k}', v) for k, v in secure_configurations.items()} \
-            if secure_configurations else None
+                self, f'Secret_{k}', v) for k, v in secret_configurations.items()} \
+            if secret_configurations else None
 
     def update_config(self, new_config: dict = None):
         if new_config is not None:
@@ -273,8 +273,8 @@ class ClusterConfiguration(core.Construct):
         return self._configuration_artifacts
 
     @property
-    def secure_configurations(self) -> Dict[str, secretsmanager.Secret]:
-        return self._secure_configurations
+    def secret_configurations(self) -> Dict[str, secretsmanager.Secret]:
+        return self._secret_configurations
 
     @staticmethod
     def get_configurations(namespace: str = 'default', next_token: Optional[str] = None,
@@ -335,7 +335,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                  use_glue_catalog: Optional[bool] = True,
                  step_concurrency_level: Optional[int] = 1,
                  description: Optional[str] = None,
-                 secure_configurations: Optional[Dict[str, secretsmanager.Secret]] = None):
+                 secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None):
 
         super().__init__(scope, id,
                          configuration_name=configuration_name,
@@ -347,7 +347,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                          use_glue_catalog=use_glue_catalog,
                          step_concurrency_level=step_concurrency_level,
                          description=description,
-                         secure_configurations=secure_configurations)
+                         secret_configurations=secret_configurations)
 
         config = self.config
         config['Instances']['Ec2SubnetId'] = subnet.subnet_id

@@ -93,8 +93,8 @@ class EMRLaunchFunction(core.Construct):
             error='Failed to Launch Cluster',
             cause='See Execution Event "FailStateEntered" for complete error cause')
 
-        secrets = cluster_configuration.secure_configurations.values() \
-            if cluster_configuration.secure_configurations else None
+        secrets = cluster_configuration.secret_configurations.values() \
+            if cluster_configuration.secret_configurations else None
 
         # Create Task for loading the cluster configuration from Parameter Store
         load_cluster_configuration = emr_tasks.LoadClusterConfigurationBuilder.build(

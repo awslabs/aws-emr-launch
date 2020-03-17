@@ -108,7 +108,8 @@ for file in emr_code.Code.files_in_path('./step_sources', 'test_step_*.py'):
         jar='command-runner.jar',
         args=[
             'spark-submit',
-            f'{step_code.s3_path}/{file}'
+            f'{step_code.s3_path}/{file}',
+            '$.Arg1'
         ],
         code=step_code
     )

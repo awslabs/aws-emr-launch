@@ -42,7 +42,7 @@ subnet = vpc.private_subnets[0]
 
 # Load a SecretsManger Secret with secure RDS Metastore credentials
 secret = secretsmanager.Secret.from_secret_arn(
-    stack, 'Secret', os.environ['EMR_LAUNCH_EXAMPLES_SECURE_CONFIGS'])
+    stack, 'Secret', os.environ['EMR_LAUNCH_EXAMPLES_SECRET_CONFIGS'])
 
 # Create a basic Cluster Configuration using InstanceGroups, the Subnet and Bootstrap
 # Action defined above, the EMR Profile we loaded, and defaults defined in
@@ -73,6 +73,6 @@ high_mem_cluster_config = cluster_configuration.InstanceGroupConfiguration(
     step_concurrency_level=5,
     core_instance_type='r5.2xlarge',
     core_instance_count=2,
-    secure_configurations={'hive-site': secret})
+    secret_configurations={'hive-site': secret})
 
 app.synth()
