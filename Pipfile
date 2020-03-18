@@ -7,7 +7,6 @@ verify_ssl = true
 pytest = "*"
 pytest-cov = "*"
 pytest-flake8 = "*"
-cfnresponse = "*"
 zest-releaser = {extras = ["recommended"],version = "*"}
 
 [requires]

@@ -13,9 +13,9 @@
 
 import boto3
 import json
+import logging
 
-from logzero import logger
-
+logger = logging.getLogger()
 emr = boto3.client('emr')
 
 

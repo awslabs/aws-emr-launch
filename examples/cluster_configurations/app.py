@@ -52,7 +52,8 @@ basic_cluster_config = cluster_configuration.InstanceGroupConfiguration(
     configuration_name='basic-instance-group-cluster',
     subnet=subnet,
     bootstrap_actions=[bootstrap],
-    step_concurrency_level=2)
+    step_concurrency_level=2,
+    secret_configurations={'hive-site': secret})
 
 basic_cluster_config.add_spark_package('com.amazon.deequ:deequ:1.0.2')
 
@@ -72,7 +73,6 @@ high_mem_cluster_config = cluster_configuration.InstanceGroupConfiguration(
     bootstrap_actions=[bootstrap],
     step_concurrency_level=5,
     core_instance_type='r5.2xlarge',
-    core_instance_count=2,
-    secret_configurations={'hive-site': secret})
+    core_instance_count=2)
 
 app.synth()

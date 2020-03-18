@@ -184,3 +184,27 @@ class Apis(core.Construct):
                 )
             ]
         )
+
+    @property
+    def get_profile(self) -> aws_lambda.Function:
+        return self._get_profile
+
+    @property
+    def get_profiles(self) -> aws_lambda.Function:
+        return self._get_profiles
+
+    @property
+    def get_configuration(self) -> aws_lambda.Function:
+        return self._get_configuration
+
+    @property
+    def get_configurations(self) -> aws_lambda.Function:
+        return self._get_configurations
+
+    @property
+    def get_function(self) -> aws_lambda.Function:
+        return self._get_function
+
+    @property
+    def get_functions(self) -> aws_lambda.Function:
+        return self._get_functions

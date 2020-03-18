@@ -43,21 +43,20 @@ def test_profile_components():
         logs_bucket=logs_bucket)
 
     profile \
-        .authorize_input_buckets([input_bucket]) \
-        .authorize_output_buckets([output_bucket]) \
-        .authorize_input_keys([input_key]) \
+        .authorize_input_bucket(input_bucket) \
+        .authorize_output_bucket(output_bucket) \
+        .authorize_input_key(input_key) \
         .set_s3_encryption(emr_profile.S3EncryptionMode.SSE_KMS, s3_key) \
         .set_local_disk_encryption_key(local_disk_key, ebs_encryption=True) \
         .set_tls_certificate_location('s3://null_bucket/cert')
 
     resolved_profile = stack.resolve(profile.to_json())
-    print(resolved_profile)
-    assert resolved_profile == {
+    test_profile = {
         'ProfileName': 'TestCluster',
         'Namespace': 'default',
         'Vpc': {'Ref': 'testvpc8985080E'},
-        'MutableInstanceRole': False,
-        'MutableSecurityGroups': False,
+        'MutableInstanceRole': True,
+        'MutableSecurityGroups': True,
         'SecurityGroups': {
             'MasterGroup': {'Fn::GetAtt': ['testemrcomponentsSecurityGroupsMasterGroupDAE98884', 'GroupId']},
             'WorkersGroup': {'Fn::GetAtt': ['testemrcomponentsSecurityGroupsWorkersGroup15225BED', 'GroupId']},
@@ -71,6 +70,7 @@ def test_profile_components():
         },
         'ArtifactsBucket': {'Ref': 'testartifactsbucketB0C25ABE'},
         'LogsBucket': {'Ref': 'testlogsbucket11454DEF'},
+        'LogsPath': 'elasticmapreduce/',
         'S3EncryptionMode': 'SSE_KMS',
         'S3EncryptionKey': {'Fn::GetAtt': ['tests3key4EE82721', 'Arn']},
         'LocalDiskEncryptionKey': {'Fn::GetAtt': ['testlocaldiskkey48AE1C85', 'Arn']},
@@ -78,3 +78,6 @@ def test_profile_components():
         'TLSCertificateLocation': 's3://null_bucket/cert',
         'SecurityConfigurationName': 'TestCluster-SecurityConfiguration'
     }
+    print(test_profile)
+    print(resolved_profile)
+    assert resolved_profile == test_profile

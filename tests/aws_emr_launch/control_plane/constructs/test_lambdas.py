@@ -15,12 +15,17 @@ from aws_cdk import (
     core
 )
 
-from control_plane.constructs.lambdas.emr_utilities import EMRUtilities
+from aws_emr_launch.control_plane.constructs.lambdas.apis import Apis
 
 
 def test_emr_lambdas():
     app = core.App()
     stack = core.Stack(app, 'test-lambdas-stack')
-    emr_lambdas_stack = EMRUtilities(stack, 'test-emr-utilities')
+    apis = Apis(stack, 'test-apis')
 
-    assert emr_lambdas_stack.cluster_state_change_event
+    assert apis.get_profile
+    assert apis.get_profiles
+    assert apis.get_configuration
+    assert apis.get_configurations
+    assert apis.get_function
+    assert apis.get_functions

@@ -13,6 +13,7 @@
 
 from aws_cdk import (
     aws_lambda,
+    aws_events as events,
     aws_iam as iam,
     core
 )
@@ -156,6 +157,103 @@ class ParseJsonStringBuilder:
                 timeout=core.Duration.minutes(1),
                 layers=[layer]
             )
+        return lambda_function
+
+
+class RunJobFlowBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct, roles: emr_roles.EMRRoles, event_rule: events.Rule) -> aws_lambda.Function:
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
+        stack = core.Stack.of(scope)
+
+        layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
+
+        lambda_function = stack.node.try_find_child('RunJobFlow')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
+                stack,
+                'RunJobFlow',
+                code=code,
+                handler='run_job_flow.handler',
+                runtime=aws_lambda.Runtime.PYTHON_3_7,
+                timeout=core.Duration.minutes(1),
+                layers=[layer],
+                initial_policy=[
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=[
+                            'elasticmapreduce:RunJobFlow'
+                        ],
+                        resources=['*']
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=['iam:PassRole'],
+                        resources=[
+                            roles.service_role.role_arn,
+                            roles.instance_role.role_arn,
+                            roles.autoscaling_role.role_arn
+                        ]
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=['events:EnableRule', 'events:PutTargets'],
+                        resources=[event_rule.rule_arn]
+                    )
+                ]
+            )
+        return lambda_function
+
+
+class CheckClusterStatusBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct, event_rule: events.Rule) -> aws_lambda.Function:
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities'))
+        stack = core.Stack.of(scope)
+
+        layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
+
+        lambda_function = stack.node.try_find_child('CheckClusterStatus')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
+                stack,
+                'CheckClusterStatus',
+                code=code,
+                handler='check_cluster_status.handler',
+                runtime=aws_lambda.Runtime.PYTHON_3_7,
+                timeout=core.Duration.minutes(1),
+                layers=[layer],
+                initial_policy=[
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=[
+                            'states:SendTaskSuccess',
+                            'states:SendTaskHeartbeat',
+                            'states:SendTaskFailure'
+                        ],
+                        resources=['*']
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=['elasticmapreduce:DescribeCluster'],
+                        resources=['*']
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=[
+                            'events:ListTargetsByRule',
+                            'events:DisableRule',
+                            'events:RemoveTargets'],
+                        resources=[event_rule.rule_arn]
+                    )
+                ]
+            )
+            lambda_function.add_permission(
+                'EventRulePermission',
+                principal=iam.ServicePrincipal('events.amazonaws.com'),
+                action='lambda:InvokeFunction',
+                source_arn=event_rule.rule_arn)
+
         return lambda_function
 
 

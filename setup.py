@@ -6,8 +6,8 @@ with open('VERSION', 'r') as version_file:
 with open('README.md') as fp:
     long_description = fp.read()
 
-boto3_version = '>=1.10.34'
-cdk_version = '>=1.24.0'
+boto3_version = '>=1.12.23'
+cdk_version = '>=1.29.0'
 
 setuptools.setup(
     name='aws-emr-launch',
@@ -26,7 +26,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
 
     install_requires=[
-        'logzero',
+        'logzero>=1.5.0',
         f'boto3{boto3_version}',
         f'aws-cdk.core{cdk_version}',
         f'aws-cdk-aws.iam{cdk_version}',

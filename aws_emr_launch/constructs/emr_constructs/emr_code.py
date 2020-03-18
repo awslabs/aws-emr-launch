@@ -73,7 +73,8 @@ class EMRCode(Resolvable):
 
 class Code:
     @staticmethod
-    def from_path(path: str, deployment_bucket: s3.Bucket, deployment_prefix: str, id: Optional[str] = None) -> EMRCode:
+    def from_path(path: str, deployment_bucket: s3.Bucket,
+                  deployment_prefix: str, id: Optional[str] = None) -> EMRCode:
         return EMRCode(id=id, deployment_props=s3_deployment.BucketDeploymentProps(
             sources=[s3_deployment.Source.asset(path)],
             destination_bucket=deployment_bucket,

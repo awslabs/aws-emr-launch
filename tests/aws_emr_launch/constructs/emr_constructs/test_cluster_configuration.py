@@ -112,7 +112,8 @@ default_config = {
             'CoreInstanceMarket': 'Instances.InstanceGroups.1.Market',
             'Subnet': 'Instances.Ec2SubnetId'
         }
-    }
+    },
+    'ConfigurationArtifacts': []
 }
 
 
@@ -182,6 +183,12 @@ def test_bootstrap_action_config():
                 },
                 'Args': ['Arg1', 'Arg2']
             }
+        }
+    ]
+    config['ConfigurationArtifacts'] = [
+        {
+            'Bucket': {'Ref': 'testbucketE6E05ABE'},
+            'Path': 'prefix/*'
         }
     ]
 

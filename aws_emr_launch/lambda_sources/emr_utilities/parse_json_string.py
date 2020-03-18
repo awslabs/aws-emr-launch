@@ -12,8 +12,9 @@
 # permissions and limitations under the License.
 
 import json
+import logging
 
-from logzero import logger
+logger = logging.getLogger()
 
 
 def handler(event, context):

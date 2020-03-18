@@ -14,19 +14,18 @@
 import os
 import json
 import boto3
-import base64
+import logging
 
-from logzero import logger
 from typing import Dict, List
 from botocore.exceptions import ClientError
 
+logger = logging.getLogger()
 emr = boto3.client('emr')
 
 PROFILES_SSM_PARAMETER_PREFIX = '/emr_launch/emr_profiles'
 CONFIGURATIONS_SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
 
 ssm = boto3.client('ssm')
-secretsmanager = boto3.client('secretsmanager')
 
 
 class EMRProfileNotFoundError(Exception):
@@ -37,38 +36,10 @@ class ClusterConfigurationNotFoundError(Exception):
     pass
 
 
-class SecretNotFoundError(Exception):
-    pass
-
-
-class SecretDecryptionFailureError(Exception):
-    pass
-
-
 def get_parameter_value(ssm_parameter_prefix: str, name: str, namespace: str = 'default'):
     configuration_json = ssm.get_parameter(
         Name=f'{ssm_parameter_prefix}/{namespace}/{name}')['Parameter']['Value']
     return json.loads(configuration_json)
-
-
-def get_secret_value(secret_id: str):
-    try:
-        secret_response = secretsmanager.get_secret_value(
-            SecretId=secret_id
-        )
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'DecryptionFailureException':
-            raise SecretDecryptionFailureError(f'SecretDecryptionFailure: {secret_id}')
-        elif e.response['Error']['Code'] == 'ResourceNotFoundException':
-            raise SecretNotFoundError(f'SecretNotFound: {secret_id}')
-        else:
-            raise e
-
-    val = json.loads(secret_response.pop('SecretString')) \
-        if 'SecretString' in secret_response \
-        else json.loads(base64.b64decode(secret_response.pop('SecretBinary')))
-    logger.info(f'SecretFound: {json.dumps(val)}')
-    return val
 
 
 def log_and_raise(e, event):
@@ -120,6 +91,7 @@ def handler(event, context):
             log_and_raise(EMRProfileNotFoundError(f'ProfileNotFound: {profile_namespace}/{profile_name}'), event)
         else:
             log_and_raise(e, event)
+
     try:
         cluster_configuration = get_parameter_value(
             ssm_parameter_prefix=CONFIGURATIONS_SSM_PARAMETER_PREFIX,
@@ -137,14 +109,7 @@ def handler(event, context):
         logs_bucket = emr_profile.get('LogsBucket', None)
         logs_path = emr_profile.get('LogsPath', '')
 
-        secure_configurations = cluster_configuration.get('SecureConfigurations', None)
         cluster_configuration = cluster_configuration['ClusterConfiguration']
-
-        if secure_configurations:
-            for classification, secret_id in secure_configurations.items():
-                properties = get_secret_value(secret_id)
-                cluster_configuration['Configurations'] = update_configurations(
-                    cluster_configuration['Configurations'], classification, properties)
 
         cluster_configuration['Name'] = cluster_name
         cluster_configuration['LogUri'] = \

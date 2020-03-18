@@ -124,12 +124,13 @@ class ClusterConfiguration(core.Construct):
         }
 
         self._configuration_artifacts = []
-        for bootstrap_action in bootstrap_actions:
-            if bootstrap_action.code is not None:
-                self._configuration_artifacts.append({
-                    'Bucket': bootstrap_action.code.deployment_bucket.bucket_name,
-                    'Path': os.path.join(bootstrap_action.code.deployment_prefix, '*')
-                })
+        if bootstrap_actions is not None:
+            for bootstrap_action in bootstrap_actions:
+                if bootstrap_action.code is not None:
+                    self._configuration_artifacts.append({
+                        'Bucket': bootstrap_action.code.deployment_bucket.bucket_name,
+                        'Path': os.path.join(bootstrap_action.code.deployment_prefix, '*')
+                    })
 
         self._ssm_parameter = ssm.CfnParameter(
             self, 'SSMParameter',

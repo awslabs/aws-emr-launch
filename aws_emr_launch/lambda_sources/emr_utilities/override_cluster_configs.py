@@ -13,10 +13,11 @@
 
 import boto3
 import json
+import logging
 
-from logzero import logger
 from dictor import dictor
 
+logger = logging.getLogger()
 emr = boto3.client('emr')
 
 

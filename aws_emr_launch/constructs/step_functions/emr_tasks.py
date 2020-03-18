@@ -16,7 +16,8 @@ import jsii
 from typing import Optional, Dict, List
 
 from aws_cdk import (
-    aws_lambda as aws_lambda,
+    aws_events as events,
+    aws_lambda,
     aws_iam as iam,
     aws_secretsmanager as secretsmanager,
     aws_stepfunctions as sfn,
@@ -25,7 +26,7 @@ from aws_cdk import (
 )
 
 from aws_emr_launch.constructs.lambdas import emr_lambdas
-from aws_emr_launch.constructs.emr_constructs import emr_profile, emr_code
+from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.iam_roles import emr_roles
 
 
@@ -202,8 +203,7 @@ class LoadClusterConfigurationBuilder:
               configuration_namespace: str,
               configuration_name: str,
               output_path: str = '$',
-              result_path: str = '$.ClusterConfiguration',
-              secrets: List[secretsmanager.Secret] = None) -> sfn.Task:
+              result_path: str = '$.ClusterConfiguration') -> sfn.Task:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -213,10 +213,6 @@ class LoadClusterConfigurationBuilder:
             profile_name=profile_name,
             configuration_namespace=configuration_namespace,
             configuration_name=configuration_name)
-
-        if secrets:
-            for secret in secrets:
-                secret.grant_read(load_cluster_configuration_lambda)
 
         return sfn.Task(
             construct, 'Load Cluster Configuration',
@@ -335,6 +331,45 @@ class CreateClusterBuilder:
         )
 
 
+class RunJobFlowBuilder:
+    @staticmethod
+    def build(scope: core.Construct, id: str, *, roles: emr_roles.EMRRoles,
+              secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None,
+              result_path: Optional[str] = None, output_path: Optional[str] = None) -> sfn.Task:
+        # We use a nested Construct to avoid collisions with Lambda and Task ids
+        construct = core.Construct(scope, id)
+
+        event_rule = core.Stack.of(scope).node.try_find_child('EventRule')
+        event_rule = events.Rule(
+            construct, 'EventRule',
+            enabled=False,
+            schedule=events.Schedule.rate(core.Duration.minutes(1))) if event_rule is None else event_rule
+
+        run_job_flow_lambda = emr_lambdas.RunJobFlowBuilder.get_or_build(construct, roles, event_rule)
+        check_cluster_status_lambda = emr_lambdas.CheckClusterStatusBuilder.get_or_build(construct, event_rule)
+
+        if secret_configurations is not None:
+            for secret in secret_configurations.values():
+                secret.grant_read(run_job_flow_lambda)
+
+        return sfn.Task(
+            construct, 'Start EMR Cluster',
+            output_path=output_path,
+            result_path=result_path,
+            task=sfn_tasks.RunLambdaTask(
+                run_job_flow_lambda,
+                integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
+                payload={
+                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
+                    'ClusterConfiguration': sfn.TaskInput.from_data_at('$.ClusterConfiguration').value,
+                    'TaskToken': sfn.Context.task_token,
+                    'CheckStatusLambda': check_cluster_status_lambda.function_arn,
+                    'SecretConfigurations': {k: v.secret_arn for k, v in secret_configurations.items()},
+                    'RuleName': event_rule.rule_name
+                })
+        )
+
+
 class AddStepBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
@@ -354,8 +389,7 @@ class AddStepBuilder:
             task=sfn_tasks.EmrAddStep(
                 cluster_id=cluster_id,
                 name=resolved_step['Name'],
-                action_on_failure=
-                    sfn_tasks.ActionOnFailure[resolved_step['ActionOnFailure']],
+                action_on_failure=sfn_tasks.ActionOnFailure[resolved_step['ActionOnFailure']],
                 jar=resolved_step['HadoopJarStep']['Jar'],
                 main_class=resolved_step['HadoopJarStep']['MainClass'],
                 args=resolved_step['HadoopJarStep']['Args'],

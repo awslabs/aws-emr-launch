@@ -93,9 +93,6 @@ class EMRLaunchFunction(core.Construct):
             error='Failed to Launch Cluster',
             cause='See Execution Event "FailStateEntered" for complete error cause')
 
-        secrets = cluster_configuration.secret_configurations.values() \
-            if cluster_configuration.secret_configurations else None
-
         # Create Task for loading the cluster configuration from Parameter Store
         load_cluster_configuration = emr_tasks.LoadClusterConfigurationBuilder.build(
             self, 'LoadClusterConfigurationTask',
@@ -104,8 +101,7 @@ class EMRLaunchFunction(core.Construct):
             profile_namespace=emr_profile.namespace,
             profile_name=emr_profile.profile_name,
             configuration_namespace=cluster_configuration.namespace,
-            configuration_name=cluster_configuration.configuration_name,
-            secrets=secrets)
+            configuration_name=cluster_configuration.configuration_name)
         load_cluster_configuration.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create Task for overriding cluster configurations
@@ -131,10 +127,21 @@ class EMRLaunchFunction(core.Construct):
         update_cluster_tags.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task to create the cluster
-        create_cluster = emr_tasks.CreateClusterBuilder.build(
-            self, 'CreateClusterTask',
-            roles=emr_profile.roles,
-            result_path='$.LaunchClusterResult')
+        if cluster_configuration.secret_configurations is None:
+            # Use a the standard Step Functions/EMR integration to create the cluster
+            create_cluster = emr_tasks.CreateClusterBuilder.build(
+                self, 'CreateClusterTask',
+                roles=emr_profile.roles,
+                result_path='$.LaunchClusterResult')
+        else:
+            # Use the RunJobFlow Lambda to create the cluster to avoid exposing the
+            # SecretConfigurations and KerberosAttributes values
+            create_cluster = emr_tasks.RunJobFlowBuilder.build(
+                self, 'CreateClusterTask',
+                roles=emr_profile.roles,
+                secret_configurations=cluster_configuration.secret_configurations,
+                result_path='$.LaunchClusterResult')
+
         # Attach an error catch to the Task
         create_cluster.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
