@@ -153,3 +153,7 @@ class EMRStep(Resolvable):
                 'Properties': [{'Key': k, 'Value': v} for k, v in self._properties.items()] if self._properties else []
             }
         }
+
+    @property
+    def name(self) -> str:
+        return self._name

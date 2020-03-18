@@ -373,7 +373,6 @@ class RunJobFlowBuilder:
 class AddStepBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
-              name: str,
               emr_step: emr_code.EMRStep,
               cluster_id: str,
               result_path: Optional[str] = None,
@@ -383,7 +382,7 @@ class AddStepBuilder:
         resolved_step = emr_step.resolve(construct)
 
         return sfn.Task(
-            construct, name,
+            construct, emr_step.name,
             output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.EmrAddStep(

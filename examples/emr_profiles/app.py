@@ -31,7 +31,8 @@ sse_s3_profile = emr_profile.EMRProfile(
     stack, 'SSES3Profile',
     profile_name='sse-s3-profile',
     vpc=vpc,
-    logs_bucket=logs_bucket
+    logs_bucket=logs_bucket,
+    artifacts_bucket=artifacts_bucket
 )
 
 sse_s3_profile \
@@ -46,7 +47,8 @@ sse_kms_profile = emr_profile.EMRProfile(
     stack, 'SSEKMSProfile',
     profile_name='sse-kms-profile',
     vpc=vpc,
-    logs_bucket=logs_bucket
+    logs_bucket=logs_bucket,
+    artifacts_bucket=artifacts_bucket
 )
 
 # Authorize the profile for the Data Bucket and set the At Rest Encryption type

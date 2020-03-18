@@ -54,23 +54,20 @@ phase_1.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 # Create 5 Phase 1 Parallel Steps. The number of concurrently running Steps is
 # defined in the Cluster Configuration
 for file in emr_code.Code.files_in_path('./step_sources', 'test_step_*.sh'):
-    # Define the EMR Step Using S3 Paths created by our Code deployment
-    emr_step = emr_code.EMRStep(
-        name=f'Phase 1 - {file}',
-        jar='s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar',
-        args=[
-            f'{step_code.s3_path}/{file}',
-            'Arg1',
-            'Arg2'
-        ],
-        code=step_code
-    )
     # Define an AddStep Task for Each Step
     step_task = emr_tasks.AddStepBuilder.build(
         stack, f'Phase1_{file}',
-        name=f'Phase 1 - {file}',
-        emr_step=emr_step,
-        cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value)
+        emr_step=emr_code.EMRStep(
+            name=f'Phase 1 - {file}',
+            jar='s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar',
+            args=[
+                f'{step_code.s3_path}/{file}',
+                'Arg1',
+                'Arg2'
+            ],
+            code=step_code
+        ),
+        cluster_id=sfn.TaskInput.from_data_at('$.ClusterId').value)
     phase_1.branch(step_task)
 
 
@@ -82,28 +79,26 @@ phase_2.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
 # Create 5 Phase 2 Parallel Hive SQL Steps.
 for file in emr_code.Code.files_in_path('./step_sources', 'test_step_*.hql'):
-    emr_step = emr_code.EMRStep(
-        name=f'Phase 2 - {file}',
-        jar='command-runner.jar',
-        args=[
-            'hive-script',
-            '--run-hive-script',
-            '--args',
-            '-f',
-            f'{step_code.s3_path}/{file}',
-            '-d'
-            'ARG1=Arg1',
-            '-d',
-            'ARG2=Arg2'
-        ],
-        code=step_code
-    )
     # Define an AddStep Task for Each Step
     step_task = emr_tasks.AddStepBuilder.build(
         stack, f'Phase2_{file}',
-        name=f'Phase 2 - {file}',
-        emr_step=emr_step,
-        cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value)
+        emr_step=emr_code.EMRStep(
+            name=f'Phase 2 - {file}',
+            jar='command-runner.jar',
+            args=[
+                'hive-script',
+                '--run-hive-script',
+                '--args',
+                '-f',
+                f'{step_code.s3_path}/{file}',
+                '-d'
+                'ARG1=Arg1',
+                '-d',
+                'ARG2=Arg2'
+            ],
+            code=step_code
+        ),
+        cluster_id=sfn.TaskInput.from_data_at('$.ClusterId').value)
     phase_2.branch(step_task)
 
 # A Chain for Success notification when the pipeline completes
