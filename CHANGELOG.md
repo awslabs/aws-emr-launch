@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.0.0 (unreleased)
 ------------------
 
+- BREAKING: new managed_configurations for cluster_configurations
+
 - cleaner Task/Step integration
 
 - Avoid exposing secure_configurations when launching clusters

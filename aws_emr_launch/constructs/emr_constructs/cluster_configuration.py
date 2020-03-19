@@ -20,7 +20,6 @@ from botocore.exceptions import ClientError
 
 from typing import Optional, List, Dict
 from aws_cdk import (
-    aws_ec2 as ec2,
     aws_secretsmanager as secretsmanager,
     aws_ssm as ssm,
     core
@@ -316,86 +315,3 @@ class ClusterConfiguration(core.Construct):
         cluster_config.from_json(stored_config)
         cluster_config._rehydrated = True
         return cluster_config
-
-
-class InstanceGroupConfiguration(ClusterConfiguration):
-
-    def __init__(self, scope: core.Construct, id: str, *,
-                 configuration_name: str,
-                 subnet: ec2.Subnet,
-                 namespace: str = 'default',
-                 release_label: Optional[str] = 'emr-5.28.0',
-                 master_instance_type: Optional[str] = 'm5.2xlarge',
-                 master_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
-                 core_instance_type: Optional[str] = 'm5.2xlarge',
-                 core_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
-                 core_instance_count: Optional[int] = 2,
-                 applications: Optional[List[str]] = None,
-                 bootstrap_actions: Optional[List[emr_code.EMRBootstrapAction]] = None,
-                 configurations: Optional[List[dict]] = None,
-                 use_glue_catalog: Optional[bool] = True,
-                 step_concurrency_level: Optional[int] = 1,
-                 description: Optional[str] = None,
-                 secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None):
-
-        super().__init__(scope, id,
-                         configuration_name=configuration_name,
-                         namespace=namespace,
-                         release_label=release_label,
-                         applications=applications,
-                         bootstrap_actions=bootstrap_actions,
-                         configurations=configurations,
-                         use_glue_catalog=use_glue_catalog,
-                         step_concurrency_level=step_concurrency_level,
-                         description=description,
-                         secret_configurations=secret_configurations)
-
-        config = self.config
-        config['Instances']['Ec2SubnetId'] = subnet.subnet_id
-        config['Instances']['InstanceGroups'] = [
-            {
-                'Name': 'Master',
-                'InstanceRole': 'MASTER',
-                'InstanceType': master_instance_type,
-                'Market': master_instance_market.name,
-                'InstanceCount': 1,
-                'EbsConfiguration': {
-                    'EbsBlockDeviceConfigs': [{
-                        'VolumeSpecification': {
-                            'SizeInGB': 128,
-                            'VolumeType': 'gp2'
-                        },
-                        'VolumesPerInstance': 1
-                    }],
-                    'EbsOptimized': True
-                }
-            },
-            {
-                'Name': 'Core',
-                'InstanceRole': 'CORE',
-                'InstanceType': core_instance_type,
-                'Market': core_instance_market.name,
-                'InstanceCount': core_instance_count,
-                'EbsConfiguration': {
-                    'EbsBlockDeviceConfigs': [{
-                        'VolumeSpecification': {
-                            'SizeInGB': 128,
-                            'VolumeType': 'gp2'
-                        },
-                        'VolumesPerInstance': 1
-                    }],
-                    'EbsOptimized': True
-                }
-            }
-        ]
-        self.override_interfaces['default'] = {
-            'ClusterName': 'Name',
-            'MasterInstanceType': 'Instances.InstanceGroups.0.InstanceType',
-            'MasterInstanceMarket': 'Instances.InstanceGroups.0.Market',
-            'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
-            'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType',
-            'CoreInstanceMarket': 'Instances.InstanceGroups.1.Market',
-            'Subnet': 'Instances.Ec2SubnetId'
-        }
-
-        self.update_config(config)

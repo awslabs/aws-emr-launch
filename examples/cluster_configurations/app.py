@@ -9,9 +9,11 @@ from aws_cdk import (
     core
 )
 
-from aws_emr_launch.constructs.emr_constructs import (
-    emr_code,
-    cluster_configuration
+from aws_emr_launch.constructs.emr_constructs import emr_code
+from aws_emr_launch.constructs.managed_configurations import (
+    instance_group_configuration,
+    instance_fleet_configuration,
+    autoscaling_configuration
 )
 
 app = core.App()
@@ -47,7 +49,7 @@ secret = secretsmanager.Secret.from_secret_arn(
 # Create a basic Cluster Configuration using InstanceGroups, the Subnet and Bootstrap
 # Action defined above, the EMR Profile we loaded, and defaults defined in
 # the InstanceGroupConfiguration
-basic_cluster_config = cluster_configuration.InstanceGroupConfiguration(
+basic_cluster_config = instance_group_configuration.InstanceGroupConfiguration(
     stack, 'BasicClusterConfiguration',
     configuration_name='basic-instance-group-cluster',
     subnet=subnet,
@@ -66,7 +68,7 @@ basic_cluster_config.add_spark_jars(
 
 # Here we create another Cluster Configuration using the same subnet, bootstrap, and
 # EMR Profile while customizing the default Instance Type and Instance Count
-high_mem_cluster_config = cluster_configuration.InstanceGroupConfiguration(
+high_mem_cluster_config = instance_group_configuration.InstanceGroupConfiguration(
     stack, 'HighMemClusterConfiguration',
     configuration_name='high-mem-instance-group-cluster',
     subnet=subnet,

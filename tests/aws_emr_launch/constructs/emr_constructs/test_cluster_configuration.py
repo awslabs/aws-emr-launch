@@ -31,15 +31,12 @@ default_config = {
     'ConfigurationName': 'test-cluster',
     'Namespace': 'default',
     'ClusterConfiguration': {
-        'Name': 'test-cluster',
-        'ReleaseLabel': 'emr-5.28.0',
         'Applications': [
             {'Name': 'Hadoop'},
             {'Name': 'Hive'},
             {'Name': 'Spark'}
         ],
         'BootstrapActions': [],
-        'Tags': [],
         'Configurations': [
             {
                 'Classification': 'hive-site',
@@ -55,87 +52,38 @@ default_config = {
                 }
             }
         ],
-        'VisibleToAllUsers': True,
         'Instances': {
-            'TerminationProtected': False,
             'KeepJobFlowAliveWhenNoSteps': True,
-            'Ec2SubnetId': {'Ref': 'testvpcPrivateSubnet1Subnet865FB50A'},
-            'InstanceGroups': [
-                {
-                    'Name': 'Master',
-                    'InstanceRole': 'MASTER',
-                    'InstanceType': 'm5.2xlarge',
-                    'Market': 'ON_DEMAND',
-                    'InstanceCount': 1,
-                    'EbsConfiguration': {
-                        'EbsBlockDeviceConfigs': [
-                            {
-                                'VolumeSpecification': {
-                                    'SizeInGB': 128,
-                                    'VolumeType': 'gp2'
-                                },
-                                'VolumesPerInstance': 1
-                            }
-                        ],
-                        'EbsOptimized': True
-                    }
-                }, {
-                    'Name': 'Core',
-                    'InstanceRole': 'CORE',
-                    'InstanceType': 'm5.2xlarge',
-                    'Market': 'ON_DEMAND',
-                    'InstanceCount': 2,
-                    'EbsConfiguration': {
-                        'EbsBlockDeviceConfigs': [
-                            {
-                                'VolumeSpecification': {
-                                    'SizeInGB': 128,
-                                    'VolumeType': 'gp2'
-                                },
-                                'VolumesPerInstance': 1
-                            }
-                        ],
-                        'EbsOptimized': True
-                    }
-                }
-            ]
+            'TerminationProtected': False,
         },
-        'StepConcurrencyLevel': 1
+        'Name': 'test-cluster',
+        'ReleaseLabel': 'emr-5.29.0',
+        'StepConcurrencyLevel': 1,
+        'Tags': [],
+        'VisibleToAllUsers': True,
     },
-    'OverrideInterfaces': {
-        'default': {
-            'ClusterName': 'Name',
-            'MasterInstanceType': 'Instances.InstanceGroups.0.InstanceType',
-            'MasterInstanceMarket': 'Instances.InstanceGroups.0.Market',
-            'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
-            'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType',
-            'CoreInstanceMarket': 'Instances.InstanceGroups.1.Market',
-            'Subnet': 'Instances.Ec2SubnetId'
-        }
-    },
+    'OverrideInterfaces': {},
     'ConfigurationArtifacts': []
 }
 
 
 def test_default_configuration():
-    cluster_config = cluster_configuration.InstanceGroupConfiguration(
+    cluster_config = cluster_configuration.ClusterConfiguration(
         stack, 'test-instance-group-config',
-        configuration_name='test-cluster',
-        subnet=vpc.private_subnets[0])
+        configuration_name='test-cluster')
 
     config = copy.deepcopy(default_config)
 
-    resolved_config = stack.resolve(cluster_config.to_json())
+    resolved_config = stack.resolve(cluster_config. to_json())
     print(config)
     print(resolved_config)
     assert resolved_config == config
 
 
 def test_disabling_glue_metastore():
-    cluster_config = cluster_configuration.InstanceGroupConfiguration(
+    cluster_config = cluster_configuration.ClusterConfiguration(
         stack, 'test-disable-glue-metastore',
         configuration_name='test-cluster',
-        subnet=vpc.private_subnets[0],
         use_glue_catalog=False)
 
     config = copy.deepcopy(default_config)
@@ -167,10 +115,9 @@ def test_bootstrap_action_config():
         args=['Arg1', 'Arg2'],
         code=bootstrap_code)
 
-    cluster_config = cluster_configuration.InstanceGroupConfiguration(
+    cluster_config = cluster_configuration.ClusterConfiguration(
         stack, 'test-bootstrap-action-config',
         configuration_name='test-cluster',
-        subnet=vpc.private_subnets[0],
         bootstrap_actions=[bootstrap_action])
 
     config = copy.deepcopy(default_config)

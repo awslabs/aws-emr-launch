@@ -1,0 +1,132 @@
+# Copyright 2019 Amazon.com, Inc. and its affiliates. All Rights Reserved.
+#
+# Licensed under the Amazon Software License (the 'License').
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#   http://aws.amazon.com/asl/
+#
+# or in the 'license' file accompanying this file. This file is distributed
+# on an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+
+import copy
+
+from aws_cdk import (
+    aws_ec2 as ec2,
+    core
+)
+
+from aws_emr_launch.constructs.managed_configurations import instance_fleet_configuration
+
+app = core.App()
+stack = core.Stack(app, 'test-stack')
+vpc = ec2.Vpc(stack, 'test-vpc')
+default_config = {
+    'ConfigurationName': 'test-cluster',
+    'Namespace': 'default',
+    'ClusterConfiguration': {
+        'Applications': [
+            {'Name': 'Hadoop'},
+            {'Name': 'Hive'},
+            {'Name': 'Spark'}
+        ],
+        'BootstrapActions': [],
+        'Configurations': [
+            {
+                'Classification': 'hive-site',
+                'Properties': {
+                    'hive.metastore.client.factory.class':
+                        'com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory'
+                }
+            }, {
+                'Classification': 'spark-hive-site',
+                'Properties': {
+                    'hive.metastore.client.factory.class':
+                        'com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory'
+                }
+            }
+        ],
+        'Instances': {
+            'Ec2SubnetIds': [
+                {'Ref': 'testvpcPrivateSubnet1Subnet865FB50A'},
+                {'Ref': 'testvpcPrivateSubnet2Subnet23D3396F'}
+            ],
+            'InstanceFleets': [
+                {
+                    'Name': 'Master',
+                    'InstanceFleetType': 'MASTER',
+                    'TargetOnDemandCapacity': 1,
+                    'InstanceTypeConfigs': [
+                        {
+                            'InstanceType': 'm5.2xlarge',
+                            'EbsConfiguration': {
+                                'EbsBlockDeviceConfigs': [{
+                                    'VolumeSpecification': {
+                                        'SizeInGB': 128,
+                                        'VolumeType': 'gp2'
+                                    },
+                                    'VolumesPerInstance': 1
+                                }],
+                                'EbsOptimized': True
+                            }
+                        }
+                    ],
+                },
+                {
+                    'Name': 'Core',
+                    'InstanceFleetType': 'CORE',
+                    'TargetOnDemandCapacity': 2,
+                    'TargetSpotCapacity': 0,
+                    'InstanceTypeConfigs': [
+                        {
+                            'InstanceType': 'm5.xlarge',
+                            'EbsConfiguration': {
+                                'EbsBlockDeviceConfigs': [{
+                                    'VolumeSpecification': {
+                                        'SizeInGB': 128,
+                                        'VolumeType': 'gp2'
+                                    },
+                                    'VolumesPerInstance': 1
+                                }],
+                                'EbsOptimized': True
+                            }
+                        }
+                    ],
+                }
+            ],
+            'KeepJobFlowAliveWhenNoSteps': True,
+            'TerminationProtected': False,
+        },
+        'Name': 'test-cluster',
+        'ReleaseLabel': 'emr-5.29.0',
+        'StepConcurrencyLevel': 1,
+        'Tags': [],
+        'VisibleToAllUsers': True,
+    },
+    'OverrideInterfaces': {
+        'default': {
+            'ClusterName': 'Name',
+            'MasterInstanceType': 'Instances.InstanceFleets.0.InstanceTypeConfigs.0.InstanceType',
+            'CoreInstanceType': 'Instances.InstanceFleets.1.InstanceTypeConfigs.0.InstanceType',
+            'CoreInstanceOnDemandCount': 'Instances.InstanceFleets.1.TargetOnDemandCapacity',
+            'CoreInstanceSpotCount': 'Instances.InstanceFleets.1.TargetSpotCapacity',
+        }
+    },
+    'ConfigurationArtifacts': []
+}
+
+
+def test_default_configuration():
+    cluster_config = instance_fleet_configuration.InstanceFleetConfiguration(
+        stack, 'test-instance-group-config',
+        configuration_name='test-cluster',
+        subnets=vpc.private_subnets)
+
+    config = copy.deepcopy(default_config)
+
+    resolved_config = stack.resolve(cluster_config.to_json())
+    print(config)
+    print(resolved_config)
+    assert resolved_config == config
