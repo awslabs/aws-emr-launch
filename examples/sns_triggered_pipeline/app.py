@@ -102,22 +102,19 @@ steps.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 # Create 5 Phase 1 Parallel Steps. The number of concurrently running Steps is
 # defined in the Cluster Configuration
 for file in emr_code.Code.files_in_path('./step_sources', 'test_step_*.py'):
-    # Define the EMR Step Using S3 Paths created by our Code deployment
-    emr_step = emr_code.EMRStep(
-        name=f'Step - {file}',
-        jar='command-runner.jar',
-        args=[
-            'spark-submit',
-            f'{step_code.s3_path}/{file}',
-            '$.Arg1'
-        ],
-        code=step_code
-    )
     # Define an AddStep Task for Each Step
     step_task = emr_tasks.AddStepBuilder.build(
         stack, f'Step_{file}',
-        name=f'Step - {file}',
-        emr_step=emr_step,
+        emr_step=emr_code.EMRStep(
+            name=f'Step - {file}',
+            jar='command-runner.jar',
+            args=[
+                'spark-submit',
+                f'{step_code.s3_path}/{file}',
+                'Arg1'
+            ],
+            code=step_code
+        ),
         cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value)
     steps.branch(step_task)
 
