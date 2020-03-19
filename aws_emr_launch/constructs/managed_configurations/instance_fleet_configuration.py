@@ -108,12 +108,23 @@ class InstanceFleetConfiguration(ClusterConfiguration):
         else:
             config['Instances']['InstanceFleets'][0]['TargetSpotCapacity'] = 1
 
-        self.override_interfaces['default'] = {
-            'ClusterName': 'Name',
-            'MasterInstanceType': 'Instances.InstanceFleets.0.InstanceTypeConfigs.0.InstanceType',
-            'CoreInstanceType': 'Instances.InstanceFleets.1.InstanceTypeConfigs.0.InstanceType',
-            'CoreInstanceOnDemandCount': 'Instances.InstanceFleets.1.TargetOnDemandCapacity',
-            'CoreInstanceSpotCount': 'Instances.InstanceFleets.1.TargetSpotCapacity',
-        }
+        self.override_interfaces['default'].update({
+            'MasterInstanceType': {
+                'JsonPath': 'Instances.InstanceFleets.0.InstanceTypeConfigs.0.InstanceType',
+                'Default': master_instance_type
+            },
+            'CoreInstanceType': {
+                'JsonPath': 'Instances.InstanceFleets.1.InstanceTypeConfigs.0.InstanceType',
+                'Default': core_instance_type
+            },
+            'CoreInstanceOnDemandCount': {
+                'JsonPath': 'Instances.InstanceFleets.1.TargetOnDemandCapacity',
+                'Default': core_instance_on_demand_count
+            },
+            'CoreInstanceSpotCount': {
+                'JsonPath': 'Instances.InstanceFleets.1.TargetSpotCapacity',
+                'Default': core_instance_spot_count
+            }
+        })
 
         self.update_config(config)

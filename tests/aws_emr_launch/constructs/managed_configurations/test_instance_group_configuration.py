@@ -100,13 +100,42 @@ default_config = {
     },
     'OverrideInterfaces': {
         'default': {
-            'ClusterName': 'Name',
-            'MasterInstanceType': 'Instances.InstanceGroups.0.InstanceType',
-            'MasterInstanceMarket': 'Instances.InstanceGroups.0.Market',
-            'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
-            'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType',
-            'CoreInstanceMarket': 'Instances.InstanceGroups.1.Market',
-            'Subnet': 'Instances.Ec2SubnetId'
+            'ClusterName': {
+                'JsonPath': 'Name',
+                'Default': 'test-cluster'
+            },
+            'ReleaseLabel': {
+                'JsonPath': 'ReleaseLabel',
+                'Default': 'emr-5.29.0'
+            },
+            'StepConcurrencyLevel': {
+                'JsonPath': 'StepConcurrencyLevel',
+                'Default': 1
+            },
+            'MasterInstanceType': {
+                'JsonPath': 'Instances.InstanceGroups.0.InstanceType',
+                'Default': 'm5.2xlarge'
+            },
+            'MasterInstanceMarket': {
+                'JsonPath': 'Instances.InstanceGroups.0.Market',
+                'Default': 'ON_DEMAND'
+            },
+            'CoreInstanceCount': {
+                'JsonPath': 'Instances.InstanceGroups.1.InstanceCount',
+                'Default': 2
+            },
+            'CoreInstanceType': {
+                'JsonPath': 'Instances.InstanceGroups.1.InstanceType',
+                'Default': 'm5.xlarge'
+            },
+            'CoreInstanceMarket': {
+                'JsonPath': 'Instances.InstanceGroups.1.Market',
+                'Default': 'ON_DEMAND'
+            },
+            'Subnet': {
+                'JsonPath': 'Instances.Ec2SubnetId',
+                'Default': {'Ref': 'testvpcPrivateSubnet1Subnet865FB50A'}
+            }
         }
     },
     'ConfigurationArtifacts': []

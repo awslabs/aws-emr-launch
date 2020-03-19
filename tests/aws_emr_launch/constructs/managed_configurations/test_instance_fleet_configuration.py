@@ -105,13 +105,37 @@ default_config = {
         'Tags': [],
         'VisibleToAllUsers': True,
     },
-    'OverrideInterfaces': {
+    'OverrideInterfaces':  {
         'default': {
-            'ClusterName': 'Name',
-            'MasterInstanceType': 'Instances.InstanceFleets.0.InstanceTypeConfigs.0.InstanceType',
-            'CoreInstanceType': 'Instances.InstanceFleets.1.InstanceTypeConfigs.0.InstanceType',
-            'CoreInstanceOnDemandCount': 'Instances.InstanceFleets.1.TargetOnDemandCapacity',
-            'CoreInstanceSpotCount': 'Instances.InstanceFleets.1.TargetSpotCapacity',
+            'ClusterName': {
+                'JsonPath': 'Name',
+                'Default': 'test-cluster'
+            },
+            'ReleaseLabel': {
+                'JsonPath': 'ReleaseLabel',
+                'Default': 'emr-5.29.0'
+            },
+            'StepConcurrencyLevel': {
+                'JsonPath': 'StepConcurrencyLevel',
+                'Default': 1
+            },
+            'MasterInstanceType': {
+                'JsonPath': 'Instances.InstanceFleets.0.InstanceTypeConfigs.0.InstanceType',
+                'Default': 'm5.2xlarge'
+            },
+            'CoreInstanceType': {
+                'JsonPath': 'Instances.InstanceFleets.1.InstanceTypeConfigs.0.InstanceType',
+                'Default': 'm5.xlarge'
+            },
+            'CoreInstanceOnDemandCount': {
+                'JsonPath': 'Instances.InstanceFleets.1.TargetOnDemandCapacity',
+                'Default': 2
+            },
+            'CoreInstanceSpotCount': {
+                'JsonPath': 'Instances.InstanceFleets.1.TargetSpotCapacity',
+                'Default': 0
+            }
+
         }
     },
     'ConfigurationArtifacts': []

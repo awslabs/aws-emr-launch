@@ -171,18 +171,27 @@ class AutoScalingClusterConfiguration(InstanceGroupConfiguration):
             }
         )
 
-        self.override_interfaces['default'] = {
-            'ClusterName': 'Name',
-            'MasterInstanceType': 'Instances.InstanceGroups.0.InstanceType',
-            'MasterInstanceMarket': 'Instances.InstanceGroups.0.Market',
-            'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
-            'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType',
-            'CoreInstanceMarket': 'Instances.InstanceGroups.1.Market',
-            'TaskInstanceType': 'Instances.InstanceGroups.2.InstanceType',
-            'TaskInstanceMarket': 'Instances.InstanceGroups.2.Market',
-            'TaskInitialInstanceCount': 'Instances.InstanceGroups.2.InstanceCount',
-            'TaskMinimumInstanceCount': 'Instances.InstanceGroups.2.AutoScalingPolicy.Constraints.MinCapacity',
-            'TaskMaximumInstanceCount': 'Instances.InstanceGroups.2.AutoScalingPolicy.Constraints.MaxCapacity'
-        }
+        self.override_interfaces['default'].update({
+            'TaskInstanceType': {
+                'JsonPath': 'Instances.InstanceGroups.2.InstanceType',
+                'Default': task_instance_type
+            },
+            'TaskInstanceMarket': {
+                'JsonPath': 'Instances.InstanceGroups.2.Market',
+                'Default': task_instance_market.name
+            },
+            'TaskInitialInstanceCount': {
+                'JsonPath': 'Instances.InstanceGroups.2.InstanceCount',
+                'Default': initial_task_instance_count
+            },
+            'TaskMinimumInstanceCount': {
+                'JsonPath': 'Instances.InstanceGroups.2.AutoScalingPolicy.Constraints.MinCapacity',
+                'Default': minimum_task_instance_count
+            },
+            'TaskMaximumInstanceCount': {
+                'JsonPath': 'Instances.InstanceGroups.2.AutoScalingPolicy.Constraints.MaxCapacity',
+                'Default': maximum_task_instance_count
+            }
+        })
 
         self.update_config(config)

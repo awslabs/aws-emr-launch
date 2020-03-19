@@ -96,14 +96,31 @@ class InstanceGroupConfiguration(ClusterConfiguration):
                 }
             }
         ]
-        self.override_interfaces['default'] = {
-            'ClusterName': 'Name',
-            'MasterInstanceType': 'Instances.InstanceGroups.0.InstanceType',
-            'MasterInstanceMarket': 'Instances.InstanceGroups.0.Market',
-            'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
-            'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType',
-            'CoreInstanceMarket': 'Instances.InstanceGroups.1.Market',
-            'Subnet': 'Instances.Ec2SubnetId'
-        }
+        self.override_interfaces['default'].update({
+            'MasterInstanceType': {
+                'JsonPath': 'Instances.InstanceGroups.0.InstanceType',
+                'Default': master_instance_type
+            },
+            'MasterInstanceMarket': {
+                'JsonPath': 'Instances.InstanceGroups.0.Market',
+                'Default': master_instance_market.name
+            },
+            'CoreInstanceCount': {
+                'JsonPath': 'Instances.InstanceGroups.1.InstanceCount',
+                'Default': core_instance_count
+            },
+            'CoreInstanceType': {
+                'JsonPath': 'Instances.InstanceGroups.1.InstanceType',
+                'Default': core_instance_type
+            },
+            'CoreInstanceMarket': {
+                'JsonPath': 'Instances.InstanceGroups.1.Market',
+                'Default': core_instance_market.name
+            },
+            'Subnet': {
+                'JsonPath': 'Instances.Ec2SubnetId',
+                'Default': subnet.subnet_id
+            }
+        })
 
         self.update_config(config)

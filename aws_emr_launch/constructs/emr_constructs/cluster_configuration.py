@@ -138,6 +138,21 @@ class ClusterConfiguration(core.Construct):
             tier='Intelligent-Tiering',
             name=f'{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}')
 
+        self.override_interfaces['default'] = {
+            'ClusterName': {
+                'JsonPath': 'Name',
+                'Default': configuration_name
+            },
+            'ReleaseLabel': {
+                'JsonPath': 'ReleaseLabel',
+                'Default': release_label
+            },
+            'StepConcurrencyLevel': {
+                'JsonPath': 'StepConcurrencyLevel',
+                'Default': step_concurrency_level
+            }
+        }
+
         self._rehydrated = False
 
     def to_json(self):
@@ -265,7 +280,7 @@ class ClusterConfiguration(core.Construct):
         return self._config
 
     @property
-    def override_interfaces(self) -> Dict[str, Dict[str, str]]:
+    def override_interfaces(self) -> Dict[str, Dict[str, Dict[str, str]]]:
         return self._override_interfaces
 
     @property

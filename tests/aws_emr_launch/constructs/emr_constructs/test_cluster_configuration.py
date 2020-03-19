@@ -62,7 +62,22 @@ default_config = {
         'Tags': [],
         'VisibleToAllUsers': True,
     },
-    'OverrideInterfaces': {},
+    'OverrideInterfaces': {
+        'default': {
+            'ClusterName': {
+                'JsonPath': 'Name',
+                'Default': 'test-cluster'
+            },
+            'ReleaseLabel': {
+                'JsonPath': 'ReleaseLabel',
+                'Default': 'emr-5.29.0'
+            },
+            'StepConcurrencyLevel': {
+                'JsonPath': 'StepConcurrencyLevel',
+                'Default': 1
+            }
+        }
+    },
     'ConfigurationArtifacts': []
 }
 

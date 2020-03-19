@@ -37,12 +37,17 @@ def handler(event, context):
 
     try:
         for path, new_value in overrides.items():
+            minimum = None
+            maximum = None
+
             if allowed_overrides:
                 new_path = allowed_overrides.get(path, None)
                 if new_path is None:
                     raise InvalidOverrideError(f'Value "{path}" is not an allowed cluster configuration override')
                 else:
-                    path = new_path
+                    path = new_path['JsonPath']
+                    minimum = new_path.get('Minimum', None)
+                    maximum = new_path.get('Maximum', None)
 
             path_parts = path.split('.')
             update_key = path_parts[-1]
@@ -56,6 +61,14 @@ def handler(event, context):
                 raise InvalidOverrideError(f'The update path "{path}" was not found in the cluster configuration')
 
             logger.info(f'Path: "{key_path}" CurrentValue: "{update_attr[update_key]}" NewValue: "{new_value}"')
+            if (minimum or maximum) and (isinstance(new_value, int) or isinstance(new_value, float)):
+                if minimum and new_value < minimum:
+                    raise InvalidOverrideError(f'The Override Value ({new_value}) '
+                                               f'is less than the Minimum allowed ({minimum})')
+                if maximum and new_value > maximum:
+                    raise InvalidOverrideError(f'The Override Value ({new_value}) '
+                                               f'is greater than the Maximum allowed ({maximum})')
+
             update_attr[update_key] = new_value
 
         return cluster_config

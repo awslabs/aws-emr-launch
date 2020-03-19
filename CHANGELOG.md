@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.0.0 (unreleased)
 ------------------
 
+- BREAKING: add (and enforce) Default, Minimum, and Maximum to cluster_configuration.override_interfaces
+
 - BREAKING: new managed_configurations for cluster_configurations
 
 - cleaner Task/Step integration
