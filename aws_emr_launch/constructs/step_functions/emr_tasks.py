@@ -236,9 +236,9 @@ class OverrideClusterConfigsBuilder:
     def build(scope: core.Construct, id: str, *,
               override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
               allowed_cluster_config_overrides: Optional[Dict[str, str]] = None,
-              cluster_configuration_path: str = '$.ClusterConfiguration',
+              cluster_configuration_path: str = '$.ClusterConfiguration.Cluster',
               output_path: str = '$',
-              result_path: str = '$.ClusterConfiguration') -> sfn.Task:
+              result_path: str = '$.ClusterConfiguration.Cluster') -> sfn.Task:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -261,12 +261,38 @@ class OverrideClusterConfigsBuilder:
         )
 
 
+class FailIfClusterRunningBuilder:
+    @staticmethod
+    def build(scope: core.Construct, id: str, *,
+              default_fail_if_cluster_running: bool,
+              cluster_configuration_path: str = '$.ClusterConfiguration.Cluster',
+              output_path: str = '$',
+              result_path: str = '$.ClusterConfiguration.Cluster') -> sfn.Task:
+        # We use a nested Construct to avoid collisions with Lambda and Task ids
+        construct = core.Construct(scope, id)
+
+        fail_if_cluster_running_lambda = emr_lambdas.FailIfClusterRunningBuilder.get_or_build(construct)
+
+        return sfn.Task(
+            construct, 'Fail If Cluster Running',
+            output_path=output_path,
+            result_path=result_path,
+            task=sfn_tasks.InvokeFunction(
+                fail_if_cluster_running_lambda,
+                payload={
+                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
+                    'DefaultFailIfClusterRunning': default_fail_if_cluster_running,
+                    'ClusterConfiguration': sfn.TaskInput.from_data_at(cluster_configuration_path).value
+                })
+        )
+
+
 class UpdateClusterTagsBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
-              cluster_configuration_path: str = '$.ClusterConfiguration',
+              cluster_configuration_path: str = '$.ClusterConfiguration.Cluster',
               output_path: str = '$',
-              result_path: str = '$.ClusterConfiguration') -> sfn.Task:
+              result_path: str = '$.ClusterConfiguration.Cluster') -> sfn.Task:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -285,35 +311,11 @@ class UpdateClusterTagsBuilder:
         )
 
 
-class FailIfClusterRunningBuilder:
-    @staticmethod
-    def build(scope: core.Construct, id: str, *,
-              default_fail_if_cluster_running: bool,
-              cluster_configuration_path: str = '$.ClusterConfiguration') -> sfn.Task:
-        # We use a nested Construct to avoid collisions with Lambda and Task ids
-        construct = core.Construct(scope, id)
-
-        fail_if_cluster_running_lambda = emr_lambdas.FailIfClusterRunningBuilder.get_or_build(construct)
-
-        return sfn.Task(
-            construct, 'Fail If Cluster Running',
-            output_path='$',
-            result_path='$',
-            task=sfn_tasks.InvokeFunction(
-                fail_if_cluster_running_lambda,
-                payload={
-                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'DefaultFailIfClusterRunning': default_fail_if_cluster_running,
-                    'ClusterConfiguration': sfn.TaskInput.from_data_at(cluster_configuration_path).value
-                })
-        )
-
-
 class CreateClusterBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *,
               roles: emr_roles.EMRRoles,
-              cluster_configuration_path: str = '$.ClusterConfiguration',
+              cluster_configuration_path: str = '$.ClusterConfiguration.Cluster',
               result_path: Optional[str] = None,
               output_path: Optional[str] = None) -> sfn.Task:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
@@ -334,8 +336,11 @@ class CreateClusterBuilder:
 class RunJobFlowBuilder:
     @staticmethod
     def build(scope: core.Construct, id: str, *, roles: emr_roles.EMRRoles,
+              kerberos_attributes_secret: Optional[secretsmanager.Secret] = None,
               secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None,
-              result_path: Optional[str] = None, output_path: Optional[str] = None) -> sfn.Task:
+              cluster_configuration_path: str = '$.ClusterConfiguration',
+              result_path: Optional[str] = None,
+              output_path: Optional[str] = None) -> sfn.Task:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -347,6 +352,9 @@ class RunJobFlowBuilder:
 
         run_job_flow_lambda = emr_lambdas.RunJobFlowBuilder.get_or_build(construct, roles, event_rule)
         check_cluster_status_lambda = emr_lambdas.CheckClusterStatusBuilder.get_or_build(construct, event_rule)
+
+        if kerberos_attributes_secret:
+            kerberos_attributes_secret.grant_read(run_job_flow_lambda)
 
         if secret_configurations is not None:
             for secret in secret_configurations.values():
@@ -361,10 +369,9 @@ class RunJobFlowBuilder:
                 integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'ClusterConfiguration': sfn.TaskInput.from_data_at('$.ClusterConfiguration').value,
+                    'ClusterConfiguration': sfn.TaskInput.from_data_at(cluster_configuration_path).value,
                     'TaskToken': sfn.Context.task_token,
                     'CheckStatusLambda': check_cluster_status_lambda.function_arn,
-                    'SecretConfigurations': {k: v.secret_arn for k, v in secret_configurations.items()},
                     'RuleName': event_rule.rule_name
                 })
         )

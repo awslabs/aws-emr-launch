@@ -58,7 +58,6 @@ default_profile = {
     'S3EncryptionConfiguration': {
         'EncryptionMode': 'SSE-S3',
     },
-    'SecurityConfigurationName': 'TestCluster-SecurityConfiguration'
 }
 
 profile = emr_profile.EMRProfile(

@@ -107,7 +107,9 @@ class InstanceGroupConfiguration(ClusterConfiguration):
             },
             'CoreInstanceCount': {
                 'JsonPath': 'Instances.InstanceGroups.1.InstanceCount',
-                'Default': core_instance_count
+                'Default': core_instance_count,
+                'Minimum': 2,
+                'Maximum': 5
             },
             'CoreInstanceType': {
                 'JsonPath': 'Instances.InstanceGroups.1.InstanceType',

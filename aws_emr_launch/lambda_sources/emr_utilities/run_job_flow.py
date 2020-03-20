@@ -80,10 +80,11 @@ def update_configurations(configurations: List[dict], classification: str, prope
 def handler(event, context):
     try:
         logger.info(f'Lambda metadata: {json.dumps(event)} (type = {type(event)})')
-        cluster_configuration = event['ClusterConfiguration']
+        cluster_configuration = event['ClusterConfiguration']['Cluster']
         task_token = event.get('TaskToken', None)
         cluster_status_lambda = event.get('CheckStatusLambda', None)
-        secret_configurations = event.get('SecretConfigurations', None)
+        secret_configurations = event['ClusterConfiguration'].get('SecretConfigurations', None)
+        kerberos_attributes_secret = event['ClusterConfiguration'].get('KerberosAttributesSecret', None)
         rule_name = event.get('RuleName', None)
 
         # NoneType values need to be removed from the cluster_configuration
@@ -99,6 +100,18 @@ def handler(event, context):
                 properties = get_secret_value(secret_id)
                 cluster_configuration['Configurations'] = update_configurations(
                     cluster_configuration['Configurations'], classification, properties)
+
+        if kerberos_attributes_secret:
+            logger.info(f'Getting KerberosAttributesSecret: {json.dumps(kerberos_attributes_secret)}')
+            kerberos_attributes = get_secret_value(kerberos_attributes_secret)
+            cluster_configuration['KerberosAttributes'] = \
+                {k: v for k, v in kerberos_attributes.items() if k in [
+                     'Realm',
+                     'KdcAdminPassword',
+                     'ADDomainJoinUser',
+                     'ADDomainJoinPassword',
+                     'CrossRealmTrustPrincipalPassword'
+                 ]}
 
         logger.info('Calling RunJobFlow')
         response = emr.run_job_flow(**cluster_configuration)

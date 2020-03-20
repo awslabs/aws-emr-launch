@@ -110,6 +110,8 @@ def handler(event, context):
         logs_bucket = emr_profile.get('LogsBucket', None)
         logs_path = emr_profile.get('LogsPath', '')
 
+        kerberos_attributes_secret = emr_profile.get('KerberosAttributesSecret', None)
+        secret_configurations = cluster_configuration.get('SecretConfigurations', None)
         cluster_configuration = cluster_configuration['ClusterConfiguration']
 
         cluster_configuration['Name'] = cluster_name
@@ -127,10 +129,16 @@ def handler(event, context):
         cluster_configuration['Instances']['ServiceAccessSecurityGroup'] = \
             emr_profile['SecurityGroups']['ServiceGroup'] \
             if 'ServiceGroup' in emr_profile['SecurityGroups'] else None
-        cluster_configuration['SecurityConfiguration'] = emr_profile.get('SecurityConfigurationName', None)
+        cluster_configuration['SecurityConfiguration'] = emr_profile.get('SecurityConfiguration', None)
 
-        logger.info(f'ClusterConfig: {json.dumps(cluster_configuration)}')
-        return cluster_configuration
+        cluster = {
+            'Cluster': cluster_configuration,
+            'SecretConfigurations': secret_configurations,
+            'KerberosAttributesSecret': kerberos_attributes_secret
+        }
+        logger.info(f'ClusterConfiguration: {json.dumps(cluster)}')
+
+        return cluster
 
     except Exception as e:
         log_and_raise(e, event)

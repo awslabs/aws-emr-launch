@@ -140,7 +140,7 @@ class EMRProfile(core.Construct):
             'KerberosAttributesSecret': self._kerberos_attributes_secret.secret_arn
             if self._kerberos_attributes_secret else None,
             'EmrFsConfiguration': self._emrfs_configuration,
-            'SecurityConfigurationName': self._security_configuration_name,
+            'SecurityConfiguration': self._security_configuration_name,
             'Description': self._description
         }
         return property_values
@@ -191,7 +191,7 @@ class EMRProfile(core.Construct):
             if kerberos_attributes_secret else None
 
         self._emrfs_configuration = property_values.get('EmrFsConfiguration', None)
-        self._security_configuration_name = property_values.get('SecurityConfigurationName', None)
+        self._security_configuration_name = property_values.get('SecurityConfiguration', None)
         self._description = property_values.get('Description', None)
         self._rehydrated = True
         return self
@@ -199,12 +199,11 @@ class EMRProfile(core.Construct):
     def _construct_security_configuration(self, custom_security_configuration=None) -> None:
         # Initialize the CfnSecurityConfiguration
         if self._security_configuration is None:
-            name = f'{self._profile_name}-SecurityConfiguration'
             self._security_configuration = emr.CfnSecurityConfiguration(
                 self, 'SecurityConfiguration',
-                security_configuration={}, name=name
+                security_configuration={}
             )
-            self._security_configuration_name = name
+            self._security_configuration_name = self._security_configuration.ref
 
         self._ssm_parameter.value = json.dumps(self.to_json())
 
@@ -212,47 +211,33 @@ class EMRProfile(core.Construct):
             self._security_configuration.security_configuration = self._custom_security_configuration
             return
 
-        encryption_config = {}
-        # Set In-Transit Encryption
-        if self._tls_certificate_configuration:
-            encryption_config['EnableInTransitEncryption'] = True
-            encryption_config['InTransitEncryptionConfiguration'] = self._tls_certificate_configuration
-        else:
-            encryption_config['EnableInTransitEncryption'] = False
+        # Set Encryption
+        encryption_configuration = {
+            'EnableInTransitEncryption': self._tls_certificate_configuration is not None,
+            'InTransitEncryptionConfiguration': self._tls_certificate_configuration,
+            'EnableAtRestEncryption': self._s3_encryption_configuration is not None
+            or self._local_disk_encryption_configuration is not None,
+            'AtRestEncryptionConfiguration': {
+                'S3EncryptionConfiguration': self._s3_encryption_configuration,
+                'LocalDiskEncryptionConfiguration': self._local_disk_encryption_configuration
+            }
+        }
 
-        # Set At-Rest Encryption
-        if self._s3_encryption_configuration or self._local_disk_encryption_configuration:
-            encryption_config['EnableAtRestEncryption'] = True
-
-            at_rest_config = {}
-
-            if self._s3_encryption_configuration:
-                at_rest_config['S3EncryptionConfiguration'] = self._s3_encryption_configuration
-
-            if self._local_disk_encryption_configuration:
-                at_rest_config['LocalDiskEncryptionConfiguration'] = self._local_disk_encryption_configuration
-
-            encryption_config['AtRestEncryptionConfiguration'] = at_rest_config
-        else:
-            encryption_config['EnableAtRestEncryption'] = False
+        # Set Authentication
+        authentication_configuration = {
+            'KerberosConfiguration': self._kerberos_configuration
+        } if self._kerberos_configuration else None
 
         # Set Authorization
-        authorization_configuration = None
-        if self._kerberos_configuration or self._emrfs_configuration:
-            authorization_configuration = {}
-
-            if self._kerberos_configuration:
-                authorization_configuration['KerberosConfiguration'] = self._kerberos_configuration
-
-            if self._emrfs_configuration:
-                authorization_configuration['EmrFsConfiguration'] = self._emrfs_configuration
+        authorization_configuration = {
+            'EmrFsConfiguration': self._emrfs_configuration
+        } if self._emrfs_configuration else None
 
         self._security_configuration.security_configuration = {
-            'EncryptionConfiguration': encryption_config
+            'EncryptionConfiguration': encryption_configuration,
+            'AuthenticationConfiguration': authentication_configuration,
+            'AuthorizationConfiguration': authorization_configuration
         }
-        if authorization_configuration:
-            self._security_configuration.security_configuration['AuthorizationConfiguration'] = \
-                authorization_configuration
 
     @property
     def profile_name(self) -> str:
@@ -297,6 +282,10 @@ class EMRProfile(core.Construct):
     @property
     def description(self) -> str:
         return self._description
+
+    @property
+    def kerberos_attributes_secret(self) -> secretsmanager.Secret:
+        return self._kerberos_attributes_secret
 
     def set_s3_encryption(self, mode: Optional[S3EncryptionMode], encryption_key: Optional[kms.Key] = None):
         if self._rehydrated:
@@ -353,6 +342,9 @@ class EMRProfile(core.Construct):
 
     def set_local_kdc(self, kerberos_attributes_secret: secretsmanager.Secret,
                       ticket_lifetime_in_hours: Optional[int] = 24):
+        if self._rehydrated:
+            raise ReadOnlyEMRProfileError()
+
         self._kerberos_attributes_secret = kerberos_attributes_secret
         self._kerberos_configuration = {
             'Provider': 'ClusterDedicatedKdc',
@@ -370,6 +362,9 @@ class EMRProfile(core.Construct):
     def set_local_kdc_with_cross_realm_trust(self, kerberos_attributes_secret: secretsmanager.Secret,
                                              realm: str, domain: str, admin_server: str, kdc_server: str,
                                              ticket_lifetime_in_hours: Optional[int] = 24):
+        if self._rehydrated:
+            raise ReadOnlyEMRProfileError()
+
         self._kerberos_attributes_secret = kerberos_attributes_secret
         self._kerberos_configuration = {
             'Provider': 'ClusterDedicatedKdc',
@@ -393,6 +388,9 @@ class EMRProfile(core.Construct):
 
     def set_external_kdc(self, kerberos_attributes_secret: secretsmanager.Secret,
                          admin_server: str, kdc_server: str):
+        if self._rehydrated:
+            raise ReadOnlyEMRProfileError()
+
         self._kerberos_attributes_secret = kerberos_attributes_secret
         self._kerberos_configuration = {
             'Provider': 'ExternalKdc',
@@ -411,6 +409,9 @@ class EMRProfile(core.Construct):
 
     def set_external_kdc_with_cross_realm_trust(self, kerberos_attributes_secret: secretsmanager.Secret,
                                                 admin_server: str, kdc_server: str, ad_realm: str, ad_domain: str):
+        if self._rehydrated:
+            raise ReadOnlyEMRProfileError()
+
         self._kerberos_attributes_secret = kerberos_attributes_secret
         self._kerberos_configuration = {
             'Provider': 'ExternalKdc',

@@ -57,10 +57,10 @@ def handler(event, context):
                     f'Found running Cluster with name {cluster_name}. '
                     f'ClusterId: {cluster_id}. FailIfClusterRunning is {fail_if_cluster_running}')
             else:
-                return event
+                return event['ClusterConfiguration']
 
         else:
-            return event
+            return event['ClusterConfiguration']
 
     except Exception as e:
         logger.error(f'Error processing event {json.dumps(event)}')

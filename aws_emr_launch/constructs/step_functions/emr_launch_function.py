@@ -127,7 +127,7 @@ class EMRLaunchFunction(core.Construct):
         update_cluster_tags.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task to create the cluster
-        if cluster_configuration.secret_configurations is None:
+        if cluster_configuration.secret_configurations is None and emr_profile.kerberos_attributes_secret is None:
             # Use a the standard Step Functions/EMR integration to create the cluster
             create_cluster = emr_tasks.CreateClusterBuilder.build(
                 self, 'CreateClusterTask',
@@ -139,6 +139,7 @@ class EMRLaunchFunction(core.Construct):
             create_cluster = emr_tasks.RunJobFlowBuilder.build(
                 self, 'CreateClusterTask',
                 roles=emr_profile.roles,
+                kerberos_attributes_secret=emr_profile.kerberos_attributes_secret,
                 secret_configurations=cluster_configuration.secret_configurations,
                 result_path='$.LaunchClusterResult')
 
