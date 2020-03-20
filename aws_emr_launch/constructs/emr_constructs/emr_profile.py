@@ -361,7 +361,7 @@ class EMRProfile(core.Construct):
             }
         }
         logger.warn('------------------------------------------------------------------------------')
-        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.from_secret_arn}')
+        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.secret_arn}')
         logger.warn('Must contain Key/Values: Realm, KdcAdminPassword')
         logger.warn('------------------------------------------------------------------------------')
         self._construct_security_configuration()
@@ -384,7 +384,7 @@ class EMRProfile(core.Construct):
             }
         }
         logger.warn('------------------------------------------------------------------------------')
-        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.from_secret_arn}')
+        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.secret_arn}')
         logger.warn('Must contain Key/Values: Realm, KdcAdminPassword, ADDomainJoinUser, ')
         logger.warn('ADDomainJoinPassword, CrossRealmTrustPrincipalPassword')
         logger.warn('------------------------------------------------------------------------------')
@@ -403,7 +403,7 @@ class EMRProfile(core.Construct):
             }
         }
         logger.warn('------------------------------------------------------------------------------')
-        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.from_secret_arn}')
+        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.secret_arn}')
         logger.warn('Must contain Key/Values: Realm, KdcAdminPassword')
         logger.warn('------------------------------------------------------------------------------')
         self._construct_security_configuration()
@@ -425,7 +425,7 @@ class EMRProfile(core.Construct):
             }
         }
         logger.warn('------------------------------------------------------------------------------')
-        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.from_secret_arn}')
+        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.secret_arn}')
         logger.warn('Must contain Key/Values: Realm, KdcAdminPassword, ADDomainJoinUser, ')
         logger.warn('ADDomainJoinPassword')
         logger.warn('------------------------------------------------------------------------------')
