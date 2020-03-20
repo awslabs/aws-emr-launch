@@ -178,7 +178,7 @@ class AutoScalingClusterConfiguration(InstanceGroupConfiguration):
             },
             'TaskInstanceMarket': {
                 'JsonPath': 'Instances.InstanceGroups.2.Market',
-                'Default': task_instance_market.name
+                'Default': task_instance_market.value
             },
             'TaskInitialInstanceCount': {
                 'JsonPath': 'Instances.InstanceGroups.2.InstanceCount',

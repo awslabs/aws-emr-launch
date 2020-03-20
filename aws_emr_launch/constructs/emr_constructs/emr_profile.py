@@ -16,6 +16,7 @@ import boto3
 
 from typing import Dict
 from enum import Enum
+from logzero import logger
 from botocore.exceptions import ClientError
 
 from typing import Optional
@@ -24,6 +25,7 @@ from aws_cdk import (
     aws_kms as kms,
     aws_ec2 as ec2,
     aws_emr as emr,
+    aws_secretsmanager as secretsmanager,
     aws_ssm as ssm,
     core
 )
@@ -86,11 +88,14 @@ class EMRProfile(core.Construct):
         self._logs_path = logs_path
         self._description = description
 
-        self._s3_encryption_mode = S3EncryptionMode.SSE_S3
-        self._s3_encryption_key = None
-        self._local_disk_encryption_key = None
-        self._ebs_encryption = False
-        self._tls_certificate_location = None
+        self._s3_encryption_configuration = {
+            'EncryptionMode': S3EncryptionMode.SSE_S3.value
+        }
+        self._local_disk_encryption_configuration = None
+        self._tls_certificate_configuration = None
+        self._kerberos_configuration = None
+        self._kerberos_attributes_secret = None
+        self._emrfs_configuration = None
 
         self._security_configuration = None
         self._security_configuration_name = None
@@ -128,12 +133,13 @@ class EMRProfile(core.Construct):
             'ArtifactsPath': self._artifacts_path,
             'LogsBucket': self._logs_bucket.bucket_name if self._logs_bucket else None,
             'LogsPath': self._logs_path,
-            'S3EncryptionMode': self._s3_encryption_mode.name if self._s3_encryption_mode else None,
-            'S3EncryptionKey': self._s3_encryption_key.key_arn if self._s3_encryption_key else None,
-            'LocalDiskEncryptionKey':
-                self._local_disk_encryption_key.key_arn if self._local_disk_encryption_key else None,
-            'EBSEncryption': self._ebs_encryption,
-            'TLSCertificateLocation': self._tls_certificate_location,
+            'S3EncryptionConfiguration': self._s3_encryption_configuration,
+            'LocalDiskEncryptionConfiguration': self._local_disk_encryption_configuration,
+            'TLSCertificateConfiguration': self._tls_certificate_configuration,
+            'KerberosConfiguration': self._kerberos_configuration,
+            'KerberosAttributesSecret': self._kerberos_attributes_secret.secret_arn
+            if self._kerberos_attributes_secret else None,
+            'EmrFsConfiguration': self._emrfs_configuration,
             'SecurityConfigurationName': self._security_configuration_name,
             'Description': self._description
         }
@@ -174,40 +180,24 @@ class EMRProfile(core.Construct):
             else None
         self._logs_path = property_values.get('LogsPath', None)
 
-        s3_encryption_mode = property_values.get('S3EncryptionMode', None)
-        self._s3_encryption_mode = S3EncryptionMode[s3_encryption_mode] \
-            if s3_encryption_mode \
-            else None
+        self._s3_encryption_configuration = property_values.get('S3EncryptionConfiguration', None)
+        self._local_disk_encryption_configuration = property_values.get('LocalDiskEncryptionConfiguration', None)
+        self._tls_certificate_configuration = property_values.get('TLSCertificateConfiguration', None)
+        self._kerberos_configuration = property_values.get('KerberosConfiguration', None)
 
-        s3_encryption_key = property_values.get('S3EncryptionKey', None)
-        self._s3_encryption_key = kms.Key.from_key_arn(self, 'S3EncryptionKey', s3_encryption_key) \
-            if s3_encryption_key \
-            else None
+        kerberos_attributes_secret = property_values.get('KerberosAttributesSecret', None)
+        self._kerberos_attributes_secret = \
+            secretsmanager.Secret.from_secret_arn(self, 'KerberosAttributesSecret', kerberos_attributes_secret) \
+            if kerberos_attributes_secret else None
 
-        local_disk_encryption_key = property_values.get('LocalDiskEncryptionKey', None)
-        self._local_disk_encryption_key = kms.Key.from_key_arn(
-            self, 'LocalDiskEncryptionKey', local_disk_encryption_key) \
-            if local_disk_encryption_key \
-            else None
-
-        self._ebs_encryption = property_values.get('EBSEncryption', None)
-        self._tls_certificate_location = property_values.get('TLSCertificateLocation', None)
+        self._emrfs_configuration = property_values.get('EmrFsConfiguration', None)
         self._security_configuration_name = property_values.get('SecurityConfigurationName', None)
         self._description = property_values.get('Description', None)
         self._rehydrated = True
         return self
 
     def _construct_security_configuration(self, custom_security_configuration=None) -> None:
-        # Reset the SC if there are not security properties
-        if (not custom_security_configuration
-                and not self._s3_encryption_mode
-                and not self._local_disk_encryption_key
-                and not self._tls_certificate_location):
-            self._security_configuration = None
-            self._security_configuration_name = None
-            self._ssm_parameter.value = json.dumps(self.to_json())
-            return
-
+        # Initialize the CfnSecurityConfiguration
         if self._security_configuration is None:
             name = f'{self._profile_name}-SecurityConfiguration'
             self._security_configuration = emr.CfnSecurityConfiguration(
@@ -223,46 +213,46 @@ class EMRProfile(core.Construct):
             return
 
         encryption_config = {}
-
         # Set In-Transit Encryption
-        if self._tls_certificate_location:
+        if self._tls_certificate_configuration:
             encryption_config['EnableInTransitEncryption'] = True
-            encryption_config['InTransitEncryptionConfiguration'] = {
-                'TLSCertificateConfiguration': {
-                    'CertificateProviderType': 'PEM',
-                    'S3Object': self._tls_certificate_location
-                }
-            }
+            encryption_config['InTransitEncryptionConfiguration'] = self._tls_certificate_configuration
         else:
             encryption_config['EnableInTransitEncryption'] = False
 
         # Set At-Rest Encryption
-        if self._s3_encryption_mode or self._local_disk_encryption_key:
+        if self._s3_encryption_configuration or self._local_disk_encryption_configuration:
             encryption_config['EnableAtRestEncryption'] = True
+
             at_rest_config = {}
 
-            if self._s3_encryption_mode:
-                at_rest_config['S3EncryptionConfiguration'] = {
-                    'EncryptionMode': self._s3_encryption_mode.value
-                }
-                if self._s3_encryption_key:
-                    at_rest_config['S3EncryptionConfiguration']['AwsKmsKey'] = self._s3_encryption_key.key_arn
+            if self._s3_encryption_configuration:
+                at_rest_config['S3EncryptionConfiguration'] = self._s3_encryption_configuration
 
-            if self._local_disk_encryption_key:
-                at_rest_config['LocalDiskEncryptionConfiguration'] = {
-                    'EncryptionKeyProviderType': 'AwsKms',
-                    'AwsKmsKey': self._local_disk_encryption_key.key_arn
-                }
-                if self._ebs_encryption:
-                    at_rest_config['LocalDiskEncryptionConfiguration']['EnableEbsEncryption'] = True
+            if self._local_disk_encryption_configuration:
+                at_rest_config['LocalDiskEncryptionConfiguration'] = self._local_disk_encryption_configuration
 
             encryption_config['AtRestEncryptionConfiguration'] = at_rest_config
         else:
             encryption_config['EnableAtRestEncryption'] = False
 
+        # Set Authorization
+        authorization_configuration = None
+        if self._kerberos_configuration or self._emrfs_configuration:
+            authorization_configuration = {}
+
+            if self._kerberos_configuration:
+                authorization_configuration['KerberosConfiguration'] = self._kerberos_configuration
+
+            if self._emrfs_configuration:
+                authorization_configuration['EmrFsConfiguration'] = self._emrfs_configuration
+
         self._security_configuration.security_configuration = {
             'EncryptionConfiguration': encryption_config
         }
+        if authorization_configuration:
+            self._security_configuration.security_configuration['AuthorizationConfiguration'] = \
+                authorization_configuration
 
     @property
     def profile_name(self) -> str:
@@ -301,26 +291,6 @@ class EMRProfile(core.Construct):
         return self._roles
 
     @property
-    def s3_encryption_mode(self) -> S3EncryptionMode:
-        return self._s3_encryption_mode
-
-    @property
-    def s3_encryption_key(self) -> kms.Key:
-        return self._s3_encryption_key
-
-    @property
-    def local_disk_encryption_key(self) -> kms.Key:
-        return self._local_disk_encryption_key
-
-    @property
-    def ebs_encryption(self) -> bool:
-        return self._ebs_encryption
-
-    @property
-    def tls_certificate_location(self) -> str:
-        return self._tls_certificate_location
-
-    @property
     def security_configuration_name(self) -> str:
         return self._security_configuration_name
 
@@ -336,31 +306,129 @@ class EMRProfile(core.Construct):
             raise NotImplementedError('Use of CSE-Custom currently requires setting a custom security '
                                       'configuration with `set_custom_security_configuration()`')
 
-        if encryption_key:
-            encryption_key.grant_encrypt(self._roles.instance_role)
-        self._s3_encryption_mode = mode
-        self._s3_encryption_key = encryption_key
+        self._s3_encryption_configuration = {
+            'EncryptionMode': mode.value
+        }
+
+        if mode in [S3EncryptionMode.SSE_KMS, S3EncryptionMode.CSE_KMS]:
+            if encryption_key:
+                self._s3_encryption_configuration['AwsKmsKey'] = encryption_key.key_arn
+                encryption_key.grant_encrypt(self._roles.instance_role)
+            else:
+                raise ValueError(f'Parameter "encryption_key" cannot be None when "mode" is of type {mode.value}')
+
         self._construct_security_configuration()
         return self
 
-    def set_local_disk_encryption_key(self, encryption_key: kms.Key, ebs_encryption: bool = True):
+    def set_local_disk_encryption(self, encryption_key: kms.Key, ebs_encryption: bool = True):
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
+        self._local_disk_encryption_configuration = {
+            'EncryptionKeyProviderType': 'AwsKms',
+            'AwsKmsKey': encryption_key.key_arn
+        }
         encryption_key.grant_encrypt_decrypt(self._roles.instance_role)
+
         if ebs_encryption:
+            self._local_disk_encryption_configuration['EnableEbsEncryption'] = True
             encryption_key.grant_encrypt_decrypt(self._roles.service_role)
             encryption_key.grant(self._roles.service_role, 'kms:CreateGrant', 'kms:ListGrants', 'kms:RevokeGrant')
-        self._local_disk_encryption_key = encryption_key
-        self._ebs_encryption = ebs_encryption
+
         self._construct_security_configuration()
         return self
 
-    def set_tls_certificate_location(self, certificate_location: str):
+    def set_tls_certificate(self, certificate_location: str):
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
-        self._tls_certificate_location = certificate_location
+        self._tls_certificate_configuration = {
+            'TLSCertificateConfiguration': {
+                'CertificateProviderType': 'PEM',
+                'S3Object': certificate_location
+            }
+        }
+        self._construct_security_configuration()
+        return self
+
+    def set_local_kdc(self, kerberos_attributes_secret: secretsmanager.Secret,
+                      ticket_lifetime_in_hours: Optional[int] = 24):
+        self._kerberos_attributes_secret = kerberos_attributes_secret
+        self._kerberos_configuration = {
+            'Provider': 'ClusterDedicatedKdc',
+            'ClusterDedicatedKdcConfiguration': {
+                'TicketLifetimeInHours': ticket_lifetime_in_hours
+            }
+        }
+        logger.warn('------------------------------------------------------------------------------')
+        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.from_secret_arn}')
+        logger.warn('Must contain Key/Values: Realm, KdcAdminPassword')
+        logger.warn('------------------------------------------------------------------------------')
+        self._construct_security_configuration()
+        return self
+
+    def set_local_kdc_with_cross_realm_trust(self, kerberos_attributes_secret: secretsmanager.Secret,
+                                             realm: str, domain: str, admin_server: str, kdc_server: str,
+                                             ticket_lifetime_in_hours: Optional[int] = 24):
+        self._kerberos_attributes_secret = kerberos_attributes_secret
+        self._kerberos_configuration = {
+            'Provider': 'ClusterDedicatedKdc',
+            'ClusterDedicatedKdcConfiguration': {
+                'TicketLifetimeInHours': ticket_lifetime_in_hours,
+                'CrossRealmTrustConfiguration': {
+                    'Realm': realm,
+                    'Domain': domain,
+                    'AdminServer': admin_server,
+                    'KdcServer': kdc_server
+                }
+            }
+        }
+        logger.warn('------------------------------------------------------------------------------')
+        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.from_secret_arn}')
+        logger.warn('Must contain Key/Values: Realm, KdcAdminPassword, ADDomainJoinUser, ')
+        logger.warn('ADDomainJoinPassword, CrossRealmTrustPrincipalPassword')
+        logger.warn('------------------------------------------------------------------------------')
+        self._construct_security_configuration()
+        return self
+
+    def set_external_kdc(self, kerberos_attributes_secret: secretsmanager.Secret,
+                         admin_server: str, kdc_server: str):
+        self._kerberos_attributes_secret = kerberos_attributes_secret
+        self._kerberos_configuration = {
+            'Provider': 'ExternalKdc',
+            'ExternalKdcConfiguration': {
+                'KdcServerType': 'Single',
+                'AdminServer': admin_server,
+                'KdcServer': kdc_server
+            }
+        }
+        logger.warn('------------------------------------------------------------------------------')
+        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.from_secret_arn}')
+        logger.warn('Must contain Key/Values: Realm, KdcAdminPassword')
+        logger.warn('------------------------------------------------------------------------------')
+        self._construct_security_configuration()
+        return self
+
+    def set_external_kdc_with_cross_realm_trust(self, kerberos_attributes_secret: secretsmanager.Secret,
+                                                admin_server: str, kdc_server: str, ad_realm: str, ad_domain: str):
+        self._kerberos_attributes_secret = kerberos_attributes_secret
+        self._kerberos_configuration = {
+            'Provider': 'ExternalKdc',
+            'ExternalKdcConfiguration': {
+                'KdcServerType': 'Single',
+                'AdminServer': admin_server,
+                'KdcServer': kdc_server,
+                'AdIntegrationConfiguration': {
+                    'AdRealm': ad_realm,
+                    'AdDomain': ad_domain
+                }
+            }
+        }
+        logger.warn('------------------------------------------------------------------------------')
+        logger.warn(f'SecretsManager Secret: {kerberos_attributes_secret.from_secret_arn}')
+        logger.warn('Must contain Key/Values: Realm, KdcAdminPassword, ADDomainJoinUser, ')
+        logger.warn('ADDomainJoinPassword')
+        logger.warn('------------------------------------------------------------------------------')
         self._construct_security_configuration()
         return self
 
@@ -368,6 +436,10 @@ class EMRProfile(core.Construct):
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
+        logger.warn('------------------------------------------------------------------------------')
+        logger.warn('Setting a Custom SecurityConfiguration will override all')
+        logger.warn('SecurityConfiguration settings')
+        logger.warn('------------------------------------------------------------------------------')
         self._construct_security_configuration(security_configuration)
         return self
 

@@ -103,7 +103,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
             },
             'MasterInstanceMarket': {
                 'JsonPath': 'Instances.InstanceGroups.0.Market',
-                'Default': master_instance_market.name
+                'Default': master_instance_market.value
             },
             'CoreInstanceCount': {
                 'JsonPath': 'Instances.InstanceGroups.1.InstanceCount',
@@ -115,7 +115,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
             },
             'CoreInstanceMarket': {
                 'JsonPath': 'Instances.InstanceGroups.1.Market',
-                'Default': core_instance_market.name
+                'Default': core_instance_market.value
             },
             'Subnet': {
                 'JsonPath': 'Instances.Ec2SubnetId',
