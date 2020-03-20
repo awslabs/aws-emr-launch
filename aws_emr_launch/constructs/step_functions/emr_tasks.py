@@ -353,7 +353,7 @@ class RunJobFlowBuilder:
                 secret.grant_read(run_job_flow_lambda)
 
         return sfn.Task(
-            construct, 'Start EMR Cluster',
+            construct, 'Start EMR Cluster (with Secrets)',
             output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.RunLambdaTask(
