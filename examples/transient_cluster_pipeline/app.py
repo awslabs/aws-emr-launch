@@ -51,6 +51,14 @@ fail = emr_chains.Fail(
     subject='Pipeline Failure',
     topic=failure_topic)
 
+# Define a Task to Terminate the Cluster on failure
+terminate_failed_cluster = emr_tasks.TerminateClusterBuilder.build(
+    stack, 'TerminateFailedCluster',
+    name='Terminate Failed Cluster',
+    cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value,
+    result_path='$.TerminateResult').add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+terminate_failed_cluster.next(fail)
+
 # Use the State Machine defined earlier to launch the Cluster
 # The ClusterConfigurationOverrides and Tags will be passed through for
 # runtime overrides
@@ -68,7 +76,7 @@ launch_cluster = emr_chains.NestedStateMachine(
 phase_1 = sfn.Parallel(stack, 'Phase1', result_path='$.Result.Phase1')
 
 # Add a Failure catch to our Parallel phase
-phase_1.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+phase_1.add_catch(terminate_failed_cluster, errors=['States.ALL'], result_path='$.Error')
 
 # Create 5 Phase 1 Parallel Steps. The number of concurrently running Steps is
 # defined in the Cluster Configuration
@@ -101,14 +109,15 @@ validate_phase_1 = emr_tasks.AddStepBuilder.build(
         code=step_code
     ),
     cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value,
-    result_path='$.ValidatePhase1Result').add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+    result_path='$.ValidatePhase1Result').add_catch(
+        terminate_failed_cluster, errors=['States.ALL'], result_path='$.Error')
 
 
 # Create a Parallel Task for the Phase 2 Steps
 phase_2 = sfn.Parallel(stack, 'Phase2', result_path='$.Result.Phase2')
 
 # Add a Failure catch to our Parallel phase
-phase_2.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+phase_2.add_catch(terminate_failed_cluster, errors=['States.ALL'], result_path='$.Error')
 
 # Create 5 Phase 2 Parallel Steps.
 for file in emr_code.Code.files_in_path('./step_sources', 'test_step_*.hql'):
@@ -150,12 +159,13 @@ validate_phase_2 = emr_tasks.AddStepBuilder.build(
         code=step_code
     ),
     cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value,
-    result_path='$.ValidatePhase2Result').add_catch(fail, errors=['States.ALL'], result_path='$.Error')
+    result_path='$.ValidatePhase2Result').add_catch(
+        terminate_failed_cluster, errors=['States.ALL'], result_path='$.Error')
 
 
 # Define a Task to Terminate the Cluster
-terminate_cluster = emr_tasks.TerminateClusterBuilder.build(
-    stack, 'TerminateCluster',
+terminate_successful_cluster = emr_tasks.TerminateClusterBuilder.build(
+    stack, 'TerminateSuccessfulCluster',
     name='Terminate Cluster',
     cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value,
     result_path='$.TerminateResult').add_catch(fail, errors=['States.ALL'], result_path='$.Error')
@@ -174,7 +184,7 @@ definition = sfn.Chain \
     .next(validate_phase_1) \
     .next(phase_2) \
     .next(validate_phase_2) \
-    .next(terminate_cluster) \
+    .next(terminate_successful_cluster) \
     .next(success)
 
 state_machine = sfn.StateMachine(
