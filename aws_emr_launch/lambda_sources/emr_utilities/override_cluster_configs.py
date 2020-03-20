@@ -18,6 +18,7 @@ import logging
 from dictor import dictor
 
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 emr = boto3.client('emr')
 
 

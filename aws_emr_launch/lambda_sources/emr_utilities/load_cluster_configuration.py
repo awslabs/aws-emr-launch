@@ -20,6 +20,7 @@ from typing import Dict, List
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 emr = boto3.client('emr')
 
 PROFILES_SSM_PARAMETER_PREFIX = '/emr_launch/emr_profiles'

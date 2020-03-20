@@ -20,6 +20,7 @@ from typing import Dict, List
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 emr = boto3.client('emr')
 events = boto3.client('events')
 secretsmanager = boto3.client('secretsmanager')

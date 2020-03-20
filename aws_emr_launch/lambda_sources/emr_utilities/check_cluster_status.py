@@ -16,9 +16,9 @@ import boto3
 import logging
 
 from datetime import date, datetime
-from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 emr = boto3.client('emr')
 events = boto3.client('events')
 sfn = boto3.client('stepfunctions')

@@ -16,6 +16,7 @@ import json
 import logging
 
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 emr = boto3.client('emr')
 
 
