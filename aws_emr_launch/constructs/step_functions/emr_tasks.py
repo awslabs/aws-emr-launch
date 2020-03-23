@@ -49,7 +49,8 @@ class BaseTask:
 
 @jsii.implements(sfn.IStepFunctionsTask)
 class StartExecutionTask(BaseTask):
-    def __init__(self, state_machine: sfn.StateMachine, input: Optional[Dict[str, any]] = None, name: Optional[str] = None,
+    def __init__(self, state_machine: sfn.StateMachine,
+                 input: Optional[Dict[str, any]] = None, name: Optional[str] = None,
                  integration_pattern: Optional[sfn.ServiceIntegrationPattern] = sfn.ServiceIntegrationPattern.SYNC):
         self._state_machine = state_machine
         self._input = input
