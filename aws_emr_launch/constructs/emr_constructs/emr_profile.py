@@ -33,6 +33,7 @@ from aws_cdk import (
 
 from aws_emr_launch.constructs.security_groups.emr import EMRSecurityGroups
 from aws_emr_launch.constructs.iam_roles.emr_roles import EMRRoles
+from aws_emr_launch.constructs.emr_constructs import emr_code
 
 SSM_PARAMETER_PREFIX = '/emr_launch/emr_profiles'
 
@@ -42,6 +43,10 @@ class ReadOnlyEMRProfileError(Exception):
 
 
 class EMRProfileNotFoundError(Exception):
+    pass
+
+
+class LakeFormationEnabledError(Exception):
     pass
 
 
@@ -97,6 +102,7 @@ class EMRProfile(core.Construct):
         self._kerberos_configuration = None
         self._kerberos_attributes_secret = None
         self._emrfs_configuration = None
+        self._lake_formation_configuration = None
 
         self._security_configuration = None
         self._security_configuration_name = None
@@ -141,6 +147,7 @@ class EMRProfile(core.Construct):
             'KerberosAttributesSecret': self._kerberos_attributes_secret.secret_arn
             if self._kerberos_attributes_secret else None,
             'EmrFsConfiguration': self._emrfs_configuration,
+            'LakeFormationConfiguration': self._lake_formation_configuration,
             'SecurityConfiguration': self._security_configuration_name,
             'Description': self._description
         }
@@ -192,6 +199,7 @@ class EMRProfile(core.Construct):
             if kerberos_attributes_secret else None
 
         self._emrfs_configuration = property_values.get('EmrFsConfiguration', None)
+        self._lake_formation_configuration = property_values.get('LakeFormationConfiguration', None)
         self._security_configuration_name = property_values.get('SecurityConfiguration', None)
         self._description = property_values.get('Description', None)
         self._rehydrated = True
@@ -237,7 +245,8 @@ class EMRProfile(core.Construct):
         self._security_configuration.security_configuration = {
             'EncryptionConfiguration': encryption_configuration,
             'AuthenticationConfiguration': authentication_configuration,
-            'AuthorizationConfiguration': authorization_configuration
+            'AuthorizationConfiguration': authorization_configuration,
+            'LakeFormationConfiguration': self._lake_formation_configuration
         }
 
     def _configure_mutual_assume_role(self, role: iam.Role):
@@ -303,6 +312,9 @@ class EMRProfile(core.Construct):
     @property
     def kerberos_attributes_secret(self) -> secretsmanager.Secret:
         return self._kerberos_attributes_secret
+
+    def lake_formation_enabled(self):
+        return self._lake_formation_configuration is not None
 
     def set_s3_encryption(self, mode: Optional[S3EncryptionMode], encryption_key: Optional[kms.Key] = None):
         if self._rehydrated:
@@ -382,6 +394,9 @@ class EMRProfile(core.Construct):
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
+        if self._lake_formation_configuration is not None:
+            raise LakeFormationEnabledError()
+
         self._kerberos_attributes_secret = kerberos_attributes_secret
         self._kerberos_configuration = {
             'Provider': 'ClusterDedicatedKdc',
@@ -408,6 +423,9 @@ class EMRProfile(core.Construct):
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
+        if self._lake_formation_configuration is not None:
+            raise LakeFormationEnabledError()
+
         self._kerberos_attributes_secret = kerberos_attributes_secret
         self._kerberos_configuration = {
             'Provider': 'ExternalKdc',
@@ -429,6 +447,9 @@ class EMRProfile(core.Construct):
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
+        if self._lake_formation_configuration is not None:
+            raise LakeFormationEnabledError()
+
         self._kerberos_attributes_secret = kerberos_attributes_secret
         self._kerberos_configuration = {
             'Provider': 'ExternalKdc',
@@ -448,17 +469,6 @@ class EMRProfile(core.Construct):
         logger.warn('ADDomainJoinPassword')
         logger.warn('------------------------------------------------------------------------------')
         self._construct_security_configuration()
-        return self
-
-    def set_custom_security_configuration(self, security_configuration):
-        if self._rehydrated:
-            raise ReadOnlyEMRProfileError()
-
-        logger.warn('------------------------------------------------------------------------------')
-        logger.warn('Setting a Custom SecurityConfiguration will override all')
-        logger.warn('SecurityConfiguration settings')
-        logger.warn('------------------------------------------------------------------------------')
-        self._construct_security_configuration(security_configuration)
         return self
 
     def add_emrfs_role_mapping_for_s3_prefixes(self, role: iam.Role, s3_prefixes: List[str]):
@@ -513,6 +523,57 @@ class EMRProfile(core.Construct):
             'IdentifierType': 'Group',
             'Identifiers': groups
         })
+        return self
+
+    def enable_lake_formation(self, kerberos_attributes_secret: secretsmanager.Secret, idp_metadata_path: str,
+                              lake_formation_role: iam.Role, services_role: iam.Role,
+                              ticket_lifetime_in_hours: Optional[int] = 24,
+                              idp_code: Optional[emr_code.EMRCode] = None):
+        if self._rehydrated:
+            raise ReadOnlyEMRProfileError()
+
+        self.set_local_kdc(kerberos_attributes_secret, ticket_lifetime_in_hours)
+
+        if idp_code:
+            idp_code.resolve(self)
+
+        self._roles.instance_role.add_to_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions=['iam:PassRole'],
+            resources=[lake_formation_role.role_arn]
+        ))
+        self._roles.instance_role.add_to_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions=['sts:AssumeRole'],
+            resources=[services_role.role_arn]
+        ))
+        self._roles.instance_role.add_to_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions=['lakeformation:GetTemporaryUserCredentialsWithSAML'],
+            resources=['*']
+        ))
+        self._roles.instance_role.add_to_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions=['iam:GetRole'],
+            resources=['arn:aws:iam::*:role/*']
+        ))
+
+        self._lake_formation_configuration = {
+            'IdpMetadataS3Path': idp_metadata_path,
+            'EmrRoleForUsersARN': services_role.role_arn,
+            'LakeFormationRoleForSAMLPrincipalARN': lake_formation_role.role_arn
+        }
+        return self
+
+    def set_custom_security_configuration(self, security_configuration):
+        if self._rehydrated:
+            raise ReadOnlyEMRProfileError()
+
+        logger.warn('------------------------------------------------------------------------------')
+        logger.warn('Setting a Custom SecurityConfiguration will override all')
+        logger.warn('SecurityConfiguration settings')
+        logger.warn('------------------------------------------------------------------------------')
+        self._construct_security_configuration(security_configuration)
         return self
 
     def authorize_input_bucket(self, bucket: s3.Bucket, objects_key_pattern: Optional[str] = None):

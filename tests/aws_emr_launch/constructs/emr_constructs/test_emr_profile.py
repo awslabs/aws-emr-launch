@@ -35,7 +35,10 @@ input_key = kms.Key(stack, 'test-input-key')
 s3_key = kms.Key(stack, 'test-s3-key')
 local_disk_key = kms.Key(stack, 'test-local-disk-key')
 secret = secretsmanager.Secret(stack, 'test-secret')
-role = iam.Role(stack, 'test-role', assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'))
+emrfs_mappings_role = iam.Role(stack, 'test-emrfs-role', assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'))
+lake_formation_role = iam.Role(stack, 'test-lake-formation-role', assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'))
+services_role = iam.Role(stack, 'test-services-role', assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'))
+
 
 default_profile = {
     'ProfileName': 'TestCluster',
@@ -220,13 +223,12 @@ def test_profile_external_kdc_with_cross_realm_trust():
 
 
 def test_profile_emrfs_prefix_role_mapping():
-    profile._emrfs_configuration = None
     profile \
-        .add_emrfs_role_mapping_for_s3_prefixes(role, ['s3://bucket/prefix'])
+        .add_emrfs_role_mapping_for_s3_prefixes(emrfs_mappings_role, ['s3://bucket/prefix'])
 
     default_profile['EmrFsConfiguration'] = {
         'RoleMappings': [{
-            'Role': {'Fn::GetAtt': ['testroleB50A37BE', 'Arn']},
+            'Role': {'Fn::GetAtt': ['testemrfsrole229C26D4', 'Arn']},
             'IdentifierType': 'Prefix',
             'Identifiers': ['s3://bucket/prefix']
         }]
@@ -236,16 +238,17 @@ def test_profile_emrfs_prefix_role_mapping():
     print(default_profile)
     print(resolved_profile)
     assert resolved_profile == default_profile
+    default_profile.pop('EmrFsConfiguration')
+    profile._emrfs_configuration = None
 
 
 def test_profile_emrfs_user_role_mapping():
-    profile._emrfs_configuration = None
     profile \
-        .add_emrfs_role_mapping_for_users(role, ['user'])
+        .add_emrfs_role_mapping_for_users(emrfs_mappings_role, ['user'])
 
     default_profile['EmrFsConfiguration'] = {
         'RoleMappings': [{
-            'Role': {'Fn::GetAtt': ['testroleB50A37BE', 'Arn']},
+            'Role': {'Fn::GetAtt': ['testemrfsrole229C26D4', 'Arn']},
             'IdentifierType': 'User',
             'Identifiers': ['user']
         }]
@@ -255,19 +258,45 @@ def test_profile_emrfs_user_role_mapping():
     print(default_profile)
     print(resolved_profile)
     assert resolved_profile == default_profile
+    default_profile.pop('EmrFsConfiguration')
+    profile._emrfs_configuration = None
 
 
 def test_profile_emrfs_group_role_mapping():
-    profile._emrfs_configuration = None
     profile \
-        .add_emrfs_role_mapping_for_groups(role, ['group'])
+        .add_emrfs_role_mapping_for_groups(emrfs_mappings_role, ['group'])
 
     default_profile['EmrFsConfiguration'] = {
         'RoleMappings': [{
-            'Role': {'Fn::GetAtt': ['testroleB50A37BE', 'Arn']},
+            'Role': {'Fn::GetAtt': ['testemrfsrole229C26D4', 'Arn']},
             'IdentifierType': 'Group',
             'Identifiers': ['group']
         }]
+    }
+
+    resolved_profile = stack.resolve(profile.to_json())
+    print(default_profile)
+    print(resolved_profile)
+    assert resolved_profile == default_profile
+    default_profile.pop('EmrFsConfiguration')
+    profile._emrfs_configuration = None
+
+
+def test_profile_lake_formation_enablement():
+    profile \
+        .enable_lake_formation(secret, 's3://bucket/idp.xml', lake_formation_role, services_role)
+
+    default_profile['KerberosAttributesSecret'] = {'Ref': 'testsecretF8BBC644'}
+    default_profile['KerberosConfiguration'] = {
+        'Provider': 'ClusterDedicatedKdc',
+        'ClusterDedicatedKdcConfiguration': {
+            'TicketLifetimeInHours': 24
+        }
+    }
+    default_profile['LakeFormationConfiguration'] = {
+        'IdpMetadataS3Path': 's3://bucket/idp.xml',
+        'EmrRoleForUsersARN': {'Fn::GetAtt': ['testservicesrole14912EA6', 'Arn']},
+        'LakeFormationRoleForSAMLPrincipalARN': {'Fn::GetAtt': ['testlakeformationroleBFC53CBB', 'Arn']}
     }
 
     resolved_profile = stack.resolve(profile.to_json())

@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.0.0 (unreleased)
 ------------------
 
+- Helper function for LakeFormation enablement
+
 - Helper functions for Kerberos: local kdc, local with cross-realm, external, and external with cross-realm
 
 - Enable EMRFS Role Mappings for prefixes, users, and groups
