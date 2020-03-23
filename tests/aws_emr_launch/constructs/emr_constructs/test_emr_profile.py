@@ -14,6 +14,7 @@
 from aws_cdk import (
     aws_kms as kms,
     aws_ec2 as ec2,
+    aws_iam as iam,
     aws_s3 as s3,
     aws_secretsmanager as secretsmanager,
     core
@@ -34,6 +35,7 @@ input_key = kms.Key(stack, 'test-input-key')
 s3_key = kms.Key(stack, 'test-s3-key')
 local_disk_key = kms.Key(stack, 'test-local-disk-key')
 secret = secretsmanager.Secret(stack, 'test-secret')
+role = iam.Role(stack, 'test-role', assumed_by=iam.ServicePrincipal('ec2.amazonaws.com'))
 
 default_profile = {
     'ProfileName': 'TestCluster',
@@ -209,6 +211,63 @@ def test_profile_external_kdc_with_cross_realm_trust():
                 'AdDomain': 'ad_domain'
             }
         }
+    }
+
+    resolved_profile = stack.resolve(profile.to_json())
+    print(default_profile)
+    print(resolved_profile)
+    assert resolved_profile == default_profile
+
+
+def test_profile_emrfs_prefix_role_mapping():
+    profile._emrfs_configuration = None
+    profile \
+        .add_emrfs_role_mapping_for_s3_prefixes(role, ['s3://bucket/prefix'])
+
+    default_profile['EmrFsConfiguration'] = {
+        'RoleMappings': [{
+            'Role': {'Fn::GetAtt': ['testroleB50A37BE', 'Arn']},
+            'IdentifierType': 'Prefix',
+            'Identifiers': ['s3://bucket/prefix']
+        }]
+    }
+
+    resolved_profile = stack.resolve(profile.to_json())
+    print(default_profile)
+    print(resolved_profile)
+    assert resolved_profile == default_profile
+
+
+def test_profile_emrfs_user_role_mapping():
+    profile._emrfs_configuration = None
+    profile \
+        .add_emrfs_role_mapping_for_users(role, ['user'])
+
+    default_profile['EmrFsConfiguration'] = {
+        'RoleMappings': [{
+            'Role': {'Fn::GetAtt': ['testroleB50A37BE', 'Arn']},
+            'IdentifierType': 'User',
+            'Identifiers': ['user']
+        }]
+    }
+
+    resolved_profile = stack.resolve(profile.to_json())
+    print(default_profile)
+    print(resolved_profile)
+    assert resolved_profile == default_profile
+
+
+def test_profile_emrfs_group_role_mapping():
+    profile._emrfs_configuration = None
+    profile \
+        .add_emrfs_role_mapping_for_groups(role, ['group'])
+
+    default_profile['EmrFsConfiguration'] = {
+        'RoleMappings': [{
+            'Role': {'Fn::GetAtt': ['testroleB50A37BE', 'Arn']},
+            'IdentifierType': 'Group',
+            'Identifiers': ['group']
+        }]
     }
 
     resolved_profile = stack.resolve(profile.to_json())

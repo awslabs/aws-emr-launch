@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.0.0 (unreleased)
 ------------------
 
+- Enable EMRFS Role Mappings for prefixes, users, and groups
+
 - BREAKING: add (and enforce) Default, Minimum, and Maximum to cluster_configuration.override_interfaces
 
 - BREAKING: new managed_configurations for cluster_configurations

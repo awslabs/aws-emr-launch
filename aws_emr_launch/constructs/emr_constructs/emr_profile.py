@@ -14,7 +14,7 @@
 import json
 import boto3
 
-from typing import Dict
+from typing import Dict, List
 from enum import Enum
 from logzero import logger
 from botocore.exceptions import ClientError
@@ -25,6 +25,7 @@ from aws_cdk import (
     aws_kms as kms,
     aws_ec2 as ec2,
     aws_emr as emr,
+    aws_iam as iam,
     aws_secretsmanager as secretsmanager,
     aws_ssm as ssm,
     core
@@ -239,6 +240,22 @@ class EMRProfile(core.Construct):
             'AuthorizationConfiguration': authorization_configuration
         }
 
+    def _configure_mutual_assume_role(self, role: iam.Role):
+        self._roles.instance_role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                principals=[iam.ArnPrincipal(role.role_arn)],
+                actions=['sts:AssumeRole'])
+        )
+
+        role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                principals=[iam.ArnPrincipal(self._roles.instance_role.role_arn)],
+                actions=['sts:AssumeRole']
+            )
+        )
+
     @property
     def profile_name(self) -> str:
         return self._profile_name
@@ -442,6 +459,60 @@ class EMRProfile(core.Construct):
         logger.warn('SecurityConfiguration settings')
         logger.warn('------------------------------------------------------------------------------')
         self._construct_security_configuration(security_configuration)
+        return self
+
+    def add_emrfs_role_mapping_for_s3_prefixes(self, role: iam.Role, s3_prefixes: List[str]):
+        if self._rehydrated:
+            raise ReadOnlyEMRProfileError()
+
+        self._configure_mutual_assume_role(role)
+
+        if self._emrfs_configuration is None:
+            self._emrfs_configuration = {
+                'RoleMappings': []
+            }
+
+        self._emrfs_configuration['RoleMappings'].append({
+            'Role': role.role_arn,
+            'IdentifierType': 'Prefix',
+            'Identifiers': s3_prefixes
+        })
+        return self
+
+    def add_emrfs_role_mapping_for_users(self, role: iam.Role, users: List[str]):
+        if self._rehydrated:
+            raise ReadOnlyEMRProfileError()
+
+        self._configure_mutual_assume_role(role)
+
+        if self._emrfs_configuration is None:
+            self._emrfs_configuration = {
+                'RoleMappings': []
+            }
+
+        self._emrfs_configuration['RoleMappings'].append({
+            'Role': role.role_arn,
+            'IdentifierType': 'User',
+            'Identifiers': users
+        })
+        return self
+
+    def add_emrfs_role_mapping_for_groups(self, role: iam.Role, groups: List[str]):
+        if self._rehydrated:
+            raise ReadOnlyEMRProfileError()
+
+        self._configure_mutual_assume_role(role)
+
+        if self._emrfs_configuration is None:
+            self._emrfs_configuration = {
+                'RoleMappings': []
+            }
+
+        self._emrfs_configuration['RoleMappings'].append({
+            'Role': role.role_arn,
+            'IdentifierType': 'Group',
+            'Identifiers': groups
+        })
         return self
 
     def authorize_input_bucket(self, bucket: s3.Bucket, objects_key_pattern: Optional[str] = None):
