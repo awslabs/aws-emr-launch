@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.0.0 (unreleased)
 ------------------
 
+- Replace cdk AddStep task to enable Args to be passed as a Parameter
+
 - Helper function for LakeFormation enablement
 
 - Helper functions for Kerberos: local kdc, local with cross-realm, external, and external with cross-realm

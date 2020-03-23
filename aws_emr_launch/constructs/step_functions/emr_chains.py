@@ -21,6 +21,7 @@ from aws_cdk import (
 )
 
 from aws_emr_launch.constructs.lambdas import emr_lambdas
+from aws_emr_launch.constructs.step_functions import emr_tasks
 
 
 class Success(sfn.StateMachineFragment):
@@ -104,8 +105,8 @@ class NestedStateMachine(sfn.StateMachineFragment):
 
         state_machine_task = sfn.Task(
             self, name,
-            task=sfn_tasks.StartExecution(
-                state_machine,
+            task=emr_tasks.StartExecutionTask(
+                state_machine=state_machine,
                 input=input,
                 integration_pattern=sfn.ServiceIntegrationPattern.SYNC))
 

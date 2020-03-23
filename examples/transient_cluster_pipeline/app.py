@@ -66,10 +66,6 @@ launch_cluster = emr_chains.NestedStateMachine(
     stack, 'NestedStateMachine',
     name='Launch Cluster StateMachine',
     state_machine=launch_function.state_machine,
-    input={
-        'ClusterConfigurationOverrides': sfn.TaskInput.from_data_at('$.ClusterConfigurationOverrides').value,
-        'Tags': sfn.TaskInput.from_data_at('$.Tags').value
-    },
     fail_chain=fail)
 
 # Create a Parallel Task for the Phase 1 Steps

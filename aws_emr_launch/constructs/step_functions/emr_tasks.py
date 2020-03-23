@@ -48,6 +48,64 @@ class BaseTask:
 
 
 @jsii.implements(sfn.IStepFunctionsTask)
+class StartExecutionTask(BaseTask):
+    def __init__(self, state_machine: sfn.StateMachine, input: Optional[Dict[str, any]] = None, name: Optional[str] = None,
+                 integration_pattern: Optional[sfn.ServiceIntegrationPattern] = sfn.ServiceIntegrationPattern.SYNC):
+        self._state_machine = state_machine
+        self._input = input
+        self._name = name
+        self._integration_pattern = integration_pattern
+
+    def _create_policy_statements(self, task: sfn.Task) -> List[iam.PolicyStatement]:
+        stack = core.Stack.of(task)
+
+        policy_statements = list()
+
+        policy_statements.append(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=['states:StartExecution'],
+                resources=[self._state_machine.state_machine_arn]
+            )
+        )
+
+        if self._integration_pattern == sfn.ServiceIntegrationPattern.SYNC:
+            policy_statements.append(
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=['states:DescribeExecution', 'states:StopExecution'],
+                    resources=['*']
+                )
+            )
+
+            policy_statements.append(
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=['events:PutTargets', 'events:PutRule', 'events:DescribeRule'],
+                    resources=[stack.format_arn(
+                        service='events',
+                        resource='rule',
+                        resource_name='StepFunctionsGetEventsForStepFunctionsExecutionRule'
+                    )]
+                )
+            )
+
+        return policy_statements
+
+    def bind(self, task: sfn.Task) -> sfn.StepFunctionsTaskConfig:
+        input = self._input if self._input is not None else sfn.TaskInput.from_context_at('$$.Execution.Input').value
+        return sfn.StepFunctionsTaskConfig(
+            resource_arn=self.get_resource_arn('states', 'startExecution', self._integration_pattern),
+            parameters={
+                'StateMachineArn': self._state_machine.state_machine_arn,
+                'Input': input,
+                'Name': self._name
+            },
+            policy_statements=self._create_policy_statements(task)
+        )
+
+
+@jsii.implements(sfn.IStepFunctionsTask)
 class EmrCreateClusterTask(BaseTask):
     def __init__(self, roles: emr_roles.EMRRoles, cluster_configuration_path,
                  integration_pattern: Optional[sfn.ServiceIntegrationPattern] = sfn.ServiceIntegrationPattern.SYNC):
@@ -188,6 +246,66 @@ class EmrCreateClusterTask(BaseTask):
                     f'{self._cluster_configuration_path}.Tags').value,
                 'VisibleToAllUsers': sfn.TaskInput.from_data_at(
                     f'{self._cluster_configuration_path}.VisibleToAllUsers').value,
+            },
+            policy_statements=self._create_policy_statements(task)
+        )
+
+
+@jsii.implements(sfn.IStepFunctionsTask)
+class EmrAddStepTask(BaseTask):
+    def __init__(self, cluster_id: str, step: Dict[str, any],
+                 integration_pattern: Optional[sfn.ServiceIntegrationPattern] = sfn.ServiceIntegrationPattern.SYNC):
+        self._cluster_id = cluster_id
+        self._step = step
+        self._integration_pattern = integration_pattern
+
+        supported_patterns = [
+            sfn.ServiceIntegrationPattern.SYNC,
+            sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN
+        ]
+
+        if integration_pattern not in supported_patterns:
+            raise ValueError(f'Invalid Service Integration Pattern: {integration_pattern}'
+                             ' is not supported to call CreateCluster.')
+
+    def _create_policy_statements(self, task: sfn.Task) -> List[iam.PolicyStatement]:
+        stack = core.Stack.of(task)
+
+        policy_statements = list()
+
+        policy_statements.append(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=[
+                    'elasticmapreduce:AddJobFlowSteps',
+                    'elasticmapreduce:DescribeStep',
+                    'elasticmapreduce:CancelSteps'
+                ],
+                resources=[f'arn:aws:elasticmapreduce:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:cluster/*']
+            )
+        )
+
+        if self._integration_pattern == sfn.ServiceIntegrationPattern.SYNC:
+            policy_statements.append(
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=['events:PutTargets', 'events:PutRule', 'events:DescribeRule'],
+                    resources=[stack.format_arn(
+                        service='events',
+                        resource='rule',
+                        resource_name='StepFunctionsGetEventForEMRAddJobFlowStepsRule'
+                    )]
+                )
+            )
+
+        return policy_statements
+
+    def bind(self, task: sfn.Task) -> sfn.StepFunctionsTaskConfig:
+        return sfn.StepFunctionsTaskConfig(
+            resource_arn=self.get_resource_arn('elasticmapreduce', 'addStep', self._integration_pattern),
+            parameters={
+                'ClusterId': self._cluster_id,
+                'Step': self._step
             },
             policy_statements=self._create_policy_statements(task)
         )
@@ -392,14 +510,9 @@ class AddStepBuilder:
             construct, emr_step.name,
             output_path=output_path,
             result_path=result_path,
-            task=sfn_tasks.EmrAddStep(
+            task=EmrAddStepTask(
                 cluster_id=cluster_id,
-                name=resolved_step['Name'],
-                action_on_failure=sfn_tasks.ActionOnFailure[resolved_step['ActionOnFailure']],
-                jar=resolved_step['HadoopJarStep']['Jar'],
-                main_class=resolved_step['HadoopJarStep']['MainClass'],
-                args=resolved_step['HadoopJarStep']['Args'],
-                properties=resolved_step['HadoopJarStep']['Properties'],
+                step=resolved_step,
                 integration_pattern=sfn.ServiceIntegrationPattern.SYNC)
         )
 
