@@ -53,12 +53,7 @@ launch_function = emr_launch_function.EMRLaunchFunction(
     cluster_name='sns-triggered-pipeline',
     success_topic=success_topic,
     failure_topic=failure_topic,
-    default_fail_if_cluster_running=True,
-    allowed_cluster_config_overrides={
-        'Name': 'Name',
-        'CoreInstanceCount': 'Instances.InstanceGroups.1.InstanceCount',
-        'CoreInstanceType': 'Instances.InstanceGroups.1.InstanceType'
-    })
+    default_fail_if_cluster_running=True,)
 
 deployment_bucket = s3.Bucket.from_bucket_name(
     stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET']) \
