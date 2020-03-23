@@ -58,6 +58,7 @@ default_profile = {
     'S3EncryptionConfiguration': {
         'EncryptionMode': 'SSE-S3',
     },
+    'SecurityConfiguration': {'Ref': 'testprofileSecurityConfigurationCAAF9611'}
 }
 
 profile = emr_profile.EMRProfile(
