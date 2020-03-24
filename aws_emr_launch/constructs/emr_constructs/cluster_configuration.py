@@ -209,6 +209,7 @@ class ClusterConfiguration(core.Construct):
     @staticmethod
     def update_configurations(configurations: List[dict], classification: str, properties: Dict[str, str]):
         found_classification = False
+        configurations = [] if configurations is None else configurations
         for config in configurations:
             cls = config.get('Classification', '')
             if cls == classification:
