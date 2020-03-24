@@ -22,6 +22,7 @@ from aws_cdk import (
 
 from aws_emr_launch.constructs.lambdas import emr_lambdas
 from aws_emr_launch.constructs.step_functions import emr_tasks
+from aws_emr_launch.constructs.emr_constructs import emr_code
 
 
 class Success(sfn.StateMachineFragment):
@@ -113,7 +114,7 @@ class NestedStateMachine(sfn.StateMachineFragment):
         parse_json_string = emr_lambdas.ParseJsonStringBuilder.get_or_build(self)
 
         parse_json_string_task = sfn.Task(
-            self, 'Parse JSON Output',
+            self, f'{name} - Parse JSON Output',
             result_path='$',
             task=sfn_tasks.InvokeFunction(
                 parse_json_string,
@@ -130,6 +131,60 @@ class NestedStateMachine(sfn.StateMachineFragment):
 
         self._start = state_machine_task
         self._end = parse_json_string_task
+
+    @property
+    def start_state(self) -> sfn.State:
+        return self._start
+
+    @property
+    def end_states(self) -> List[sfn.INextable]:
+        return self._end.end_states
+
+
+class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
+    def __init__(self, scope: core.Construct, id: str, *,
+                 emr_step: emr_code.EMRStep,
+                 cluster_id: str,
+                 result_path: Optional[str] = None,
+                 output_path: Optional[str] = None,
+                 fail_chain: Optional[sfn.IChainable] = None):
+        super().__init__(scope, id)
+
+        override_step_args = emr_lambdas.OverrideStepArgsBuilder.get_or_build(self)
+
+        override_step_args_task = sfn.Task(
+            self, f'{emr_step.name} - Override Args',
+            result_path=f'$.{id}ResultArgs',
+            task=sfn_tasks.InvokeFunction(
+                override_step_args,
+                payload={
+                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
+                    'StepName': emr_step.name,
+                    'Args': emr_step.args
+                })
+        )
+
+        resolved_step = emr_step.resolve(self)
+        resolved_step['HadoopJarStep']['Args'] = sfn.TaskInput.from_data_at(f'$.{id}ResultArgs').value
+
+        add_step_task = sfn.Task(
+            self, emr_step.name,
+            output_path=output_path,
+            result_path=result_path,
+            task=emr_tasks.EmrAddStepTask(
+                cluster_id=cluster_id,
+                step=resolved_step,
+                integration_pattern=sfn.ServiceIntegrationPattern.SYNC)
+        )
+
+        if fail_chain:
+            override_step_args_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
+            add_step_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
+
+        override_step_args_task.next(add_step_task)
+
+        self._start = override_step_args_task
+        self._end = add_step_task
 
     @property
     def start_state(self) -> sfn.State:

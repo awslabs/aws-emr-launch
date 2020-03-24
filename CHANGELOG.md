@@ -10,6 +10,8 @@ Changelog for emr-launch
 1.0.0 (2020-03-23)
 ------------------
 
+- Enable overriding Step Args at runtime with new Chain
+
 - Replace cdk StartExecution Task to enable dynamic Input
 
 - Replace cdk AddStep task to enable Args to be passed as a Parameter
