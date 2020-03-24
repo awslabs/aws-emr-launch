@@ -157,3 +157,7 @@ class EMRStep(Resolvable):
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def args(self) -> List[str]:
+        return self._args

@@ -160,6 +160,28 @@ class ParseJsonStringBuilder:
         return lambda_function
 
 
+class OverrideStepArgsBuilder:
+    @staticmethod
+    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
+        code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities/override_step_args'))
+        stack = core.Stack.of(scope)
+
+        layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
+
+        lambda_function = stack.node.try_find_child('OverrideStepArgs')
+        if lambda_function is None:
+            lambda_function = aws_lambda.Function(
+                stack,
+                'OverrideStepArgs',
+                code=code,
+                handler='lambda_source.handler',
+                runtime=aws_lambda.Runtime.PYTHON_3_7,
+                timeout=core.Duration.minutes(1),
+                layers=[layer]
+            )
+        return lambda_function
+
+
 class RunJobFlowBuilder:
     @staticmethod
     def get_or_build(scope: core.Construct, roles: emr_roles.EMRRoles, event_rule: events.Rule) -> aws_lambda.Function:

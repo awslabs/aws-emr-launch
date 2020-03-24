@@ -94,19 +94,21 @@ for file in emr_code.Code.files_in_path('./step_sources', 'test_step_*.sh'):
     phase_1.branch(step_task)
 
 # Define an AddStep Task for the Validation Step
-validate_phase_1 = emr_tasks.AddStepBuilder.build(
+validate_phase_1 = emr_chains.AddStepWithArgumentOverrides(
     stack, 'ValidatePhase1',
     emr_step=emr_code.EMRStep(
         name='Validate Phase 1',
         jar='s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar',
         args=[
-            f'{step_code.s3_path}/phase_1/test_validation.sh'
+            f'{step_code.s3_path}/phase_1/test_validation.sh',
+            'Arg1',
+            'Arg2'
         ],
         code=step_code
     ),
     cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value,
-    result_path='$.ValidatePhase1Result').add_catch(
-        terminate_failed_cluster, errors=['States.ALL'], result_path='$.Error')
+    result_path='$.ValidatePhase1Result',
+    fail_chain=fail)
 
 
 # Create a Parallel Task for the Phase 2 Steps
