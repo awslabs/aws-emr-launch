@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.0.0 (unreleased)
+1.0.0 (2020-03-23)
 ------------------
 
 - Replace cdk StartExecution Task to enable dynamic Input
