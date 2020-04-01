@@ -13,10 +13,10 @@ from aws_cdk import (
     aws_s3 as s3
 )
 
+DEPLOYMENT_ACCOUNT = '876929970656'
+DEPLOYMENT_REGION = 'us-west-2'
 CODE_COMMIT_REPOSITORY = 'AWSProServe_project_EMRLaunch'
 PIPELINE_ARTIFACTS_BUCKET = 'codepipelinesharedresourc-artifactsbucket2aac5544-7c88w1xbywt5'
-PIPELINE_ARTIFACTS_POLICY = 'arn:aws:iam::876929970656:policy/CodePipelineSharedResourcesStack-ArtifactsPolicy3F840E1A-1I6RO5N5HJQGL'
-# PIPELINE_ARTIFACTS_KEY = 'arn:aws:kms:us-west-2:876929970656:alias/CodePipelineSharedResourcesKey'
 PIPELINE_ARTIFACTS_KEY = 'arn:aws:kms:us-west-2:876929970656:key/e5fff83f-1b47-4cb8-9307-27fdeea12a83'
 CROSS_ACCOUNT_CODE_COMMIT_ROLE = 'arn:aws:iam::052886665315:role/CrossAccountCodeCommitRes-CrossAccountCodeCommitRo-1FZD9ODMJW3HY'
 
@@ -60,16 +60,14 @@ def create_build_spec(project_dir: str) -> codebuild.BuildSpec:
     })
 
 
-def create_build_role(scope: core.Construct, stack_name: str,
-                      artifacts_policy: iam.ManagedPolicy) -> iam.Role:
+def create_build_role(scope: core.Construct, stack_name: str) -> iam.Role:
     return iam.Role(
         scope, f'{stack_name}BuildRole',
         role_name=f'{stack_name}BuildRole',
         assumed_by=iam.ServicePrincipal('codebuild.amazonaws.com'),
         managed_policies=[
             iam.ManagedPolicy.from_aws_managed_policy_name('PowerUserAccess'),
-            iam.ManagedPolicy.from_aws_managed_policy_name('IAMFullAccess'),
-            # artifacts_policy
+            iam.ManagedPolicy.from_aws_managed_policy_name('IAMFullAccess')
         ],
     )
 
@@ -77,8 +75,8 @@ def create_build_role(scope: core.Construct, stack_name: str,
 app = core.App()
 stack = core.Stack(
     app, 'EMRLaunchExamplesDeploymentPipeline', env=core.Environment(
-        account='876929970656',
-        region='us-west-2'))
+        account=DEPLOYMENT_ACCOUNT,
+        region=DEPLOYMENT_REGION))
 
 repository = codecommit.Repository.from_repository_name(
     stack, 'CodeRepository',
@@ -89,8 +87,6 @@ artifacts_key = kms.Key.from_key_arn(
 artifacts_bucket = s3.Bucket.from_bucket_attributes(
     stack, 'ArtifactsBucket',
     bucket_name=PIPELINE_ARTIFACTS_BUCKET, encryption_key=artifacts_key)
-artifacts_policy = iam.ManagedPolicy.from_managed_policy_arn(
-    stack, 'ArtifactsPolicy', PIPELINE_ARTIFACTS_POLICY)
 cross_account_codecommit_role = iam.Role.from_role_arn(
     stack, 'CrossAccountCodeCommitRole', CROSS_ACCOUNT_CODE_COMMIT_ROLE)
 
@@ -99,12 +95,12 @@ source_output = codepipeline.Artifact('SourceOutput')
 emr_profiles_build = codebuild.PipelineProject(
     stack, 'EMRProfilesBuild',
     build_spec=create_build_spec('examples/emr_profiles'),
-    role=create_build_role(stack, 'EmrProfilesStack', artifacts_policy))
+    role=create_build_role(stack, 'EmrProfilesStack'))
 
 cluster_configurations_build = codebuild.PipelineProject(
     stack, 'ClusterConfigurationsBuild',
     build_spec=create_build_spec('examples/cluster_configurations'),
-    role=create_build_role(stack, 'ClusterConfigurationsStack', artifacts_policy))
+    role=create_build_role(stack, 'ClusterConfigurationsStack'))
 
 pipeline = codepipeline.Pipeline(
     stack, 'Pipeline',
@@ -131,7 +127,6 @@ pipeline = codepipeline.Pipeline(
         ])
     ])
 
-pipeline.role.add_managed_policy(artifacts_policy)
 cross_account_codecommit_role.grant(pipeline.role, 'sts:AssumeRole')
 
 app.synth()

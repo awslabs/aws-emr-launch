@@ -8,16 +8,18 @@ from aws_cdk import (
     aws_s3 as s3
 )
 
+
+DEPLOYMENT_ACCOUNT = '052886665315'
+DEPLOYMENT_REGION = 'us-west-2'
 CODE_COMMIT_REPOSITORY = 'AWSProServe_project_EMRLaunch'
 PIPELINE_ARTIFACTS_BUCKET = 'codepipelinesharedresourc-artifactsbucket2aac5544-7c88w1xbywt5'
-# PIPELINE_ARTIFACTS_KEY = 'arn:aws:kms:us-west-2:876929970656:alias/CodePipelineSharedResourcesKey'
 PIPELINE_ARTIFACTS_KEY = 'arn:aws:kms:us-west-2:876929970656:key/e5fff83f-1b47-4cb8-9307-27fdeea12a83'
 TRUSTED_ACCOUNTS = ['876929970656']
 
 app = core.App()
 stack = core.Stack(app, 'CrossAccountCodeCommitResourcesStack', env=core.Environment(
-    account='052886665315',
-    region='us-west-2'
+    account=DEPLOYMENT_ACCOUNT,
+    region=DEPLOYMENT_REGION
 ))
 
 repository = codecommit.Repository.from_repository_name(

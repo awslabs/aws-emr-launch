@@ -8,19 +8,21 @@ from aws_cdk import (
 )
 
 
+DEPLOYMENT_ACCOUNT = '876929970656'
+DEPLOYMENT_REGION = 'us-west-2'
 TRUSTED_ACCOUNTS = ['052886665315']
 
 app = core.App()
 stack = core.Stack(app, 'CodePipelineSharedResourcesStack', env=core.Environment(
-    account='876929970656',
-    region='us-west-2'
+    account=DEPLOYMENT_ACCOUNT,
+    region=DEPLOYMENT_REGION
 ))
 
 
 artifacts_key = kms.Key(stack, 'ArtifactsKey', removal_policy=core.RemovalPolicy.DESTROY)
 artifacts_key.add_to_resource_policy(iam.PolicyStatement(
     effect=iam.Effect.ALLOW,
-    principals=[iam.AccountPrincipal(account) for account in TRUSTED_ACCOUNTS],
+    principals=[iam.AccountPrincipal(account) for account in TRUSTED_ACCOUNTS + [DEPLOYMENT_ACCOUNT]],
     actions=[
         'kms:Decrypt',
         'kms:DescribeKey',
@@ -29,10 +31,6 @@ artifacts_key.add_to_resource_policy(iam.PolicyStatement(
         'kms:GenerateDataKey*'
     ],
     resources=['*']))
-alias = kms.Alias(
-    stack, 'ArtifactsKeyAlias',
-    target_key=artifacts_key,
-    alias_name='CodePipelineSharedResourcesKey')
 
 artifacts_bucket = s3.Bucket(
     stack, 'ArtifactsBucket',
@@ -83,7 +81,5 @@ artifacts_policy = iam.ManagedPolicy(
 
 core.CfnOutput(stack, 'ArtifactsBucketOutput', value=artifacts_bucket.bucket_name)
 core.CfnOutput(stack, 'ArtifactsKeyOutput', value=artifacts_key.key_arn)
-core.CfnOutput(stack, 'ArtifactsKeyAliasOutput', value=alias.key_arn)
-core.CfnOutput(stack, 'ArtifactsPolicyOutput', value=artifacts_policy.managed_policy_arn)
 
 app.synth()
