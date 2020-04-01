@@ -60,18 +60,6 @@ def create_build_spec(project_dir: str) -> codebuild.BuildSpec:
     })
 
 
-def create_build_role(scope: core.Construct, stack_name: str) -> iam.Role:
-    return iam.Role(
-        scope, f'{stack_name}BuildRole',
-        role_name=f'{stack_name}BuildRole',
-        assumed_by=iam.ServicePrincipal('codebuild.amazonaws.com'),
-        managed_policies=[
-            iam.ManagedPolicy.from_aws_managed_policy_name('PowerUserAccess'),
-            iam.ManagedPolicy.from_aws_managed_policy_name('IAMFullAccess')
-        ],
-    )
-
-
 app = core.App()
 stack = core.Stack(
     app, 'EMRLaunchExamplesDeploymentPipeline', env=core.Environment(
@@ -92,15 +80,15 @@ cross_account_codecommit_role = iam.Role.from_role_arn(
 
 source_output = codepipeline.Artifact('SourceOutput')
 
-emr_profiles_build = codebuild.PipelineProject(
-    stack, 'EMRProfilesBuild',
-    build_spec=create_build_spec('examples/emr_profiles'),
-    role=create_build_role(stack, 'EmrProfilesStack'))
-
-cluster_configurations_build = codebuild.PipelineProject(
-    stack, 'ClusterConfigurationsBuild',
-    build_spec=create_build_spec('examples/cluster_configurations'),
-    role=create_build_role(stack, 'ClusterConfigurationsStack'))
+code_build_role = iam.Role(
+    stack, 'EMRLaunchExamplesBuildRole',
+    role_name='EMRLaunchExamplesBuildRole',
+    assumed_by=iam.ServicePrincipal('codebuild.amazonaws.com'),
+    managed_policies=[
+        iam.ManagedPolicy.from_aws_managed_policy_name('PowerUserAccess'),
+        iam.ManagedPolicy.from_aws_managed_policy_name('IAMFullAccess')
+    ],
+)
 
 pipeline = codepipeline.Pipeline(
     stack, 'Pipeline',
@@ -113,18 +101,70 @@ pipeline = codepipeline.Pipeline(
                 role=cross_account_codecommit_role,
                 branch='mainline'
             )]),
+        codepipeline.StageProps(stage_name='Control-Plane', actions=[
+           codepipeline_actions.CodeBuildAction(
+               action_name='ControlPlane_Deploy',
+               project=codebuild.PipelineProject(
+                   stack, 'ControlPlaneBuild',
+                   build_spec=create_build_spec('examples/control_plane'),
+                   role=code_build_role),
+               input=source_output
+           )
+        ]),
         codepipeline.StageProps(stage_name='Profiles-and-Configurations', actions=[
             codepipeline_actions.CodeBuildAction(
-                action_name='EMRProfiles_Build',
-                project=emr_profiles_build,
+                action_name='EMRProfiles_Deploy',
+                project=codebuild.PipelineProject(
+                    stack, 'EMRProfilesBuild',
+                    build_spec=create_build_spec('examples/emr_profiles'),
+                    role=code_build_role),
                 input=source_output,
             ),
             codepipeline_actions.CodeBuildAction(
-                action_name='ClusterConfigurations_Build',
-                project=cluster_configurations_build,
+                action_name='ClusterConfigurations_Deploy',
+                project=codebuild.PipelineProject(
+                    stack, 'ClusterConfigurationsBuild',
+                    build_spec=create_build_spec('examples/cluster_configurations'),
+                    role=code_build_role),
                 input=source_output,
             ),
-        ])
+        ]),
+        codepipeline.StageProps(stage_name='EMR-Launch-Function', actions=[
+            codepipeline_actions.CodeBuildAction(
+                action_name='EMRLaunchFunction_Deploy',
+                project=codebuild.PipelineProject(
+                    stack, 'EMRLaunchFunctionBuild',
+                    build_spec=create_build_spec('examples/emr_launch_function'),
+                    role=code_build_role),
+                input=source_output
+            )
+        ]),
+        codepipeline.StageProps(stage_name='Pipelines', actions=[
+            codepipeline_actions.CodeBuildAction(
+                action_name='TransientClusterPipeline_Deploy',
+                project=codebuild.PipelineProject(
+                    stack, 'TransientClusterPipelineBuild',
+                    build_spec=create_build_spec('examples/transient_cluster_pipeline'),
+                    role=code_build_role),
+                input=source_output,
+            ),
+            codepipeline_actions.CodeBuildAction(
+                action_name='PersistentClusterPipeline_Deploy',
+                project=codebuild.PipelineProject(
+                    stack, 'PersistentClusterPipelineBuild',
+                    build_spec=create_build_spec('examples/persistent_cluster_pipeline'),
+                    role=code_build_role),
+                input=source_output,
+            ),
+            codepipeline_actions.CodeBuildAction(
+                action_name='SNSTriggeredPipeline_Deploy',
+                project=codebuild.PipelineProject(
+                    stack, 'SNSTriggeredPipelineBuild',
+                    build_spec=create_build_spec('examples/sns_triggered_pipeline'),
+                    role=code_build_role),
+                input=source_output
+            )
+        ]),
     ])
 
 cross_account_codecommit_role.grant(pipeline.role, 'sts:AssumeRole')
