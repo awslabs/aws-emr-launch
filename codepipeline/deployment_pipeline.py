@@ -99,7 +99,8 @@ pipeline = codepipeline.Pipeline(
                 repository=repository,
                 output=source_output,
                 role=cross_account_codecommit_role,
-                branch='mainline'
+                branch='mainline',
+                trigger=codepipeline_actions.CodeCommitTrigger.POLL
             )]),
         codepipeline.StageProps(stage_name='Control-Plane', actions=[
            codepipeline_actions.CodeBuildAction(
