@@ -13,7 +13,7 @@ setuptools.setup(
     name='aws-emr-launch',
     version=version,
 
-    description='EMR Launch modules',
+    description='AWS EMR Launch modules',
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords=['aws'],

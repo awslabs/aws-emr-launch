@@ -1,0 +1,5 @@
+aws-cdk.core
+aws-cdk-aws.codecommit
+aws-cdk-aws.codepipeline
+aws-cdk-aws.codepipeline_actions
+aws-cdk-aws.codedeploy
