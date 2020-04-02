@@ -44,15 +44,19 @@ def create_build_spec(project_dir: str) -> codebuild.BuildSpec:
                 'commands': [
                     'npm install aws-cdk',
                     'python3 -m pip install --user pipenv',
-                    "pipenv install '-e .'"
+                    'virtualenv /root/venv',
+                    "VIRTUAL_ENV=/root/venv pipenv install '-e .'"
                 ]
             },
             'build': {
                 'commands': [
                     f'cd {project_dir}',
-                    'pipenv run $(npm bin)/cdk --verbose --require-approval never deploy'
+                    'VIRTUAL_ENV=/root/venv pipenv run $(npm bin)/cdk --verbose --require-approval never deploy'
                 ]
             }
+        },
+        'cache': {
+            'paths': ['/root/venv/**/*']
         },
         'environment': {
             'buildImage': codebuild.LinuxBuildImage.UBUNTU_14_04_BASE
