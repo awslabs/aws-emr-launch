@@ -44,7 +44,7 @@ setuptools.setup(
         f'aws-cdk-aws.stepfunctions{cdk_version}',
         f'aws-cdk-aws.stepfunctions-tasks{cdk_version}',
         f'aws-cdk-aws.events{cdk_version}',
-        f'aws-cdk-aws.events-targets{cdk_version}'
+        f'aws-cdk-aws.events-targets{cdk_version}',
     ],
 
     include_package_data=True,

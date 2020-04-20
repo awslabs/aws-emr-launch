@@ -20,10 +20,10 @@ logger.setLevel(logging.INFO)
 
 def handler(event, context):
     logger.info(f'Lambda metadata: {json.dumps(event)} (type = {type(event)})')
-    # This will work with StepArgumentOverrides or ClusterArgOverrides
+    # This will work with StepArgumentOverrides or StepArgOverrides
     overrides = event.get('ExecutionInput', {}).get('StepArgumentOverrides', None)
     if overrides is None:
-        overrides = event.get('ExecutionInput', {}).get('ClusterArgOverrides', {})
+        overrides = event.get('ExecutionInput', {}).get('StepArgOverrides', {})
     step_name = event.get('StepName', '')
     args = event.get('Args', [])
 
