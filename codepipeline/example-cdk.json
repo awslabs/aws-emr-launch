@@ -1,0 +1,25 @@
+{
+    "context": {
+        "codepipeline-shared-resources": {
+            "deployment-account": "",
+            "deployment-region": "",
+            "trusted-accounts": [""]
+        },
+        "cross-account-code-commit-resources": {
+            "deployment-account": "",
+            "deployment-region": "",
+            "codecommit-repository": "",
+            "pipeline-artifacts-bucket": "",
+            "pipeline-artifacts-key": "",
+            "trusted-accounts": [""]
+        },
+        "deployment-pipeline": {
+            "deployment-account": "",
+            "deployment-region": "",
+            "codecommit-repository": "",
+            "pipeline-artifacts-bucket": "",
+            "pipeline-artifacts-key": "",
+            "cross-account-codecommit-role": ""
+        }
+    }
+}

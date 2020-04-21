@@ -134,3 +134,4 @@ cdk.out
 cdk.context.json
 
 examples/environment_vars.sh
+codepipeline/cdk.json

@@ -24,10 +24,17 @@ recursive-include examples *.jar
 recursive-exclude examples .env/*
 recursive-exclude examples **/cdk.out/*
 
+recursive-include codepipeline *.md
+recursive-include codepipeline *.py
+recursive-include codepipeline *.sh
+recursive-include codepipeline *.txt
+
 exclude .env
 exclude cdk.out
 exclude cdk.context.json
 exclude examples/environment_vars.sh
+exclude codepipeline/environment_vars.sh
+exclude codepipeline/cdk.json
 
 global-exclude *.pyc
 global-exclude __pycache__
