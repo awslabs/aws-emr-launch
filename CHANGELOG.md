@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.0.1 (unreleased)
+1.1.0 (2020-04-21)
 ------------------
 
 - update package requirements to new package naming convention
