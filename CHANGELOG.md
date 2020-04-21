@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.0.1 (unreleased)
 ------------------
 
+- FIX: ClusterArgOverrides -> StepArgOverrides in Lambda
+
 - added PermissionBoundaryAspect
 
 
