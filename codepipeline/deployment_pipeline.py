@@ -31,7 +31,8 @@ DEPLOYMENT_REGION = 'us-west-2'
 CODE_COMMIT_REPOSITORY = 'AWSProServe_project_EMRLaunch'
 PIPELINE_ARTIFACTS_BUCKET = 'codepipelinesharedresourc-artifactsbucket2aac5544-7c88w1xbywt5'
 PIPELINE_ARTIFACTS_KEY = 'arn:aws:kms:us-west-2:876929970656:key/e5fff83f-1b47-4cb8-9307-27fdeea12a83'
-CROSS_ACCOUNT_CODE_COMMIT_ROLE = 'arn:aws:iam::052886665315:role/CrossAccountCodeCommitRes-CrossAccountCodeCommitRo-1FZD9ODMJW3HY'
+CROSS_ACCOUNT_CODE_COMMIT_ROLE = \
+    'arn:aws:iam::052886665315:role/CrossAccountCodeCommitRes-CrossAccountCodeCommitRo-1FZD9ODMJW3HY'
 
 
 def create_build_spec(project_dir: str) -> codebuild.BuildSpec:

@@ -34,7 +34,8 @@ class PermissionBoundaryAspect:
 
     def visit(self, construct_ref: core.IConstruct) -> None:
         """
-        construct_ref only contains a string reference to an object. To get the actual object, we need to resolve it using JSII mapping.
+        construct_ref only contains a string reference to an object. To get the actual object,
+         we need to resolve it using JSII mapping.
         :param construct_ref: ObjRef object with string reference to the actual object.
         :return: None
         """
@@ -47,7 +48,9 @@ class PermissionBoundaryAspect:
         def _walk(obj):
             if isinstance(obj, aws_iam.Role):
                 cfn_role = obj.node.find_child('Resource')
-                policy_arn = self.permission_boundary if isinstance(self.permission_boundary, str) else self.permission_boundary.managed_policy_arn
+                policy_arn = self.permission_boundary \
+                    if isinstance(self.permission_boundary, str) \
+                    else self.permission_boundary.managed_policy_arn
                 cfn_role.add_property_override('PermissionsBoundary', policy_arn)
             else:
                 if hasattr(obj, 'permissions_node'):
