@@ -21,11 +21,13 @@ from aws_cdk import (
 )
 
 
-DEPLOYMENT_ACCOUNT = '876929970656'
-DEPLOYMENT_REGION = 'us-west-2'
-TRUSTED_ACCOUNTS = ['052886665315']
-
 app = core.App()
+
+stage = app.node.try_get_context('codepipeline-shared-resources')
+DEPLOYMENT_ACCOUNT = stage['deployment-account']
+DEPLOYMENT_REGION = stage['deployment-region']
+TRUSTED_ACCOUNTS = stage['trusted-accounts']
+
 stack = core.Stack(app, 'CodePipelineSharedResourcesStack', env=core.Environment(
     account=DEPLOYMENT_ACCOUNT,
     region=DEPLOYMENT_REGION

@@ -26,14 +26,6 @@ from aws_cdk import (
     aws_s3 as s3
 )
 
-DEPLOYMENT_ACCOUNT = '876929970656'
-DEPLOYMENT_REGION = 'us-west-2'
-CODE_COMMIT_REPOSITORY = 'AWSProServe_project_EMRLaunch'
-PIPELINE_ARTIFACTS_BUCKET = 'codepipelinesharedresourc-artifactsbucket2aac5544-7c88w1xbywt5'
-PIPELINE_ARTIFACTS_KEY = 'arn:aws:kms:us-west-2:876929970656:key/e5fff83f-1b47-4cb8-9307-27fdeea12a83'
-CROSS_ACCOUNT_CODE_COMMIT_ROLE = \
-    'arn:aws:iam::052886665315:role/CrossAccountCodeCommitRes-CrossAccountCodeCommitRo-1FZD9ODMJW3HY'
-
 
 def create_build_spec(project_dir: str) -> codebuild.BuildSpec:
     return codebuild.BuildSpec.from_object({
@@ -79,6 +71,16 @@ def create_build_spec(project_dir: str) -> codebuild.BuildSpec:
 
 
 app = core.App()
+
+stage = app.node.try_get_context('deployment-pipeline')
+DEPLOYMENT_ACCOUNT = stage['deployment-account']
+DEPLOYMENT_REGION = stage['deployment-region']
+CODECOMMIT_REPOSITORY = stage['codecommit-repository']
+PIPELINE_ARTIFACTS_BUCKET = stage['pipeline-artifacts-bucket']
+PIPELINE_ARTIFACTS_KEY = stage['pipeline-artifacts-key']
+CROSS_ACCOUNT_CODECOMMIT_ROLE = stage['cross-account-codecommit-role']
+
+
 stack = core.Stack(
     app, 'EMRLaunchExamplesDeploymentPipeline', env=core.Environment(
         account=DEPLOYMENT_ACCOUNT,
@@ -86,7 +88,7 @@ stack = core.Stack(
 
 repository = codecommit.Repository.from_repository_name(
     stack, 'CodeRepository',
-    CODE_COMMIT_REPOSITORY)
+    CODECOMMIT_REPOSITORY)
 
 artifacts_key = kms.Key.from_key_arn(
     stack, 'ArtifactsKey', PIPELINE_ARTIFACTS_KEY)
@@ -94,7 +96,7 @@ artifacts_bucket = s3.Bucket.from_bucket_attributes(
     stack, 'ArtifactsBucket',
     bucket_name=PIPELINE_ARTIFACTS_BUCKET, encryption_key=artifacts_key)
 cross_account_codecommit_role = iam.Role.from_role_arn(
-    stack, 'CrossAccountCodeCommitRole', CROSS_ACCOUNT_CODE_COMMIT_ROLE)
+    stack, 'CrossAccountCodeCommitRole', CROSS_ACCOUNT_CODECOMMIT_ROLE)
 
 source_output = codepipeline.Artifact('SourceOutput')
 

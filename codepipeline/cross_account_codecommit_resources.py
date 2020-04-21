@@ -22,21 +22,23 @@ from aws_cdk import (
 )
 
 
-DEPLOYMENT_ACCOUNT = '052886665315'
-DEPLOYMENT_REGION = 'us-west-2'
-CODE_COMMIT_REPOSITORY = 'AWSProServe_project_EMRLaunch'
-PIPELINE_ARTIFACTS_BUCKET = 'codepipelinesharedresourc-artifactsbucket2aac5544-7c88w1xbywt5'
-PIPELINE_ARTIFACTS_KEY = 'arn:aws:kms:us-west-2:876929970656:key/e5fff83f-1b47-4cb8-9307-27fdeea12a83'
-TRUSTED_ACCOUNTS = ['876929970656']
-
 app = core.App()
+
+stage = app.node.try_get_context('cross-account-codecommit-resources')
+DEPLOYMENT_ACCOUNT = stage['deployment-account']
+DEPLOYMENT_REGION = stage['deployment-region']
+CODECOMMIT_REPOSITORY = stage['codecommit-repository']
+PIPELINE_ARTIFACTS_BUCKET = stage['pipeline-artifacts-bucket']
+PIPELINE_ARTIFACTS_KEY = stage['pipeline-artifacts-key']
+TRUSTED_ACCOUNTS = stage['trusted-accounts']
+
 stack = core.Stack(app, 'CrossAccountCodeCommitResourcesStack', env=core.Environment(
     account=DEPLOYMENT_ACCOUNT,
     region=DEPLOYMENT_REGION
 ))
 
 repository = codecommit.Repository.from_repository_name(
-    stack, 'CodeCommitRepository', CODE_COMMIT_REPOSITORY)
+    stack, 'CodeCommitRepository', CODECOMMIT_REPOSITORY)
 pipeline_artifacts_bucket = s3.Bucket.from_bucket_name(
     stack, 'PipelineArtifactsBucket', PIPELINE_ARTIFACTS_BUCKET)
 pipeline_artifacts_key = kms.Key.from_key_arn(
