@@ -28,6 +28,7 @@ recursive-include codepipeline *.md
 recursive-include codepipeline *.py
 recursive-include codepipeline *.sh
 recursive-include codepipeline *.txt
+recursive-include codepipeline *.json
 
 exclude .env
 exclude cdk.out
