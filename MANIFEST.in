@@ -30,6 +30,9 @@ recursive-include codepipeline *.sh
 recursive-include codepipeline *.txt
 recursive-include codepipeline *.json
 
+recursive-exclude codepipeline .env/*
+recursive-exclude codepipeline **/cdk.out/*
+
 exclude .env
 exclude cdk.out
 exclude cdk.context.json
