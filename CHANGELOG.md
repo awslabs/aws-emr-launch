@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.1.1 (unreleased)
 ------------------
 
+- FIX: include namespace in Role names for uniqueness
+
 - FIX: authorize output buckets for read_write
 
 
