@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- FIX: authorize output buckets for read_write
 
 
 1.1.0 (2020-04-21)

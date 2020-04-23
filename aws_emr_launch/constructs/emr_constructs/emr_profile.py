@@ -587,7 +587,7 @@ class EMRProfile(core.Construct):
         if self._rehydrated and not self._mutable_instance_role:
             raise ReadOnlyEMRProfileError()
 
-        bucket.grant_write(self._roles.instance_role, objects_key_pattern).assert_success()
+        bucket.grant_read_write(self._roles.instance_role, objects_key_pattern).assert_success()
         return self
 
     def authorize_input_key(self, key: kms.Key):
