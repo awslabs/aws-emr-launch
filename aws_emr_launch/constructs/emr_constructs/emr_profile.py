@@ -83,7 +83,7 @@ class EMRProfile(core.Construct):
         self._security_groups = EMRSecurityGroups(self, 'SecurityGroups', vpc=vpc)
         self._roles = EMRRoles(
             self, 'Roles',
-            role_name_prefix=profile_name,
+            role_name_prefix=f'{namespace}_{profile_name}',
             artifacts_bucket=artifacts_bucket,
             artifacts_path=artifacts_path,
             logs_bucket=logs_bucket,
