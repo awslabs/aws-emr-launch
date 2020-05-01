@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.1.1 (unreleased)
 ------------------
 
+- NEW: enable AddStep tasks to "fire and forget" Steps
+
 - NEW: enable LaunchFunction to "fire and forget" cluster start
 
 - FIX: include namespace in Role names for uniqueness

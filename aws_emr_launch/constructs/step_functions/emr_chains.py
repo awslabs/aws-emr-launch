@@ -147,7 +147,8 @@ class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
                  cluster_id: str,
                  result_path: Optional[str] = None,
                  output_path: Optional[str] = None,
-                 fail_chain: Optional[sfn.IChainable] = None):
+                 fail_chain: Optional[sfn.IChainable] = None,
+                 wait_for_step_completion: bool = True):
         super().__init__(scope, id)
 
         override_step_args = emr_lambdas.OverrideStepArgsBuilder.get_or_build(self)
@@ -167,6 +168,9 @@ class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
         resolved_step = emr_step.resolve(self)
         resolved_step['HadoopJarStep']['Args'] = sfn.TaskInput.from_data_at(f'$.{id}ResultArgs').value
 
+        integration_pattern = sfn.ServiceIntegrationPattern.SYNC if wait_for_step_completion \
+            else sfn.ServiceIntegrationPattern.FIRE_AND_FORGET
+
         add_step_task = sfn.Task(
             self, emr_step.name,
             output_path=output_path,
@@ -174,7 +178,7 @@ class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
             task=emr_tasks.EmrAddStepTask(
                 cluster_id=cluster_id,
                 step=resolved_step,
-                integration_pattern=sfn.ServiceIntegrationPattern.SYNC)
+                integration_pattern=integration_pattern)
         )
 
         if fail_chain:

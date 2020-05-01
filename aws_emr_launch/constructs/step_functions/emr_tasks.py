@@ -510,10 +510,14 @@ class AddStepBuilder:
               emr_step: emr_code.EMRStep,
               cluster_id: str,
               result_path: Optional[str] = None,
-              output_path: Optional[str] = None) -> sfn.Task:
+              output_path: Optional[str] = None,
+              wait_for_step_completion: bool = True) -> sfn.Task:
         # We use a nested Construct to avoid collisions with Task ids
         construct = core.Construct(scope, id)
         resolved_step = emr_step.resolve(construct)
+
+        integration_pattern = sfn.ServiceIntegrationPattern.SYNC if wait_for_step_completion \
+            else sfn.ServiceIntegrationPattern.FIRE_AND_FORGET
 
         return sfn.Task(
             construct, emr_step.name,
@@ -522,7 +526,7 @@ class AddStepBuilder:
             task=EmrAddStepTask(
                 cluster_id=cluster_id,
                 step=resolved_step,
-                integration_pattern=sfn.ServiceIntegrationPattern.SYNC)
+                integration_pattern=integration_pattern)
         )
 
 
