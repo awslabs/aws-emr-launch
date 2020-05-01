@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.1.1 (unreleased)
 ------------------
 
+- NEW: enable LaunchFunction to "fire and forget" cluster start
+
 - FIX: include namespace in Role names for uniqueness
 
 - FIX: authorize output buckets for read_write

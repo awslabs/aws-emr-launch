@@ -50,7 +50,8 @@ class EMRLaunchFunction(core.Construct):
                  override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
                  allowed_cluster_config_overrides: Optional[Dict[str, str]] = None,
                  description: Optional[str] = None,
-                 cluster_tags: Optional[List[core.Tag]] = None) -> None:
+                 cluster_tags: Optional[List[core.Tag]] = None,
+                 wait_for_cluster_start: bool = True) -> None:
         super().__init__(scope, id)
 
         if launch_function_name is None:
@@ -132,7 +133,8 @@ class EMRLaunchFunction(core.Construct):
             create_cluster = emr_tasks.CreateClusterBuilder.build(
                 self, 'CreateClusterTask',
                 roles=emr_profile.roles,
-                result_path='$.LaunchClusterResult')
+                result_path='$.LaunchClusterResult',
+                wait_for_cluster_start=wait_for_cluster_start)
         else:
             # Use the RunJobFlow Lambda to create the cluster to avoid exposing the
             # SecretConfigurations and KerberosAttributes values
@@ -141,7 +143,8 @@ class EMRLaunchFunction(core.Construct):
                 roles=emr_profile.roles,
                 kerberos_attributes_secret=emr_profile.kerberos_attributes_secret,
                 secret_configurations=cluster_configuration.secret_configurations,
-                result_path='$.LaunchClusterResult')
+                result_path='$.LaunchClusterResult',
+                wait_for_cluster_start=wait_for_cluster_start)
 
         # Attach an error catch to the Task
         create_cluster.add_catch(fail, errors=['States.ALL'], result_path='$.Error')

@@ -436,9 +436,13 @@ class CreateClusterBuilder:
               roles: emr_roles.EMRRoles,
               cluster_configuration_path: str = '$.ClusterConfiguration.Cluster',
               result_path: Optional[str] = None,
-              output_path: Optional[str] = None) -> sfn.Task:
+              output_path: Optional[str] = None,
+              wait_for_cluster_start: bool = True) -> sfn.Task:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
+
+        integration_pattern = sfn.ServiceIntegrationPattern.SYNC if wait_for_cluster_start \
+            else sfn.ServiceIntegrationPattern.FIRE_AND_FORGET
 
         return sfn.Task(
             construct, 'Start EMR Cluster',
@@ -447,7 +451,7 @@ class CreateClusterBuilder:
             task=EmrCreateClusterTask(
                 roles=roles,
                 cluster_configuration_path=cluster_configuration_path,
-                integration_pattern=sfn.ServiceIntegrationPattern.SYNC
+                integration_pattern=integration_pattern
             )
         )
 
@@ -459,7 +463,8 @@ class RunJobFlowBuilder:
               secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None,
               cluster_configuration_path: str = '$.ClusterConfiguration',
               result_path: Optional[str] = None,
-              output_path: Optional[str] = None) -> sfn.Task:
+              output_path: Optional[str] = None,
+              wait_for_cluster_start: bool = True) -> sfn.Task:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -479,13 +484,16 @@ class RunJobFlowBuilder:
             for secret in secret_configurations.values():
                 secret.grant_read(run_job_flow_lambda)
 
+        integration_pattern = sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN if wait_for_cluster_start \
+            else sfn.ServiceIntegrationPattern.FIRE_AND_FORGET
+
         return sfn.Task(
             construct, 'Start EMR Cluster (with Secrets)',
             output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.RunLambdaTask(
                 run_job_flow_lambda,
-                integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
+                integration_pattern=integration_pattern,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
                     'ClusterConfiguration': sfn.TaskInput.from_data_at(cluster_configuration_path).value,
