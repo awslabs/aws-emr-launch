@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.1.1 (unreleased)
+1.2.0 (unreleased)
 ------------------
 
 - NEW: enable AddStep tasks to "fire and forget" Steps
