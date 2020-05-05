@@ -114,15 +114,6 @@ class EmrCreateClusterTask(BaseTask):
         self._cluster_configuration_path = cluster_configuration_path
         self._integration_pattern = integration_pattern
 
-        supported_patterns = [
-            sfn.ServiceIntegrationPattern.SYNC,
-            sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN
-        ]
-
-        if integration_pattern not in supported_patterns:
-            raise ValueError(f'Invalid Service Integration Pattern: {integration_pattern}'
-                             ' is not supported to call CreateCluster.')
-
     def _create_policy_statements(self, task: sfn.Task) -> List[iam.PolicyStatement]:
         stack = core.Stack.of(task)
 
@@ -259,15 +250,6 @@ class EmrAddStepTask(BaseTask):
         self._cluster_id = cluster_id
         self._step = step
         self._integration_pattern = integration_pattern
-
-        supported_patterns = [
-            sfn.ServiceIntegrationPattern.SYNC,
-            sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN
-        ]
-
-        if integration_pattern not in supported_patterns:
-            raise ValueError(f'Invalid Service Integration Pattern: {integration_pattern}'
-                             ' is not supported to call CreateCluster.')
 
     def _create_policy_statements(self, task: sfn.Task) -> List[iam.PolicyStatement]:
         stack = core.Stack.of(task)
@@ -484,22 +466,20 @@ class RunJobFlowBuilder:
             for secret in secret_configurations.values():
                 secret.grant_read(run_job_flow_lambda)
 
-        integration_pattern = sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN if wait_for_cluster_start \
-            else sfn.ServiceIntegrationPattern.FIRE_AND_FORGET
-
         return sfn.Task(
             construct, 'Start EMR Cluster (with Secrets)',
             output_path=output_path,
             result_path=result_path,
             task=sfn_tasks.RunLambdaTask(
                 run_job_flow_lambda,
-                integration_pattern=integration_pattern,
+                integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
                 payload={
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
                     'ClusterConfiguration': sfn.TaskInput.from_data_at(cluster_configuration_path).value,
                     'TaskToken': sfn.Context.task_token,
                     'CheckStatusLambda': check_cluster_status_lambda.function_arn,
-                    'RuleName': event_rule.rule_name
+                    'RuleName': event_rule.rule_name,
+                    'FireAndForget': not wait_for_cluster_start
                 })
         )
 

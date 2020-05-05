@@ -203,9 +203,7 @@ class RunJobFlowBuilder:
                 initial_policy=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
-                        actions=[
-                            'elasticmapreduce:RunJobFlow'
-                        ],
+                        actions=['elasticmapreduce:RunJobFlow'],
                         resources=['*']
                     ),
                     iam.PolicyStatement(
@@ -216,6 +214,11 @@ class RunJobFlowBuilder:
                             roles.instance_role.role_arn,
                             roles.autoscaling_role.role_arn
                         ]
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=['states:SendTaskSuccess'],
+                        resources=['*']
                     ),
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,

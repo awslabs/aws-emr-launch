@@ -20,10 +20,6 @@ stack = core.Stack(app, 'EmrLaunchFunctionStack', env=core.Environment(
     account=os.environ["CDK_DEFAULT_ACCOUNT"],
     region=os.environ["CDK_DEFAULT_REGION"]))
 
-# Create SNS Topics to send Success/Failure updates when the Cluster is Launched
-success_topic = sns.Topic(stack, 'SuccessTopic')
-failure_topic = sns.Topic(stack, 'FailureTopic')
-
 # Load our SSE-KMS EMR Profile created in the emr_profiles example
 sse_kms_profile = emr_profile.EMRProfile.from_stored_profile(
     stack, 'EMRProfile', 'sse-kms-profile')
@@ -42,10 +38,9 @@ launch_function = emr_launch_function.EMRLaunchFunction(
     cluster_configuration=cluster_config,
     emr_profile=sse_kms_profile,
     cluster_name='basic-cluster',
-    success_topic=success_topic,
-    failure_topic=failure_topic,
     default_fail_if_cluster_running=True,
     allowed_cluster_config_overrides=cluster_config.override_interfaces['default'],
-    cluster_tags=[core.Tag('Key1', 'Value1'), core.Tag('Key2', 'Value2')])
+    cluster_tags=[core.Tag('Key1', 'Value1'), core.Tag('Key2', 'Value2')],
+    wait_for_cluster_start=True)
 
 app.synth()

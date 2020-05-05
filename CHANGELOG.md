@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.2.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- FIX: FIRE_AND_FORGET cluster creation with secrets failed
 
 
 1.2.0 (2020-05-05)

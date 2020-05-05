@@ -17,11 +17,13 @@ import base64
 import logging
 
 from typing import Dict, List
+from datetime import date, datetime
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 emr = boto3.client('emr')
+sfn = boto3.client('stepfunctions')
 events = boto3.client('events')
 secretsmanager = boto3.client('secretsmanager')
 
@@ -32,6 +34,12 @@ class SecretNotFoundError(Exception):
 
 class SecretDecryptionFailureError(Exception):
     pass
+
+
+def json_serial(obj):
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    raise TypeError("Type %s not serializable" % type(obj))
 
 
 def get_secret_value(secret_id: str):
@@ -83,6 +91,7 @@ def handler(event, context):
         cluster_configuration = event['ClusterConfiguration']['Cluster']
         task_token = event.get('TaskToken', None)
         cluster_status_lambda = event.get('CheckStatusLambda', None)
+        fire_and_forget = event.get('FireAndForget', False)
         secret_configurations = event['ClusterConfiguration'].get('SecretConfigurations', None)
         kerberos_attributes_secret = event['ClusterConfiguration'].get('KerberosAttributesSecret', None)
         rule_name = event.get('RuleName', None)
@@ -119,23 +128,29 @@ def handler(event, context):
         logger.info(f'Got JobFlow response {json.dumps(response)}')
         cluster_id = response['JobFlowId']
 
-        target_input = {
-            'Id': cluster_id,
-            'Arn': cluster_status_lambda,
-            'Input': json.dumps({
-                'ClusterId': cluster_id,
-                'TaskToken': task_token,
-                'RuleName': rule_name,
-                'ExpectedState': 'WAITING'
-            })
-        }
-        logger.info(f'Putting Rule Targets: {json.dumps(target_input)}')
-        failed_targets = events.put_targets(Rule=rule_name, Targets=[target_input])
-        if failed_targets['FailedEntryCount'] > 0:
-            failed_entries = failed_targets['FailedEntries']
-            raise Exception(f'Failed Putting Targets: {json.dumps(failed_entries)}')
+        if fire_and_forget:
+            response['ClusterId'] = cluster_id
+            logger.info(f'Sending Task Success, TaskToken: {task_token}, '
+                        f'Output: {json.dumps(response, default=json_serial)}')
+            sfn.send_task_success(taskToken=task_token, output=json.dumps(response, default=json_serial))
+        else:
+            target_input = {
+                'Id': cluster_id,
+                'Arn': cluster_status_lambda,
+                'Input': json.dumps({
+                    'ClusterId': cluster_id,
+                    'TaskToken': task_token,
+                    'RuleName': rule_name,
+                    'ExpectedState': 'WAITING'
+                })
+            }
+            logger.info(f'Putting Rule Targets: {json.dumps(target_input)}')
+            failed_targets = events.put_targets(Rule=rule_name, Targets=[target_input])
+            if failed_targets['FailedEntryCount'] > 0:
+                failed_entries = failed_targets['FailedEntries']
+                raise Exception(f'Failed Putting Targets: {json.dumps(failed_entries)}')
 
-        logger.info(f'Enabling Rule: {rule_name}')
-        events.enable_rule(Name=rule_name)
+            logger.info(f'Enabling Rule: {rule_name}')
+            events.enable_rule(Name=rule_name)
     except Exception as e:
         log_and_raise(e, event)
