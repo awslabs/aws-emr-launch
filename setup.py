@@ -23,7 +23,7 @@ setuptools.setup(
     url='https://code.amazon.com/packages/AWSProServe_project_EMRLaunch/trees/mainline',
 
     package_dir={'aws_emr_launch': 'aws_emr_launch'},
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=('tests',)),
 
     install_requires=[
         'logzero>=1.5.0',

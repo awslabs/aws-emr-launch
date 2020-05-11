@@ -10,7 +10,6 @@ include Pipfile
 include tox.ini
 
 recursive-include aws_emr_launch *
-recursive-include tests *.py
 
 recursive-include scripts *.sh
 recursive-include examples *.py
@@ -30,6 +29,7 @@ recursive-include codepipeline *.sh
 recursive-include codepipeline *.txt
 recursive-include codepipeline *.json
 
+recursive-exclude tests *.py
 recursive-exclude codepipeline .env/*
 recursive-exclude codepipeline **/cdk.out/*
 
