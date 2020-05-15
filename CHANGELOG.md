@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.1.1 (unreleased)
 ------------------
 
+- change software license to Apache 2.0
+
 - FIX: include namespace in Role names for uniqueness
 
 - FIX: authorize output buckets for read_write

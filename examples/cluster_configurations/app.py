@@ -39,12 +39,15 @@ bootstrap = emr_code.EMRBootstrapAction(
     args=['Arg1', 'Arg2'],
     code=bootstrap_code)
 
+
 # Cluster Configurations that use InstanceGroups are deployed to a Private subnet
 subnet = vpc.private_subnets[0]
 
 # Load a SecretsManger Secret with secure RDS Metastore credentials
 secret = secretsmanager.Secret.from_secret_arn(
     stack, 'Secret', os.environ['EMR_LAUNCH_EXAMPLES_SECRET_CONFIGS'])
+
+
 
 # Create a basic Cluster Configuration using InstanceGroups, the Subnet and Bootstrap
 # Action defined above, the EMR Profile we loaded, and defaults defined in
@@ -65,6 +68,7 @@ basic_cluster_config.add_spark_jars(
         deployment_bucket=artifacts_bucket,
         deployment_prefix='emr_launch_testing/jars'),
     emr_code.Code.files_in_path('./jars', '*.jar'))
+
 
 # Here we create another Cluster Configuration using the same subnet, bootstrap, and
 # EMR Profile while customizing the default Instance Type and Instance Count

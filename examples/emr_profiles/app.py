@@ -29,6 +29,7 @@ data_bucket = s3.Bucket.from_bucket_name(
 kerberos_attributes_secret = secretsmanager.Secret.from_secret_arn(
     stack, 'KerberosAttributesSecret', os.environ['EMR_LAUNCH_EXAMPLES_KERBEROS_ATTRIBUTES_SECRET'])
 
+
 # A simple EMR Profile that grants proper access to the Logs and Artifacts buckets
 # By default S3 Server Side encryption is enabled
 sse_s3_profile = emr_profile.EMRProfile(
@@ -42,6 +43,7 @@ sse_s3_profile = emr_profile.EMRProfile(
 sse_s3_profile \
     .authorize_input_bucket(data_bucket) \
     .authorize_output_bucket(data_bucket)
+
 
 # Here we create a KMS Key to use for At Rest Encryption in S3 and Locally
 kms_key = kms.Key(stack, 'AtRestKMSKey')
