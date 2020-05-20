@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.2.1 (2020-05-05)
 ------------------
 
+- FIX: typing hint for EMRLaunchFunction allowed_overrides
+
 - exclude tests from bdist
 
 - FIX: FIRE_AND_FORGET cluster creation with secrets failed

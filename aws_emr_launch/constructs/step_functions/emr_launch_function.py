@@ -15,7 +15,7 @@ import json
 import boto3
 
 from logzero import logger
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 from botocore.exceptions import ClientError
 
 from aws_cdk import (
@@ -48,9 +48,9 @@ class EMRLaunchFunction(core.Construct):
                  success_topic: Optional[sns.Topic] = None,
                  failure_topic: Optional[sns.Topic] = None,
                  override_cluster_configs_lambda: Optional[aws_lambda.Function] = None,
-                 allowed_cluster_config_overrides: Optional[Dict[str, str]] = None,
+                 allowed_cluster_config_overrides: Optional[Dict[str, Dict[str, str]]] = None,
                  description: Optional[str] = None,
-                 cluster_tags: Optional[List[core.Tag]] = None,
+                 cluster_tags: Union[List[core.Tag], Dict[str, str], None] = None,
                  wait_for_cluster_start: bool = True) -> None:
         super().__init__(scope, id)
 
@@ -68,7 +68,13 @@ class EMRLaunchFunction(core.Construct):
         self._override_cluster_configs_lambda = override_cluster_configs_lambda
         self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
         self._description = description
-        self._cluster_tags = cluster_tags if cluster_tags is not None else []
+
+        if isinstance(cluster_tags, dict):
+            self._cluster_tags = [core.Tag(k, v) for k, v in cluster_tags.items()]
+        elif isinstance(cluster_tags, list):
+            self._cluster_tags = cluster_tags
+        else:
+            self._cluster_tags = []
 
         if len(cluster_configuration.configuration_artifacts) > 0:
             if emr_profile.mutable_instance_role:
