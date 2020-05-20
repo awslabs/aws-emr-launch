@@ -10,10 +10,11 @@ Changelog for emr-launch
 
 - FIX: typing hint for EMRLaunchFunction allowed_overrides
 
-- exclude tests from bdist
-
 - FIX: FIRE_AND_FORGET cluster creation with secrets failed
 
+- exclude tests from bdist
+
+- change software license to Apache 2.0
 
 1.2.0 (2020-05-05)
 ------------------
