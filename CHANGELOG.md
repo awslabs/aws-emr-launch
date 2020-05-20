@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.2.1 (2020-05-05)
 ------------------
 
+- FEATURE: enable dict for EMRLaunchFunction Tags
+
 - FIX: typing hint for EMRLaunchFunction allowed_overrides
 
 - exclude tests from bdist
