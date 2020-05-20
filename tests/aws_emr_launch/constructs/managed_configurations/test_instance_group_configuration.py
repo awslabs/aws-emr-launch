@@ -61,8 +61,8 @@ default_config = {
                         'EbsBlockDeviceConfigs': [
                             {
                                 'VolumeSpecification': {
-                                    'SizeInGB': 128,
-                                    'VolumeType': 'gp2'
+                                    'SizeInGB': 500,
+                                    'VolumeType': 'st1'
                                 },
                                 'VolumesPerInstance': 1
                             }
@@ -79,8 +79,8 @@ default_config = {
                         'EbsBlockDeviceConfigs': [
                             {
                                 'VolumeSpecification': {
-                                    'SizeInGB': 128,
-                                    'VolumeType': 'gp2'
+                                    'SizeInGB': 500,
+                                    'VolumeType': 'st1'
                                 },
                                 'VolumesPerInstance': 1
                             }

@@ -70,8 +70,8 @@ class InstanceFleetConfiguration(ClusterConfiguration):
                         'EbsConfiguration': {
                             'EbsBlockDeviceConfigs': [{
                                 'VolumeSpecification': {
-                                    'SizeInGB': 128,
-                                    'VolumeType': 'gp2'
+                                    'SizeInGB': 500,
+                                    'VolumeType': 'st1'
                                 },
                                 'VolumesPerInstance': 1
                             }],
@@ -91,8 +91,8 @@ class InstanceFleetConfiguration(ClusterConfiguration):
                         'EbsConfiguration': {
                             'EbsBlockDeviceConfigs': [{
                                 'VolumeSpecification': {
-                                    'SizeInGB': 128,
-                                    'VolumeType': 'gp2'
+                                    'SizeInGB': 500,
+                                    'VolumeType': 'st1'
                                 },
                                 'VolumesPerInstance': 1
                             }],
