@@ -12,6 +12,7 @@ from aws_cdk import (
     core
 )
 
+from aws_emr_launch.constructs.base import BaseBuilder
 from aws_emr_launch.constructs.lambdas import emr_lambdas
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.iam_roles import emr_roles
@@ -425,7 +426,7 @@ class CreateClusterBuilder:
         )
 
 
-class RunJobFlowBuilder:
+class RunJobFlowBuilder(BaseBuilder):
     @staticmethod
     def build(scope: core.Construct, id: str, *, roles: emr_roles.EMRRoles,
               kerberos_attributes_secret: Optional[secretsmanager.Secret] = None,
@@ -438,10 +439,12 @@ class RunJobFlowBuilder:
         construct = core.Construct(scope, id)
 
         event_rule = core.Stack.of(scope).node.try_find_child('EventRule')
-        event_rule = events.Rule(
-            construct, 'EventRule',
-            enabled=False,
-            schedule=events.Schedule.rate(core.Duration.minutes(1))) if event_rule is None else event_rule
+        if event_rule is None:
+            event_rule = events.Rule(
+                construct, 'EventRule',
+                enabled=False,
+                schedule=events.Schedule.rate(core.Duration.minutes(1)))
+            BaseBuilder.tag_construct(event_rule)
 
         run_job_flow_lambda = emr_lambdas.RunJobFlowBuilder.get_or_build(construct, roles, event_rule)
         check_cluster_status_lambda = emr_lambdas.CheckClusterStatusBuilder.get_or_build(construct, event_rule)

@@ -7,8 +7,10 @@ from aws_cdk import (
     core
 )
 
+from aws_emr_launch.constructs.base import BaseConstruct
 
-class EMRRoles(core.Construct):
+
+class EMRRoles(BaseConstruct):
     def __init__(self, scope: core.Construct, id: str, *,
                  role_name_prefix: Optional[str] = None,
                  artifacts_bucket: Optional[s3.Bucket] = None,

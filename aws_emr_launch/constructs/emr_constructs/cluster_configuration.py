@@ -12,6 +12,7 @@ from aws_cdk import (
     core
 )
 
+from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.emr_constructs import emr_code
 
 SSM_PARAMETER_PREFIX = '/emr_launch/cluster_configurations'
@@ -30,7 +31,7 @@ class InstanceMarketType(Enum):
     SPOT = 'SPOT'
 
 
-class ClusterConfiguration(core.Construct):
+class ClusterConfiguration(BaseConstruct):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  configuration_name: str,
@@ -45,6 +46,7 @@ class ClusterConfiguration(core.Construct):
                  secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None):
 
         super().__init__(scope, id)
+
         self._override_interfaces = {}
 
         if configuration_name is None:

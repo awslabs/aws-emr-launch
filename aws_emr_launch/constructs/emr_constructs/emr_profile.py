@@ -18,6 +18,7 @@ from aws_cdk import (
     core
 )
 
+from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.security_groups.emr import EMRSecurityGroups
 from aws_emr_launch.constructs.iam_roles.emr_roles import EMRRoles
 from aws_emr_launch.constructs.emr_constructs import emr_code
@@ -44,7 +45,7 @@ class S3EncryptionMode(Enum):
     CSE_Custom = 'CSE-Custom'
 
 
-class EMRProfile(core.Construct):
+class EMRProfile(BaseConstruct):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  profile_name: Optional[str] = None,

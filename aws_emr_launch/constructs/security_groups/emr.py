@@ -4,8 +4,10 @@ from aws_cdk import (
     core
 )
 
+from aws_emr_launch.constructs.base import BaseConstruct
 
-class EMRSecurityGroups(core.Construct):
+
+class EMRSecurityGroups(BaseConstruct):
 
     def __init__(self, scope: core.Construct, id: str, *, vpc: Optional[ec2.Vpc] = None) -> None:
         super().__init__(scope, id)

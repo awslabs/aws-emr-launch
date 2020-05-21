@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.2.1 (2020-05-05)
 ------------------
 
+- FEATURE: add deployment:product tags to emr_launch constructs
+
 - FEATURE: switch ebs volumes to st1 on managed_clusters
 
 - FEATURE: enable dict for EMRLaunchFunction Tags

@@ -14,6 +14,8 @@ from aws_cdk import (
     core
 )
 
+from aws_emr_launch import __product__, __version__
+from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.step_functions import emr_chains, emr_tasks
 from aws_emr_launch.constructs.emr_constructs import cluster_configuration, emr_profile
 
@@ -24,7 +26,7 @@ class EMRLaunchFunctionNotFoundError(Exception):
     pass
 
 
-class EMRLaunchFunction(core.Construct):
+class EMRLaunchFunction(BaseConstruct):
     def __init__(self, scope: core.Construct, id: str, *,
                  launch_function_name: str,
                  emr_profile: emr_profile.EMRProfile,
@@ -62,6 +64,11 @@ class EMRLaunchFunction(core.Construct):
             self._cluster_tags = cluster_tags
         else:
             self._cluster_tags = []
+
+        self._cluster_tags.extend([
+            core.Tag('deployment:product:name', __product__),
+            core.Tag('deployment:product:version', __version__)
+        ])
 
         if len(cluster_configuration.configuration_artifacts) > 0:
             if emr_profile.mutable_instance_role:

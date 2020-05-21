@@ -5,11 +5,12 @@ from aws_cdk import (
     core
 )
 
+from aws_emr_launch.constructs.base import BaseBuilder
 from aws_emr_launch.constructs.lambdas import _lambda_path
 from aws_emr_launch.constructs.iam_roles import emr_roles
 
 
-class FailIfClusterRunningBuilder:
+class FailIfClusterRunningBuilder(BaseBuilder):
     @staticmethod
     def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities/fail_if_cluster_running'))
@@ -37,10 +38,11 @@ class FailIfClusterRunningBuilder:
                     )
                 ]
             )
+            BaseBuilder.tag_construct(lambda_function)
         return lambda_function
 
 
-class LoadClusterConfigurationBuilder:
+class LoadClusterConfigurationBuilder(BaseBuilder):
     @staticmethod
     def build(scope: core.Construct, profile_namespace: str, profile_name: str,
               configuration_namespace: str, configuration_name: str) -> aws_lambda.Function:
@@ -78,10 +80,11 @@ class LoadClusterConfigurationBuilder:
                 )
             ]
         )
+        BaseBuilder.tag_construct(lambda_function)
         return lambda_function
 
 
-class OverrideClusterConfigsBuilder:
+class OverrideClusterConfigsBuilder(BaseBuilder):
     @staticmethod
     def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities/override_cluster_configs'))
@@ -100,10 +103,11 @@ class OverrideClusterConfigsBuilder:
                 timeout=core.Duration.minutes(1),
                 layers=[layer]
             )
+            BaseBuilder.tag_construct(lambda_function)
         return lambda_function
 
 
-class UpdateClusterTagsBuilder:
+class UpdateClusterTagsBuilder(BaseBuilder):
     @staticmethod
     def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities/update_cluster_tags'))
@@ -122,10 +126,11 @@ class UpdateClusterTagsBuilder:
                 timeout=core.Duration.minutes(1),
                 layers=[layer]
             )
+            BaseBuilder.tag_construct(lambda_function)
         return lambda_function
 
 
-class ParseJsonStringBuilder:
+class ParseJsonStringBuilder(BaseBuilder):
     @staticmethod
     def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities/parse_json_string'))
@@ -144,10 +149,11 @@ class ParseJsonStringBuilder:
                 timeout=core.Duration.minutes(1),
                 layers=[layer]
             )
+            BaseBuilder.tag_construct(lambda_function)
         return lambda_function
 
 
-class OverrideStepArgsBuilder:
+class OverrideStepArgsBuilder(BaseBuilder):
     @staticmethod
     def get_or_build(scope: core.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities/override_step_args'))
@@ -166,10 +172,11 @@ class OverrideStepArgsBuilder:
                 timeout=core.Duration.minutes(1),
                 layers=[layer]
             )
+            BaseBuilder.tag_construct(lambda_function)
         return lambda_function
 
 
-class RunJobFlowBuilder:
+class RunJobFlowBuilder(BaseBuilder):
     @staticmethod
     def get_or_build(scope: core.Construct, roles: emr_roles.EMRRoles, event_rule: events.Rule) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities/run_job_flow'))
@@ -214,10 +221,11 @@ class RunJobFlowBuilder:
                     )
                 ]
             )
+            BaseBuilder.tag_construct(lambda_function)
         return lambda_function
 
 
-class CheckClusterStatusBuilder:
+class CheckClusterStatusBuilder(BaseBuilder):
     @staticmethod
     def get_or_build(scope: core.Construct, event_rule: events.Rule) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path('emr_utilities/check_cluster_status'))
@@ -260,6 +268,7 @@ class CheckClusterStatusBuilder:
                     )
                 ]
             )
+            BaseBuilder.tag_construct(lambda_function)
             lambda_function.add_permission(
                 'EventRulePermission',
                 principal=iam.ServicePrincipal('events.amazonaws.com'),
@@ -269,7 +278,7 @@ class CheckClusterStatusBuilder:
         return lambda_function
 
 
-class EMRConfigUtilsLayerBuilder:
+class EMRConfigUtilsLayerBuilder(BaseBuilder):
     @staticmethod
     def get_or_build(scope: core.Construct) -> aws_lambda.LayerVersion:
         code = aws_lambda.Code.from_asset(_lambda_path('layers/emr_config_utils'))
@@ -287,4 +296,5 @@ class EMRConfigUtilsLayerBuilder:
                 ],
                 description='EMR configuration utility functions'
             )
+            BaseBuilder.tag_construct(layer)
         return layer
