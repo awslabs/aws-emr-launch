@@ -4,25 +4,24 @@ Changelog for emr-launch
 1.2.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- NEW: add deployment:product tags to emr_launch constructs
+
+- NEW: switch ebs volumes to st1 on managed_clusters
+
+- NEW: enable dict for EMRLaunchFunction Tags
+
+- FIX: typing hint for EMRLaunchFunction allowed_overrides
+
+- exclude tests from bdist
+
+- change software license to Apache 2.0
 
 
 1.2.1 (2020-05-05)
 ------------------
 
-- FEATURE: add deployment:product tags to emr_launch constructs
-
-- FEATURE: switch ebs volumes to st1 on managed_clusters
-
-- FEATURE: enable dict for EMRLaunchFunction Tags
-
-- FIX: typing hint for EMRLaunchFunction allowed_overrides
-
 - FIX: FIRE_AND_FORGET cluster creation with secrets failed
 
-- exclude tests from bdist
-
-- change software license to Apache 2.0
 
 1.2.0 (2020-05-05)
 ------------------
