@@ -2,7 +2,7 @@ import os
 import enum
 import glob
 
-from typing import Optional, Dict, List
+from typing import Any, Optional, Dict, List
 from abc import abstractmethod
 
 from aws_cdk import (
@@ -21,7 +21,7 @@ class StepFailureAction(enum.Enum):
 
 class Resolvable:
     @abstractmethod
-    def resolve(self, scope: core.Construct) -> Dict[str, any]:
+    def resolve(self, scope: core.Construct) -> Dict[str, Any]:
         ...
 
 
@@ -33,7 +33,7 @@ class EMRCode(Resolvable):
         self._id = id
         self._bucket_deployment = None
 
-    def resolve(self, scope: core.Construct) -> Dict[str, any]:
+    def resolve(self, scope: core.Construct) -> Dict[str, Any]:
         # If the same deployment is used multiple times, retain only the first instantiation
         if self._bucket_deployment is None:
             # Convert BucketDeploymentProps to dict
@@ -46,7 +46,7 @@ class EMRCode(Resolvable):
         return {'S3Path': self.s3_path}
 
     @property
-    def deployment_bucket(self) -> s3.Bucket:
+    def deployment_bucket(self) -> s3.IBucket:
         return self._deployment_bucket
 
     @property
@@ -85,7 +85,7 @@ class EMRBootstrapAction(Resolvable):
         self._args = args
         self._code = code
 
-    def resolve(self, scope: core.Construct) -> Dict[str, any]:
+    def resolve(self, scope: core.Construct) -> Dict[str, Any]:
         if self._code is not None:
             self._code.resolve(scope)
 
@@ -106,11 +106,11 @@ class EMRBootstrapAction(Resolvable):
         return self._path
 
     @property
-    def args(self) -> List[str]:
+    def args(self) -> Optional[List[str]]:
         return self._args
 
     @property
-    def code(self) -> EMRCode:
+    def code(self) -> Optional[EMRCode]:
         return self._code
 
 
@@ -126,7 +126,7 @@ class EMRStep(Resolvable):
         self._properties = properties
         self._code = code
 
-    def resolve(self, scope: core.Construct) -> Dict[str, any]:
+    def resolve(self, scope: core.Construct) -> Dict[str, Any]:
         if self._code is not None:
             self._code.resolve(scope)
 
@@ -146,5 +146,5 @@ class EMRStep(Resolvable):
         return self._name
 
     @property
-    def args(self) -> List[str]:
+    def args(self) -> Optional[List[str]]:
         return self._args
