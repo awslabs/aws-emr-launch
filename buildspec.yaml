@@ -5,15 +5,18 @@ phases:
       python: 3.7
       nodejs: 12
     commands:
-      - python3 -m pip install --user pipenv
-      - pipenv install --dev
-      - pipenv install '-e .'
+      - python3 -m venv .venv
+      - source .venv/bin/activate
+      - pip install -r requirements-dev.txt
+      - pip install -r requirements.txt
   pre_build:
     commands:
-      - pipenv run pytest
+      - source .venv/bin/activate
+      - pytest
   build:
     commands:
-      - pipenv run python setup.py bdist_wheel
+      - source .venv/bin/activate
+      - python setup.py bdist_wheel
 artifacts:
   files:
     - dist/**/*

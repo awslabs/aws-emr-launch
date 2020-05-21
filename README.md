@@ -6,54 +6,71 @@ It is considered INTERNAL ONLY and should not be shared with customers outside o
 
 If you're interested in using this library on an engagement, contact __chamcca@__  
 
-## Development
 See the __docs/__!
 
 And the __examples/__...
 
 
-### Install Project Dependencies
+## Usage
+This library is acts as a plugin to the [AWS CDK](https://aws.amazon.com/cdk/) providing additional L2 Constructs. 
+To avoid circular references with CDK dependencies, this package will not install CDK and Boto3. Instead it expects 
+these packages to already be installed. 
 
-Install [aws cdk](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html)
-```sh
-npm install -g aws-cdk
-```
+It is recommended that a Python3 `venv` be used for all CDK builds and deployments.
 
-Install [pipenv](https://github.com/pypa/pipenv)
+To get up and running quickly:
 
-Then install this project's development dependencies using
+1. Install the [CDK CLI](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html)
+   ```bash
+   npm install -g aws-cdk
+   ```
 
-```sh
-pipenv install --dev
-```
+2. Use your mechanism of choice to create and activate a Python3 `venv`:
+   ```bash
+   python3 -m venv .env
+   source .env/bin/activate
+   ```
 
-Install this project's dependencies using
+3. Install the CDK and Boto3 minimum requirements:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```sh
-pipenv install '-e .'
+4. Install `aws-emr-launch` package (package is currently installed from a `wheel` file):
+   ```bash
+   pip install ./aws-emr-launch-*.whl
+   ```
+
+
+## Development
+Follow Step 1 - 3 above to configure an environment and install requirements
+
+### Install development requirements
+After activating your `venv`:
+```bash
+pip install -r requirements-dev.txt
 ```
 
 #### Installing New Layer Packages
-The following will install 
-1. Update the `lambda_layer_requirements.txt` adding the new package(s)
-2. Install new package(s): `pipenv run pip install -r lambda_layer_requirements.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/`
+The following will install the Lambda Layer packages 
+1. Update the `requirements-lambda-layer.txt` adding the new package(s)
+2. Install new package(s): `pip install -r requirements-lambda-layer.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/`
    - This will skip upgrades of previously installed packages
 
 #### Updating Lambda Layer Packages
 To Update the Lambda Layer packages it is recommended that you first delete the entire layer contents to eliminate bloat.
 1. Remove packages: `rm -fr aws_emr_launch/lambda_sources/layers/emr_config_utils/*`
-2. Update the `lambda_layer_requirements.txt`
-3. Reinstall packages: `pipenv run pip install -r lambda_layer_requirements.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/`
+2. Update the `requirements-lambda-layer.txt`
+3. Reinstall packages: `pip install -r requirements-lambda-layer.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/`
+
 
 ### Testing
-
-To run the test suite (be sure to deactivate the examples virtualenv)
-```sh
-pipenv run pytest
+To run the test suite (from within the `venv`):
+```bash
+pytest
 ```
 
 #### After running tests
-
 View test coverage reports by opening `htmlcov/index.html` in your web browser.
 
 #### To write a test

@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.2.2 (unreleased)
+1.3.0 (unreleased)
 ------------------
 
 - NEW: add deployment:product tags to emr_launch constructs

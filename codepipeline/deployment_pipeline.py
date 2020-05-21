@@ -36,15 +36,16 @@ def create_build_spec(project_dir: str) -> codebuild.BuildSpec:
                 },
                 'commands': [
                     'npm install aws-cdk',
-                    'python3 -m pip install --user pipenv',
-                    'virtualenv /root/venv',
-                    "VIRTUAL_ENV=/root/venv pipenv install '-e .'"
+                    'python3 -m venv /root/venv',
+                    'source /root/venv/bin/activate',
+                    "pip install -r requirements.txt"
                 ]
             },
             'build': {
                 'commands': [
                     f'cd {project_dir}',
-                    'VIRTUAL_ENV=/root/venv pipenv run $(npm bin)/cdk --verbose --require-approval never deploy'
+                    'source /root/venv/bin/activate',
+                    '$(npm bin)/cdk --verbose --require-approval never deploy'
                 ]
             }
         },
