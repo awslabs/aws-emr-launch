@@ -1,15 +1,13 @@
-from typing import Optional, Mapping, List
+from typing import List, Mapping, Optional
 
-from aws_cdk import (
-    aws_sns as sns,
-    aws_stepfunctions as sfn,
-    aws_stepfunctions_tasks as sfn_tasks,
-    core
-)
+from aws_cdk import aws_sns as sns
+from aws_cdk import aws_stepfunctions as sfn
+from aws_cdk import aws_stepfunctions_tasks as sfn_tasks
+from aws_cdk import core
 
+from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.lambdas import emr_lambdas
 from aws_emr_launch.constructs.step_functions import emr_tasks
-from aws_emr_launch.constructs.emr_constructs import emr_code
 
 
 class Success(sfn.StateMachineFragment):

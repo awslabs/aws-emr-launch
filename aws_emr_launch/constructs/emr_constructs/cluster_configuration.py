@@ -1,16 +1,13 @@
-import os
 import json
-import boto3
-
+import os
 from enum import Enum
-from botocore.exceptions import ClientError
+from typing import Dict, List, Optional
 
-from typing import Optional, List, Dict
-from aws_cdk import (
-    aws_secretsmanager as secretsmanager,
-    aws_ssm as ssm,
-    core
-)
+import boto3
+from aws_cdk import aws_secretsmanager as secretsmanager
+from aws_cdk import aws_ssm as ssm
+from aws_cdk import core
+from botocore.exceptions import ClientError
 
 from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.emr_constructs import emr_code

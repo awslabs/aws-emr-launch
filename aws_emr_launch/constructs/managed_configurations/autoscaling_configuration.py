@@ -1,13 +1,14 @@
 from typing import Dict, List, Optional
-from aws_cdk import (
-    aws_ec2 as ec2,
-    aws_secretsmanager as secretsmanager,
-    core
-)
+
+from aws_cdk import aws_ec2 as ec2
+from aws_cdk import aws_secretsmanager as secretsmanager
+from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import emr_code
-from aws_emr_launch.constructs.emr_constructs.cluster_configuration import InstanceMarketType
-from aws_emr_launch.constructs.managed_configurations.instance_group_configuration import InstanceGroupConfiguration
+from aws_emr_launch.constructs.emr_constructs.cluster_configuration import \
+    InstanceMarketType
+from aws_emr_launch.constructs.managed_configurations.instance_group_configuration import \
+    InstanceGroupConfiguration
 
 
 class AutoScalingClusterConfiguration(InstanceGroupConfiguration):

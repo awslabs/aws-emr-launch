@@ -1,9 +1,9 @@
-import os
 import json
-import boto3
 import logging
-
+import os
 from typing import Dict, List
+
+import boto3
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()

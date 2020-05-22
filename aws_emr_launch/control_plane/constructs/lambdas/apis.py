@@ -1,11 +1,8 @@
-from aws_cdk import (
-    aws_lambda,
-    aws_iam as iam,
-    core
-)
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_lambda, core
 
-from . import _lambda_path
 from aws_emr_launch import __package__
+from aws_emr_launch.control_plane.constructs.lambdas import _lambda_path
 
 
 class Apis(core.Construct):

@@ -1,23 +1,21 @@
 import json
+from typing import Dict, List, Optional, Union
+
 import boto3
-
-from logzero import logger
-from typing import Optional, Dict, List, Union
+from aws_cdk import aws_lambda
+from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_sns as sns
+from aws_cdk import aws_ssm as ssm
+from aws_cdk import aws_stepfunctions as sfn
+from aws_cdk import core
 from botocore.exceptions import ClientError
-
-from aws_cdk import (
-    aws_lambda,
-    aws_s3 as s3,
-    aws_sns as sns,
-    aws_ssm as ssm,
-    aws_stepfunctions as sfn,
-    core
-)
+from logzero import logger
 
 from aws_emr_launch import __product__, __version__
 from aws_emr_launch.constructs.base import BaseConstruct
+from aws_emr_launch.constructs.emr_constructs import (cluster_configuration,
+                                                      emr_profile)
 from aws_emr_launch.constructs.step_functions import emr_chains, emr_tasks
-from aws_emr_launch.constructs.emr_constructs import cluster_configuration, emr_profile
 
 SSM_PARAMETER_PREFIX = '/emr_launch/emr_launch_functions'
 

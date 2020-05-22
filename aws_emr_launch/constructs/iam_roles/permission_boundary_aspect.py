@@ -1,8 +1,7 @@
-import jsii
-
 from typing import Union
-from aws_cdk import aws_iam, core
 
+import jsii
+from aws_cdk import aws_iam, core
 from jsii._reference_map import _refs
 from jsii._utils import Singleton
 

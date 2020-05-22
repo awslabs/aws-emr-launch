@@ -1,27 +1,23 @@
 import json
-import boto3
-
-from typing import Dict, List
 from enum import Enum
-from logzero import logger
-from botocore.exceptions import ClientError
+from typing import Dict, List, Optional
 
-from typing import Optional
-from aws_cdk import (
-    aws_s3 as s3,
-    aws_kms as kms,
-    aws_ec2 as ec2,
-    aws_emr as emr,
-    aws_iam as iam,
-    aws_secretsmanager as secretsmanager,
-    aws_ssm as ssm,
-    core
-)
+import boto3
+from aws_cdk import aws_ec2 as ec2
+from aws_cdk import aws_emr as emr
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_kms as kms
+from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_secretsmanager as secretsmanager
+from aws_cdk import aws_ssm as ssm
+from aws_cdk import core
+from botocore.exceptions import ClientError
+from logzero import logger
 
 from aws_emr_launch.constructs.base import BaseConstruct
-from aws_emr_launch.constructs.security_groups.emr import EMRSecurityGroups
-from aws_emr_launch.constructs.iam_roles.emr_roles import EMRRoles
 from aws_emr_launch.constructs.emr_constructs import emr_code
+from aws_emr_launch.constructs.iam_roles.emr_roles import EMRRoles
+from aws_emr_launch.constructs.security_groups.emr import EMRSecurityGroups
 
 SSM_PARAMETER_PREFIX = '/emr_launch/emr_profiles'
 

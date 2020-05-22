@@ -1,10 +1,10 @@
-import json
-import boto3
 import base64
+import json
 import logging
-
-from typing import Dict, List
 from datetime import date, datetime
+from typing import Dict, List
+
+import boto3
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()

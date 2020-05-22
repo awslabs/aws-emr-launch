@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 
-from aws_cdk import (
-    core,
-    aws_codecommit as codecommit,
-    aws_iam as iam,
-    aws_kms as kms,
-    aws_s3 as s3
-)
-
+from aws_cdk import aws_codecommit as codecommit
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_kms as kms
+from aws_cdk import aws_s3 as s3
+from aws_cdk import core
 
 app = core.App()
 

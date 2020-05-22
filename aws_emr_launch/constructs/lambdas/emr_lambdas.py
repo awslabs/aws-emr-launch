@@ -1,13 +1,10 @@
-from aws_cdk import (
-    aws_lambda,
-    aws_events as events,
-    aws_iam as iam,
-    core
-)
+from aws_cdk import aws_events as events
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_lambda, core
 
 from aws_emr_launch.constructs.base import BaseBuilder
-from aws_emr_launch.constructs.lambdas import _lambda_path
 from aws_emr_launch.constructs.iam_roles import emr_roles
+from aws_emr_launch.constructs.lambdas import _lambda_path
 
 
 class FailIfClusterRunningBuilder(BaseBuilder):

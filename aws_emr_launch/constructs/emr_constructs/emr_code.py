@@ -1,15 +1,12 @@
-import os
 import enum
 import glob
-
-from typing import Any, Optional, Dict, List
+import os
 from abc import abstractmethod
+from typing import Any, Dict, List, Optional
 
-from aws_cdk import (
-    aws_s3 as s3,
-    aws_s3_deployment as s3_deployment,
-    core
-)
+from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_s3_deployment as s3_deployment
+from aws_cdk import core
 
 
 class StepFailureAction(enum.Enum):

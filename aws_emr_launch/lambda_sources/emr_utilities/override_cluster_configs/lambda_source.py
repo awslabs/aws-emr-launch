@@ -1,6 +1,7 @@
-import boto3
 import json
 import logging
+
+import boto3
 
 from dictor import dictor
 

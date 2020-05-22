@@ -1,21 +1,18 @@
+from typing import Dict, List, Optional
+
 import jsii
-
-from typing import Optional, Dict, List
-
-from aws_cdk import (
-    aws_events as events,
-    aws_lambda,
-    aws_iam as iam,
-    aws_secretsmanager as secretsmanager,
-    aws_stepfunctions as sfn,
-    aws_stepfunctions_tasks as sfn_tasks,
-    core
-)
+from aws_cdk import aws_events as events
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_lambda
+from aws_cdk import aws_secretsmanager as secretsmanager
+from aws_cdk import aws_stepfunctions as sfn
+from aws_cdk import aws_stepfunctions_tasks as sfn_tasks
+from aws_cdk import core
 
 from aws_emr_launch.constructs.base import BaseBuilder
-from aws_emr_launch.constructs.lambdas import emr_lambdas
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.iam_roles import emr_roles
+from aws_emr_launch.constructs.lambdas import emr_lambdas
 
 
 class BaseTask:

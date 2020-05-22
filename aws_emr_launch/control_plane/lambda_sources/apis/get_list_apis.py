@@ -1,9 +1,9 @@
 import json
-import boto3
 import logging
 import traceback
+from typing import Dict, Optional
 
-from typing import Optional, Dict
+import boto3
 from botocore.exceptions import ClientError
 
 LOGGER = logging.getLogger()

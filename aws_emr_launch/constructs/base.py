@@ -1,10 +1,7 @@
 import os
 
+from aws_cdk import core
 from logzero import logger
-
-from aws_cdk import (
-    core,
-)
 
 from aws_emr_launch import __product__, __version__
 

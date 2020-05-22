@@ -2,16 +2,14 @@
 
 import os
 
-from aws_cdk import (
-    core,
-    aws_codebuild as codebuild,
-    aws_codecommit as codecommit,
-    aws_codepipeline as codepipeline,
-    aws_codepipeline_actions as codepipeline_actions,
-    aws_iam as iam,
-    aws_kms as kms,
-    aws_s3 as s3
-)
+from aws_cdk import aws_codebuild as codebuild
+from aws_cdk import aws_codecommit as codecommit
+from aws_cdk import aws_codepipeline as codepipeline
+from aws_cdk import aws_codepipeline_actions as codepipeline_actions
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_kms as kms
+from aws_cdk import aws_s3 as s3
+from aws_cdk import core
 
 
 def create_build_spec(project_dir: str) -> codebuild.BuildSpec:

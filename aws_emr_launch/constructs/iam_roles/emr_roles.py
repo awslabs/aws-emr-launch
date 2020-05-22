@@ -1,11 +1,9 @@
 import os
-
 from typing import Optional
-from aws_cdk import (
-    aws_iam as iam,
-    aws_s3 as s3,
-    core
-)
+
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_s3 as s3
+from aws_cdk import core
 
 from aws_emr_launch.constructs.base import BaseConstruct
 
