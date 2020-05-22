@@ -35,14 +35,15 @@ def create_build_spec(project_dir: str) -> codebuild.BuildSpec:
                 'commands': [
                     'npm install aws-cdk',
                     'python3 -m venv /root/venv',
-                    'source /root/venv/bin/activate',
-                    "pip install -r requirements.txt"
+                    '. /root/venv/bin/activate',
+                    'pip install -r requirements.txt',
+                    'pip install -e .'
                 ]
             },
             'build': {
                 'commands': [
+                    '. /root/venv/bin/activate',
                     f'cd {project_dir}',
-                    'source /root/venv/bin/activate',
                     '$(npm bin)/cdk --verbose --require-approval never deploy'
                 ]
             }

@@ -9,7 +9,7 @@ The examples require an environment with the following (the Buckets can be seper
 4. An S3 Bucket used for EMR input/output data
 
 Before deploying the examples, set up the environment variables:
-```sh
+```bash
 export EMR_LAUNCH_EXAMPLES_VPC="YOUR VPC_ID"
 export EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET="YOUR ARTIFACTS BUCKET_NAME"
 export EMR_LAUNCH_EXAMPLES_LOGS_BUCKET="YOUR LOGS BUCKET_NAME"
@@ -19,15 +19,15 @@ export EMR_LAUNCH_EXAMPLES_SECRET_CONFIGS="YOUR_OTHER_SECRET_ARN"
 ```
 
 Create and activate a virtualenv for the examples:
-```sh
+```bash
 cd examples/
 python3 -m venv .env
 source .env/bin/activate
 ```
 
 Install the `aws-emr-launch` library and dependencies:
-```sh
-pip install ..
+```bash
+pip install -e ..
 ```
 
 Deploy examples in the following order:
@@ -40,12 +40,12 @@ Deploy examples in the following order:
 7. `sns_triggered_pipeline`
 
 Deploy the `control_plane` (this only needs to be done once or after updates to the `control_plane`):
-```sh
+```bash
 cd control_plane/
 cdk deploy
 ```
 
 Deploy an example:
-```sh
+```bash
 cd emr_profiles/
 cdk deploy
