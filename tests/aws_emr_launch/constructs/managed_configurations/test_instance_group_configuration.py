@@ -1,11 +1,10 @@
 import copy
 
-from aws_cdk import (
-    aws_ec2 as ec2,
-    core
-)
+from aws_cdk import aws_ec2 as ec2
+from aws_cdk import core
 
-from aws_emr_launch.constructs.managed_configurations import instance_group_configuration
+from aws_emr_launch.constructs.managed_configurations import \
+    instance_group_configuration
 
 app = core.App()
 stack = core.Stack(app, 'test-stack')

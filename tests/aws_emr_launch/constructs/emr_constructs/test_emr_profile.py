@@ -1,15 +1,11 @@
-from aws_cdk import (
-    aws_kms as kms,
-    aws_ec2 as ec2,
-    aws_iam as iam,
-    aws_s3 as s3,
-    aws_secretsmanager as secretsmanager,
-    core
-)
+from aws_cdk import aws_ec2 as ec2
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_kms as kms
+from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_secretsmanager as secretsmanager
+from aws_cdk import core
 
-from aws_emr_launch.constructs.emr_constructs import (
-    emr_profile
-)
+from aws_emr_launch.constructs.emr_constructs import emr_profile
 
 app = core.App()
 stack = core.Stack(app, 'test-stack')

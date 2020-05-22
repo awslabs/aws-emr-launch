@@ -1,6 +1,4 @@
-from aws_cdk import (
-    core
-)
+from aws_cdk import core
 
 from aws_emr_launch.control_plane.constructs.lambdas.apis import Apis
 

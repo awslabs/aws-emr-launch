@@ -1,7 +1,5 @@
-from aws_cdk import (
-    aws_ec2 as ec2,
-    core
-)
+from aws_cdk import aws_ec2 as ec2
+from aws_cdk import core
 
 from aws_emr_launch.constructs.security_groups.emr import EMRSecurityGroups
 

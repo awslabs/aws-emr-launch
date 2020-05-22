@@ -1,16 +1,14 @@
-import boto3
 import json
 import logging
 import unittest
 
+import boto3
 from moto import mock_ssm
 
 from aws_emr_launch.control_plane.lambda_sources.apis import get_list_apis
 from aws_emr_launch.control_plane.lambda_sources.apis.get_list_apis import (
-    ClusterConfigurationNotFoundError,
-    EMRLaunchFunctionNotFoundError,
-    EMRProfileNotFoundError
-)
+    ClusterConfigurationNotFoundError, EMRLaunchFunctionNotFoundError,
+    EMRProfileNotFoundError)
 
 # Turn the LOGGER off for the tests
 get_list_apis.LOGGER.setLevel(logging.WARN)

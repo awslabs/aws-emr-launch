@@ -1,15 +1,11 @@
 import copy
 
-from aws_cdk import (
-    aws_ec2 as ec2,
-    aws_s3 as s3,
-    core
-)
+from aws_cdk import aws_ec2 as ec2
+from aws_cdk import aws_s3 as s3
+from aws_cdk import core
 
-from aws_emr_launch.constructs.emr_constructs import (
-    cluster_configuration,
-    emr_code
-)
+from aws_emr_launch.constructs.emr_constructs import (cluster_configuration,
+                                                      emr_code)
 
 app = core.App()
 stack = core.Stack(app, 'test-stack')
@@ -145,5 +141,3 @@ def test_bootstrap_action_config():
     print(config)
     print(resolved_config)
     assert resolved_config == config
-
-

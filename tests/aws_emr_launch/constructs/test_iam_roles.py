@@ -1,7 +1,5 @@
-from aws_cdk import (
-    aws_s3 as s3,
-    core
-)
+from aws_cdk import aws_s3 as s3
+from aws_cdk import core
 
 from aws_emr_launch.constructs.iam_roles.emr_roles import EMRRoles
 
