@@ -55,6 +55,7 @@ class EMRLaunchFunction(BaseConstruct):
         self._override_cluster_configs_lambda = override_cluster_configs_lambda
         self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
         self._description = description
+        self._wait_for_cluster_start = wait_for_cluster_start
 
         if isinstance(cluster_tags, dict):
             self._cluster_tags = [core.Tag(k, v) for k, v in cluster_tags.items()]
@@ -196,7 +197,8 @@ class EMRLaunchFunction(BaseConstruct):
             'AllowedClusterConfigOverrides': self._allowed_cluster_config_overrides,
             'StateMachine': self._state_machine.state_machine_arn,
             'Description': self._description,
-            'ClusterTags': [{'Key': t.key, 'Value': t.value} for t in self._cluster_tags]
+            'ClusterTags': [{'Key': t.key, 'Value': t.value} for t in self._cluster_tags],
+            'WaitForClusterStart': self._wait_for_cluster_start
         }
 
     def from_json(self, property_values):
@@ -236,6 +238,7 @@ class EMRLaunchFunction(BaseConstruct):
         state_machine = property_values['StateMachine']
         self._state_machine = sfn.StateMachine.from_state_machine_arn(self, 'StateMachine', state_machine)
 
+        self._wait_for_cluster_start = property_values.get('WaitForClusterStart', None)
         return self
 
     @property

@@ -34,7 +34,8 @@ default_function = {
     'LaunchFunctionName': 'test-function',
     'Namespace': 'default',
     'StateMachine': {'Ref': 'testfunctionStateMachineF50AE8F9'},
-    'SuccessTopic': {'Ref': 'SuccessTopic495EEDDD'}
+    'SuccessTopic': {'Ref': 'SuccessTopic495EEDDD'},
+    'WaitForClusterStart': False
 }
 
 
