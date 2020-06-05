@@ -7,35 +7,26 @@ include *.in
 include *.sh
 include *.yaml
 include *.lock
-include Pipfile
 include tox.ini
 
 recursive-include aws_emr_launch *
-
 recursive-include scripts *.sh
 recursive-include examples *.py
 recursive-include examples *.md
 recursive-include examples *.sh
 recursive-include examples *.json
 recursive-include examples *.hql
-recursive-include docs *.md
 recursive-include examples *.jar
-
-recursive-include codepipeline *.md
-recursive-include codepipeline *.py
-recursive-include codepipeline *.sh
-recursive-include codepipeline *.txt
-recursive-include codepipeline *.json
-
-recursive-exclude tests *.py
-recursive-exclude examples/.env *
-recursive-exclude examples/*/cdk.out *
-recursive-exclude codepipeline/.env *
-recursive-exclude codepipeline/cdk.out *
+recursive-include docs *.md
 
 
 exclude Config
 exclude codepipeline/cdk.json
+
+recursive-exclude tests *
+recursive-exclude examples/.env *
+recursive-exclude examples/*/cdk.out *
+recursive-exclude codepipeline  *
 
 global-exclude *.pyc
 global-exclude __pycache__
