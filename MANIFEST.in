@@ -1,4 +1,6 @@
 include VERSION
+include LICENSE
+include THIRD_PARTY
 include *.md
 include *.txt
 include *.in
@@ -21,7 +23,7 @@ recursive-include docs *.md
 recursive-include examples *.jar
 
 recursive-exclude examples .env/*
-recursive-exclude examples **/cdk.out/*
+recursive-exclude examples */cdk.out/*
 
 recursive-include codepipeline *.md
 recursive-include codepipeline *.py
