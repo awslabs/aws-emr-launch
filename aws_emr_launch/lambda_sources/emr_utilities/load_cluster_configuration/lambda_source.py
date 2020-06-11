@@ -114,8 +114,7 @@ def handler(event, context):
         cluster_configuration['Instances']['EmrManagedSlaveSecurityGroup'] = \
             emr_profile['SecurityGroups']['WorkersGroup']
         cluster_configuration['Instances']['ServiceAccessSecurityGroup'] = \
-            emr_profile['SecurityGroups']['ServiceGroup'] \
-            if 'ServiceGroup' in emr_profile['SecurityGroups'] else None
+            emr_profile['SecurityGroups'].get('ServiceGroup', None)
         cluster_configuration['SecurityConfiguration'] = emr_profile.get('SecurityConfiguration', None)
 
         cluster = {
