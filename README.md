@@ -1,10 +1,5 @@
 # EMR Launch
-
-## READ THIS FIRST
-__This project is currently in Beta testing with select customers. 
-It is considered INTERNAL ONLY and should not be shared with customers outside of a paid ProServe engagement.__
-
-If you're interested in using this library on an engagement, contact __chamcca@__  
+A library to simplify the definition and managment of Amazon EMR Fleets.
 
 See the __docs/__!
 

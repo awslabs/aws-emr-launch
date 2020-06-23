@@ -1,6 +1,0 @@
-export EMR_LAUNCH_EXAMPLES_VPC="vpc-01c3cc44009934845"
-export EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET="chamcca-emr-launch-artifacts-uw2"
-export EMR_LAUNCH_EXAMPLES_LOGS_BUCKET="chamcca-emr-launch-logs-uw2"
-export EMR_LAUNCH_EXAMPLES_DATA_BUCKET="chamcca-emr-launch-data-uw2"
-export EMR_LAUNCH_EXAMPLES_KERBEROS_ATTRIBUTES_SECRET="arn:aws:secretsmanager:us-west-2:876929970656:secret:kerberos-attributes-uVXlw8"
-export EMR_LAUNCH_EXAMPLES_SECRET_CONFIGS="arn:aws:secretsmanager:us-west-2:876929970656:secret:external-metastore-XqNhzC"
