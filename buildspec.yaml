@@ -5,6 +5,7 @@ phases:
       python: 3.7
       nodejs: 12
     commands:
+      - yum install -y jq
       - python3 -m venv .venv
       - . .venv/bin/activate
       - pip install -r requirements-dev.txt
@@ -16,6 +17,10 @@ phases:
       - pytest
   build:
     commands:
+      - TWINE_USERNAME="__token__"
+      - TWINE_PASSWORD=$(aws secretsmanager get-secret-value --secret-id emr-launch-pypi-api-key --query 'SecretString' --output text | jq -r '.["api-key"]')
+      - echo $TWINE_USERNAME
+      - echo $TWINE_PASSWORD
       - . .venv/bin/activate
       - python setup.py bdist_wheel
 artifacts:
