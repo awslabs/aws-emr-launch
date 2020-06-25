@@ -1,16 +1,5 @@
 # EMR Launch
 
-## READ THIS FIRST
-__This project is currently in Beta testing with select customers. 
-It is considered INTERNAL ONLY and should not be shared with customers outside of a paid ProServe engagement.__
-
-If you're interested in using this library on an engagement, contact __chamcca@__  
-
-See the __docs/__!
-
-And the __examples/__...
-
-
 ## Usage
 This library is acts as a plugin to the [AWS CDK](https://aws.amazon.com/cdk/) providing additional L2 Constructs. 
 To avoid circular references with CDK dependencies, this package will not install CDK and Boto3. Instead it expects 

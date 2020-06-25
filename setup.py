@@ -15,9 +15,9 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     keywords=['aws'],
 
-    author='chamcca',
+    author='Chauncy McCaughey',
     author_email='chamcca@amazon.com',
-    url='https://code.amazon.com/packages/AWSProServe_project_EMRLaunch/trees/mainline',
+    url='https://github.com/awslabs/aws-emr-launch/',
 
     package_dir={'aws_emr_launch': 'aws_emr_launch'},
     packages=setuptools.find_packages(exclude=('tests',)),
