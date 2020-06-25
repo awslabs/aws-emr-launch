@@ -1,4 +1,9 @@
 version: 0.2
+env:
+  variables:
+    TWINE_USERNAME: __token__
+  secrets-manager:
+    TWINE_PASSWORD: emr-launch-pypi-api-key:api-key
 phases:
   install:
     runtime-versions:
@@ -16,12 +21,10 @@ phases:
       - pytest
   build:
     commands:
-      - TWINE_USERNAME="__token__"
-      - TWINE_PASSWORD=$(aws secretsmanager get-secret-value --secret-id emr-launch-pypi-api-key --query 'SecretString' --output text | jq -r '.["api-key"]')
-      - echo "Username - ${TWINE_USERNAME}"
-      - echo "Password - ${TWINE_PASSWORD}"
       - . .venv/bin/activate
       - python setup.py bdist_wheel
+      - echo "Username - ${TWINE_USERNAME}"
+      - echo "Password - ${TWINE_PASSWORD}"
       - twine upload dist/*
 artifacts:
   files:
