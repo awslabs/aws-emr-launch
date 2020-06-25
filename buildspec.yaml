@@ -5,7 +5,7 @@ phases:
       python: 3.7
       nodejs: 12
     commands:
-      - yum install -y jq
+      - apt-get install -y jq
       - python3 -m venv .venv
       - . .venv/bin/activate
       - pip install -r requirements-dev.txt
