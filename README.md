@@ -1,10 +1,9 @@
 # EMR Launch
-A library to simplify the definition and managment of Amazon EMR Fleets.
+A library to simplify the definition and management of Amazon EMR Fleets.
 
 See the __docs/__!
 
 And the __examples/__...
-
 
 ## Usage
 This library is acts as a plugin to the [AWS CDK](https://aws.amazon.com/cdk/) providing additional L2 Constructs. 
@@ -33,7 +32,7 @@ To get up and running quickly:
 
 4. Install `aws-emr-launch` package (package is currently installed from a `wheel` file):
    ```bash
-   pip install ./aws-emr-launch-*.whl
+   pip install aws-emr-launch
    ```
 
 
