@@ -38,7 +38,7 @@ To get up and running quickly:
 
 4. Install `aws-emr-launch` package (package is currently installed from a `wheel` file):
    ```bash
-   pip install ./aws-emr-launch-*.whl
+   pip install aws-emr-launch
    ```
 
 
