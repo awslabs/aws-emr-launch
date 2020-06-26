@@ -30,7 +30,7 @@ To get up and running quickly:
    pip install -r requirements.txt
    ```
 
-4. Install `aws-emr-launch` package (package is currently installed from a `wheel` file):
+4. Install `aws-emr-launch` package:
    ```bash
    pip install aws-emr-launch
    ```
