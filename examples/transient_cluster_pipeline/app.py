@@ -18,6 +18,8 @@ from aws_emr_launch.constructs.step_functions import (
     emr_tasks
 )
 
+NAMING_PREFIX = f'emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}'
+
 app = core.App()
 stack = core.Stack(app, 'TransientPipelineStack', env=core.Environment(
     account=os.environ["CDK_DEFAULT_ACCOUNT"],
@@ -32,7 +34,7 @@ launch_function = emr_launch_function.EMRLaunchFunction.from_stored_function(
     stack, 'BasicLaunchFunction', 'launch-basic-cluster')
 
 deployment_bucket = s3.Bucket.from_bucket_name(
-    stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET']) \
+    stack, 'ArtifactsBucket', f'{NAMING_PREFIX}-artifacts') \
     if launch_function.emr_profile.artifacts_bucket is None \
     else launch_function.emr_profile.artifacts_bucket
 
