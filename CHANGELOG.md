@@ -1,10 +1,14 @@
 Changelog for emr-launch
 =============================
 
-1.3.0 (2020-06-05)
+1.3.1 (2020-06-25)
 ------------------
 
 - FIX: author and url in setup.py
+
+
+1.3.0 (2020-06-05)
+------------------
 
 - NEW: add deployment:product tags to emr_launch constructs
 
