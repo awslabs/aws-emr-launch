@@ -34,24 +34,38 @@ To get up and running quickly:
 ## Development
 Follow Step 1 - 3 above to configure an environment and install requirements
 
-### Install development requirements
 After activating your `venv`:
-```bash
-pip install -r requirements-dev.txt
-```
+
+1. Install development requirements:
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+2. Install the Lambda Layer Packages:
+   ```bash
+   pip install -r requirements-lambda-layer.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/
+   ```
 
 #### Installing New Layer Packages
 The following will install the Lambda Layer packages 
 1. Update the `requirements-lambda-layer.txt` adding the new package(s)
-2. Install new package(s): `pip install -r requirements-lambda-layer.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/`
+2. Install new package(s):
+   ```bash 
+   pip install -r requirements-lambda-layer.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/
+   ```
    - This will skip upgrades of previously installed packages
 
 #### Updating Lambda Layer Packages
 To Update the Lambda Layer packages it is recommended that you first delete the entire layer contents to eliminate bloat.
-1. Remove packages: `rm -fr aws_emr_launch/lambda_sources/layers/emr_config_utils/*`
+1. Remove packages: 
+   ```bash
+   rm -fr aws_emr_launch/lambda_sources/layers/emr_config_utils/*
+   ```
 2. Update the `requirements-lambda-layer.txt`
-3. Reinstall packages: `pip install -r requirements-lambda-layer.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/`
-
+3. Reinstall packages:
+   ```bash 
+   pip install -r requirements-lambda-layer.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/
+   ```
 
 ### Testing
 To run the test suite (from within the `venv`):
