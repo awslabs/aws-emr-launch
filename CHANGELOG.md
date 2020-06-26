@@ -7,6 +7,12 @@ Changelog for emr-launch
 - Nothing changed yet.
 
 
+1.3.1 (2020-06-25)
+------------------
+
+- FIX: author and url in setup.py
+
+
 1.3.0 (2020-06-05)
 ------------------
 
