@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.3.0 (2020-06-05)
 ------------------
 
+- FIX: author and url in setup.py
+
 - NEW: add deployment:product tags to emr_launch constructs
 
 - NEW: switch ebs volumes to st1 on managed_clusters
