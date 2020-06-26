@@ -73,3 +73,13 @@ View test coverage reports by opening `htmlcov/index.html` in your web browser.
 * write test case functions that match either `test_*` or `*_test`
 
 For more information refer to [pytest docs](https://docs.pytest.org/en/latest/getting-started.html)
+
+
+## Security
+
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+This project is licensed under the terms of the Apache 2.0 license. See `LICENSE`.
+Included AWS Lambda functions are licensed under the MIT-0 license. See `LICENSE-LAMBDA`.
