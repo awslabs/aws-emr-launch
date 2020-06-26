@@ -6,9 +6,9 @@ See the __docs/__!
 And the __examples/__...
 
 ## Usage
-This library is acts as a plugin to the [AWS CDK](https://aws.amazon.com/cdk/) providing additional L2 Constructs. 
-To avoid circular references with CDK dependencies, this package will not install CDK and Boto3. Instead it expects 
-these packages to already be installed. 
+This library acts as a plugin to the [AWS CDK](https://aws.amazon.com/cdk/) providing additional L2 Constructs. 
+To avoid circular references with CDK dependencies, this package will not install CDK and Boto3. These should be 
+installed manually from `requirements.txt`. 
 
 It is recommended that a Python3 `venv` be used for all CDK builds and deployments.
 
