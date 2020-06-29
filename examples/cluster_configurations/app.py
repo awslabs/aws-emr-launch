@@ -44,8 +44,10 @@ bootstrap = emr_code.EMRBootstrapAction(
 subnet = vpc.private_subnets[0]
 
 # Load a SecretsManger Secret with secure RDS Metastore credentials
+secret_name = f'{NAMING_PREFIX}-external-metastore'
 secret = secretsmanager.Secret.from_secret_arn(
-    stack, 'Secret', f'{NAMING_PREFIX}-external-metastore')
+    stack, 'Secret',
+    f'arn:{core.Aws.PARTITION}:secretsmanager:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:secret:{secret_name}')
 
 
 # Create a basic Cluster Configuration using InstanceGroups, the Subnet and Bootstrap

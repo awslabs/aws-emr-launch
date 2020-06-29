@@ -28,8 +28,10 @@ logs_bucket = s3.Bucket.from_bucket_name(
 data_bucket = s3.Bucket.from_bucket_name(
     stack, 'DataBucket', f'{NAMING_PREFIX}-data')
 
+secret_name = f'{NAMING_PREFIX}-kerberos-attributes'
 kerberos_attributes_secret = secretsmanager.Secret.from_secret_arn(
-    stack, 'KerberosAttributesSecret', f'{NAMING_PREFIX}-kerberos-attributes')
+    stack, 'KerberosAttributesSecret',
+    f'arn:{core.Aws.PARTITION}:secretsmanager:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:secret:{secret_name}')
 
 
 # A simple EMR Profile that grants proper access to the Logs and Artifacts buckets

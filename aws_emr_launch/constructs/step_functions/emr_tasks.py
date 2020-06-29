@@ -447,11 +447,19 @@ class RunJobFlowBuilder(BaseBuilder):
         check_cluster_status_lambda = emr_lambdas.CheckClusterStatusBuilder.get_or_build(construct, event_rule)
 
         if kerberos_attributes_secret:
-            kerberos_attributes_secret.grant_read(run_job_flow_lambda)
+            run_job_flow_lambda.add_to_role_policy(iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=['secretsmanager:GetSecretValue'],
+                resources=[f'{kerberos_attributes_secret.secret_arn}*']
+            ))
 
         if secret_configurations is not None:
             for secret in secret_configurations.values():
-                secret.grant_read(run_job_flow_lambda)
+                run_job_flow_lambda.add_to_role_policy(iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=['secretsmanager:GetSecretValue'],
+                    resources=[f'{secret.secret_arn}*']
+                ))
 
         return sfn.Task(
             construct, 'Start EMR Cluster (with Secrets)',
