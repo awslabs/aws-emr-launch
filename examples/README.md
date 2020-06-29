@@ -7,6 +7,8 @@ The examples require an environment with the following (the Buckets can be seper
 2. An S3 Bucket used for EMR Artifacts (Bootstrap scripts, Step scripts, etc)
 3. An S3 Bucket used for EMR Logs
 4. An S3 Bucket used for EMR input/output data
+5. A SecretsManager Secret with a Kerberos Attributes example
+6. A SecretsManager Secret with a secret Cluster Configuration example
 
 Before deploying the examples, set up the environment variables:
 ```bash
@@ -32,12 +34,13 @@ pip install -e ..
 
 Deploy examples in the following order:
 1. `control_plane`
-2. `emr_profiles`
-3. `cluster_configurations`
-4. `emr_launch_functions`
-5. `transient_cluster_pipeline`
-6. `persistent_cluster_pipeline`
-7. `sns_triggered_pipeline`
+2. `environment_stack`
+3. `emr_profiles`
+4. `cluster_configurations`
+5. `emr_launch_functions`
+6. `transient_cluster_pipeline`
+7. `persistent_cluster_pipeline`
+8. `sns_triggered_pipeline`
 
 Deploy the `control_plane` (this only needs to be done once or after updates to the `control_plane`):
 ```bash
