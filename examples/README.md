@@ -20,6 +20,9 @@ export EMR_LAUNCH_EXAMPLES_KERBEROS_ATTRIBUTES_SECRET="YOUR_SECRET_ARN"
 export EMR_LAUNCH_EXAMPLES_SECRET_CONFIGS="YOUR_OTHER_SECRET_ARN"
 ```
 
+The Lambda Layer packages are required to deploy the examples. If these haven't been installed
+see the **Development** section of the top-level README.md.
+
 Create and activate a virtualenv for the examples:
 ```bash
 cd examples/
