@@ -1,6 +1,6 @@
 # EMR Launch Examples
 
-## Deploying the examples
+## Exmaples
 The examples require an environment with the following (the Buckets can be seperate or the same):
 
 1. A VPC with at least one Private Subnet
@@ -10,19 +10,14 @@ The examples require an environment with the following (the Buckets can be seper
 5. A SecretsManager Secret with a Kerberos Attributes example
 6. A SecretsManager Secret with a secret Cluster Configuration example
 
-Before deploying the examples, set up the environment variables:
-```bash
-export EMR_LAUNCH_EXAMPLES_VPC="YOUR VPC_ID"
-export EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET="YOUR ARTIFACTS BUCKET_NAME"
-export EMR_LAUNCH_EXAMPLES_LOGS_BUCKET="YOUR LOGS BUCKET_NAME"
-export EMR_LAUNCH_EXAMPLES_DATA_BUCKET="YOUR DATA BUCKET_NAME"
-export EMR_LAUNCH_EXAMPLES_KERBEROS_ATTRIBUTES_SECRET="YOUR_SECRET_ARN"
-export EMR_LAUNCH_EXAMPLES_SECRET_CONFIGS="YOUR_OTHER_SECRET_ARN"
-```
+To get up and running quickly the `environment_stack` will deploy these into your account. The resources
+deployed by this stack are then used in the other examples.
 
+### Lambda Layer packages
 The Lambda Layer packages are required to deploy the examples. If these haven't been installed
 see the **Development** section of the top-level README.md.
 
+### Deploying the Examples
 Create and activate a virtualenv for the examples:
 ```bash
 cd examples/
@@ -35,7 +30,8 @@ Install the `aws-emr-launch` library and dependencies:
 pip install -e ..
 ```
 
-Deploy examples in the following order:
+You can use the `deploy_all.sh` script to deploy all the example projects. Or deploy manually in 
+in the following order:
 1. `control_plane`
 2. `environment_stack`
 3. `emr_profiles`
@@ -45,13 +41,25 @@ Deploy examples in the following order:
 7. `persistent_cluster_pipeline`
 8. `sns_triggered_pipeline`
 
-Deploy the `control_plane` (this only needs to be done once or after updates to the `control_plane`):
+Deployment of the `control_plane` is optional. It provides some Lambda functions you can use
+to investigate the environment.
+
+To deploy the `control_plane`:
 ```bash
 cd control_plane/
 cdk deploy
 ```
 
-Deploy an example:
+Deployment of the `environment_stack` only needs to be done once to prepare the resources used
+by the other examples.
+
+To deploy the `envronment_stack`:
 ```bash
-cd emr_profiles/
+cd environment_stack/
 cdk deploy
+```
+
+Each of the other examples is deployed in the same way:
+1. `cd` into the directory
+2. `cdk deploy` to deploy the resources
+
