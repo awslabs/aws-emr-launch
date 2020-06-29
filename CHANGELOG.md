@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.4.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- FIX: use wildcard when authorizing Secrets
 
 
 1.3.1 (2020-06-25)
