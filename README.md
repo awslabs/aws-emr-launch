@@ -21,9 +21,9 @@ An EMR Profile (`emr_profile`) is a reusable definition of the security profile 
 - __Security Configuration__: the Security Configuration used by the Cluster 
 - __Kerberos Attributes__: the attributes required to enable Kerberos authentication
 
-Each `emr_profile` requires a unique `profile_name`. This name and the `namespace` uniquiely identify a profile. The `namespace` is a logical grouping of profiles and has a default value of "default". 
+Each `emr_profile` requires a unique `profile_name`. This name and the `namespace` uniquely identify a profile. The `namespace` is a logical grouping of profiles and has a default value of "default". 
 
-Deploying an `emr_profile` creates these resources and stores the profile definition and metadata in the Parameter Store. The Profile either be used immediately in the Stack when it is defined, or reused in other Stacks by loading the Profile definition by `profile_name` and `namespace`.
+Deploying an `emr_profile` creates these resources and stores the profile definition and metadata in the Parameter Store. The Profile can either be used immediately in the Stack when it is defined, or reused in other Stacks by loading the Profile definition by `profile_name` and `namespace`.
 
 ### Cluster Configuration
 A Cluster Configuration (`cluster_configuration`) is a reusable definition of the physical resources in an EMR Cluster. This incudes:
@@ -43,7 +43,9 @@ An EMR Launch Function (`emr_launch_function`) is an AWS Step Functions State Ma
 
 To be clear, deploying an `emr_launch_function` __does not__ create an EMR Cluster, it only creates the State Machine. The cluster is created when the State Machine is executed.
 
-The `emr_launch_function` is a mechanism for easily combining the resuable `emr_profile` and `cluster_configuration`.
+The `emr_launch_function` is a mechanism for easily combining the reusable `emr_profile` and `cluster_configuration`.
+
+Like the `emr_profile` and `cluster_configuration`, each `emr_launch_function` requires a unique `launch_function_name`. This name and the `namespace` uniquely identify the launch function.
 
 ### Chains and Tasks
 Chains and Tasks are preconfigured components that simplify the use of AWS Step Function State Machines as orchestrators of data processing pipelines. These components allow the developer to easily build complex, serverless pipelines using EMR Clusters (both Transient and Persistent), Lambdas, and nested State Machines.
@@ -53,7 +55,7 @@ Care is taken to ensure that `emr_launch_functions` and `emr_profiles` can't be 
 
 - IAM policies can be used to restrict the Users and Roles that can create EMR Clusters by granting `states:StartExecution` to specific State Machine ARNs. 
 - By storing the metadata and configuration of `emr_profiles`, `cluster_configurations`, and `emr_launch_functions` in the Systems Manager Parameter Store, IAM Policies can be used to grant or restrict Read/Write access to these
-    + Access can be managed for *__ALL__* metadata and configurations, specific __nameespaces__, or individual ARNs
+    + Access can be managed for *__ALL__* metadata and configurations, specific __namespaces__, or individual ARNs
 - Each `emr_launch_function` uses a specific AWS Lambda function to load and combine its specific `emr_profile` and `cluster_configuration`. The IAM Policy associated with this Lambda allows it to read only these specific ARNs from the Parameter Store.
 - Each `emr_launch_function` is granted `iam:PassRole` to the specific EMR Roles defined in the `emr_profile` assigned to the launch function. Attempting to change the Roles used by directly modifying the metadata of the `emr_profile` in the Parameter Store will result in a cluster launch failure. 
 
@@ -83,7 +85,7 @@ To get up and running quickly:
    pip install -r requirements.txt
    ```
 
-4. Install `aws-emr-launch` package (package is currently installed from a `wheel` file):
+4. Install `aws-emr-launch` package:
    ```bash
    pip install aws-emr-launch
    ```
