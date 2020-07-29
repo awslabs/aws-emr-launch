@@ -12,18 +12,18 @@ from aws_cdk import (
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.managed_configurations import (
     instance_group_configuration,
-    instance_fleet_configuration,
-    autoscaling_configuration
 )
+
+NAMING_PREFIX = f'emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}'
 
 app = core.App()
 stack = core.Stack(app, 'ClusterConfigurationsStack', env=core.Environment(
     account=os.environ["CDK_DEFAULT_ACCOUNT"],
     region=os.environ["CDK_DEFAULT_REGION"]))
 
-vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_id=os.environ['EMR_LAUNCH_EXAMPLES_VPC'])
+vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_name='EmrLaunchExamplesEnvStack/EmrLaunchVpc')
 artifacts_bucket = s3.Bucket.from_bucket_name(
-    stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET'])
+    stack, 'ArtifactsBucket', f'{NAMING_PREFIX}-artifacts')
 
 # This prepares the project's bootstrap_source/ folder for deployment
 # We use the Artifacts bucket configured and authorized on the EMR Profile
@@ -44,9 +44,10 @@ bootstrap = emr_code.EMRBootstrapAction(
 subnet = vpc.private_subnets[0]
 
 # Load a SecretsManger Secret with secure RDS Metastore credentials
+secret_name = f'{NAMING_PREFIX}-external-metastore'
 secret = secretsmanager.Secret.from_secret_arn(
-    stack, 'Secret', os.environ['EMR_LAUNCH_EXAMPLES_SECRET_CONFIGS'])
-
+    stack, 'Secret',
+    f'arn:{core.Aws.PARTITION}:secretsmanager:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:secret:{secret_name}')
 
 
 # Create a basic Cluster Configuration using InstanceGroups, the Subnet and Bootstrap

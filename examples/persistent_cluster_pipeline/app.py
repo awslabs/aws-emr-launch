@@ -17,6 +17,8 @@ from aws_emr_launch.constructs.step_functions import (
     emr_tasks
 )
 
+NAMING_PREFIX = f'emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}'
+
 app = core.App()
 stack = core.Stack(app, 'PersistentPipelineStack', env=core.Environment(
     account=os.environ["CDK_DEFAULT_ACCOUNT"],
@@ -28,7 +30,7 @@ failure_topic = sns.Topic(stack, 'FailureTopic')
 
 # The bucket to deploy Step artifacts to
 artifacts_bucket = s3.Bucket.from_bucket_name(
-    stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET'])
+    stack, 'ArtifactsBucket', f'{NAMING_PREFIX}-artifacts')
 
 # Prepare the scripts executed by our Steps for deployment
 # This uses the Artifacts bucket defined in Cluster Configuration used by our

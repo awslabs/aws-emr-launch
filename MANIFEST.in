@@ -1,6 +1,7 @@
 include VERSION
-include LICENSE
+include LICENSE*
 include THIRD_PARTY
+include NOTICE
 include *.md
 include *.txt
 include *.in

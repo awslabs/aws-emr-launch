@@ -13,7 +13,7 @@ setuptools.setup(
     description='AWS EMR Launch modules',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    keywords=['aws'],
+    keywords=['aws', 'cdk'],
 
     author='Chauncy McCaughey',
     author_email='chamcca@amazon.com',

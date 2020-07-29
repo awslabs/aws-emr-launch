@@ -37,6 +37,8 @@ def create_build_spec(project_dir: str) -> codebuild.BuildSpec:
                     'python3 -m venv /root/venv',
                     '. /root/venv/bin/activate',
                     'pip install -r requirements.txt',
+                    'pip install -r requirements-lambda-layer.txt --target='
+                    'aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/',
                     'pip install -e .'
                 ]
             },

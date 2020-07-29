@@ -12,22 +12,26 @@ from aws_cdk import (
 
 from aws_emr_launch.constructs.emr_constructs import emr_profile
 
+NAMING_PREFIX = f'emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}'
+
 app = core.App()
 stack = core.Stack(app, 'EmrProfilesStack', env=core.Environment(
     account=os.environ["CDK_DEFAULT_ACCOUNT"],
     region=os.environ["CDK_DEFAULT_REGION"]))
 
 # Load some preexisting resources from my environment
-vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_id=os.environ['EMR_LAUNCH_EXAMPLES_VPC'])
+vpc = ec2.Vpc.from_lookup(stack, 'Vpc', vpc_name='EmrLaunchExamplesEnvStack/EmrLaunchVpc')
 artifacts_bucket = s3.Bucket.from_bucket_name(
-    stack, 'ArtifactsBucket', os.environ['EMR_LAUNCH_EXAMPLES_ARTIFACTS_BUCKET'])
+    stack, 'ArtifactsBucket', f'{NAMING_PREFIX}-artifacts')
 logs_bucket = s3.Bucket.from_bucket_name(
-    stack, 'LogsBucket', os.environ['EMR_LAUNCH_EXAMPLES_LOGS_BUCKET'])
+    stack, 'LogsBucket', f'{NAMING_PREFIX}-logs')
 data_bucket = s3.Bucket.from_bucket_name(
-    stack, 'DataBucket', os.environ['EMR_LAUNCH_EXAMPLES_DATA_BUCKET'])
+    stack, 'DataBucket', f'{NAMING_PREFIX}-data')
 
+secret_name = f'{NAMING_PREFIX}-kerberos-attributes'
 kerberos_attributes_secret = secretsmanager.Secret.from_secret_arn(
-    stack, 'KerberosAttributesSecret', os.environ['EMR_LAUNCH_EXAMPLES_KERBEROS_ATTRIBUTES_SECRET'])
+    stack, 'KerberosAttributesSecret',
+    f'arn:{core.Aws.PARTITION}:secretsmanager:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:secret:{secret_name}')
 
 
 # A simple EMR Profile that grants proper access to the Logs and Artifacts buckets

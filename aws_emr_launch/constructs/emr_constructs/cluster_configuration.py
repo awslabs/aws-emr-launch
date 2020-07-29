@@ -1,3 +1,5 @@
+import base64
+import hashlib
 import json
 import os
 from enum import Enum
@@ -232,9 +234,15 @@ class ClusterConfiguration(BaseConstruct):
             'Path': os.path.join(code.deployment_prefix, '*')
         })
 
-        # We use a nested Construct to avoid Constuct id collisions
-        # First attempt to find a previous Construct with this id
-        construct_id = os.path.join(code.deployment_bucket.bucket_name, code.deployment_prefix)
+        # We use a nested Construct to avoid Construct id collisions
+        # First generate an ID for the Construct from bucket_name and deployment_prefix
+        # We use a Hash to avoid potential problems with Tokens in the bucket_name
+        hasher = hashlib.md5()
+        hasher.update(os.path.join(code.deployment_bucket.bucket_name, code.deployment_prefix).encode('utf-8'))
+        token = base64.urlsafe_b64encode(hasher.digest()).decode()
+        construct_id = f'EmrCode_SparkJar_{token}'
+
+        # Then attempt to find a previous Construct with this id
         construct = self.node.try_find_child(construct_id)
         # If we didn't find a previous Construct, construct a new one
         construct = core.Construct(self, construct_id) if construct is None else construct
