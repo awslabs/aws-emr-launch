@@ -4,6 +4,12 @@ Changelog for emr-launch
 1.4.0 (unreleased)
 ------------------
 
+- Nothing changed yet.
+
+
+1.3.2 (2020-07-29)
+------------------
+
 - FIX: use hash for SparkJars Construct id
 
 - FIX: use wildcard when authorizing Secrets

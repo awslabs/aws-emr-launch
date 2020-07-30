@@ -104,7 +104,7 @@ def test_disabling_glue_metastore():
 def test_bootstrap_action_config():
     bucket = s3.Bucket(stack, 'test-bucket')
     bootstrap_code = emr_code.Code.from_path(
-        path='./docs',
+        path='./examples',
         deployment_bucket=bucket,
         deployment_prefix='prefix')
     bootstrap_action = emr_code.EMRBootstrapAction(
