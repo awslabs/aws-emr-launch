@@ -278,7 +278,7 @@ class EMRLaunchFunction(BaseConstruct):
         return self._override_cluster_configs_lambda
 
     @property
-    def allowed_cluster_config_overrides(self) -> Dict[str, str]:
+    def allowed_cluster_config_overrides(self) -> Optional[Dict[str, Dict[str, str]]]:
         return self._allowed_cluster_config_overrides
 
     @property
