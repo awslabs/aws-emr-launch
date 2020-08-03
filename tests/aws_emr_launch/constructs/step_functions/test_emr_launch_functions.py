@@ -1,4 +1,5 @@
 from aws_cdk import aws_ec2 as ec2
+from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_sns as sns
 from aws_cdk import core
 
@@ -52,6 +53,42 @@ def test_emr_launch_function():
         vpc=vpc)
     configuration = cluster_configuration.ClusterConfiguration(
         stack, 'test-configuration', configuration_name='test-configuration')
+
+    function = emr_launch_function.EMRLaunchFunction(
+        stack, 'test-function',
+        launch_function_name='test-function',
+        emr_profile=profile,
+        cluster_configuration=configuration,
+        cluster_name='test-cluster',
+        success_topic=success_topic,
+        failure_topic=failure_topic,
+        allowed_cluster_config_overrides=configuration.override_interfaces['default'],
+        wait_for_cluster_start=False
+    )
+
+    resolved_function = stack.resolve(function.to_json())
+    print(default_function)
+    print(resolved_function)
+    assert default_function == resolved_function
+
+
+def test_emr_secure_launch_function():
+    app = core.App()
+    stack = core.Stack(app, 'test-stack')
+    vpc = ec2.Vpc(stack, 'Vpc')
+    success_topic = sns.Topic(stack, 'SuccessTopic')
+    failure_topic = sns.Topic(stack, 'FailureTopic')
+
+    profile = emr_profile.EMRProfile(
+        stack, 'test-profile',
+        profile_name='test-profile',
+        vpc=vpc,)
+    configuration = cluster_configuration.ClusterConfiguration(
+        stack, 'test-configuration',
+        configuration_name='test-configuration',
+        secret_configurations={
+            'SecretConfiguration': secretsmanager.Secret(stack, 'Secret')
+        })
 
     function = emr_launch_function.EMRLaunchFunction(
         stack, 'test-function',
