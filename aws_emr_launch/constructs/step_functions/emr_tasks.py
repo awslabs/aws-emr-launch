@@ -468,14 +468,14 @@ class RunJobFlowBuilder(BaseBuilder):
             task=sfn_tasks.RunLambdaTask(
                 run_job_flow_lambda,
                 integration_pattern=sfn.ServiceIntegrationPattern.WAIT_FOR_TASK_TOKEN,
-                payload={
+                payload=sfn.TaskInput.from_object({
                     'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
                     'ClusterConfiguration': sfn.TaskInput.from_data_at(cluster_configuration_path).value,
                     'TaskToken': sfn.Context.task_token,
                     'CheckStatusLambda': check_cluster_status_lambda.function_arn,
                     'RuleName': event_rule.rule_name,
                     'FireAndForget': not wait_for_cluster_start
-                })
+                }))
         )
 
 
