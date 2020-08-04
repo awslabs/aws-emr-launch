@@ -2,7 +2,7 @@
 The intent of the EMR Launch library is to simplify the development experience for Builders defining, deploying, managing, and using EMR Clusters by:
 
 - defining reusable Security, Resource, and Launch Configurations enabling developers to __Define Once and Reuse__ 
-- separating the reusable definition of Cluster Security Configuration and Cluster Resource Configuration enabling these to be manage by the proper responsible parties
+- separating the definition of Cluster Security Configurations and Cluster Resource Configurations into reusable and shareable Constructs 
 - providing a suite of Tools to simplify the construction of Orchestration Pipelines using Step Functions and EMR Clusters
 
 
@@ -63,7 +63,7 @@ Care is taken to ensure that `emr_launch_functions` and `emr_profiles` can't be 
 ## Usage
 This library acts as a plugin to the [AWS CDK](https://aws.amazon.com/cdk/) providing additional L2 Constructs. 
 To avoid circular references with CDK dependencies this package will not install CDK and Boto3. These should be 
-installed manually from `requirements.txt`.
+installed manually from one of the `requirements.txt` files (depending on the version of `aws-emr-launch`).
 
 It is recommended that a Python3 `venv` be used for all CDK builds and deployments.
 
