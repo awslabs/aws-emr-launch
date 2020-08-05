@@ -5,14 +5,13 @@ phases:
       python: 3.7
       nodejs: 12
     commands:
+      - npm install -g aws-cdk
       - python3 -m venv .venv
       - . .venv/bin/activate
       - pip install -r requirements-dev.txt
       - pip install -r requirements-1.4.x.txt
       - pip install -r requirements-lambda-layer.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/
       - pip install -e .
-      - cd ${PROJECT_DIR}
-      - npm install aws-cdk
   pre_build:
     commands:
       - . .venv/bin/activate
@@ -21,7 +20,7 @@ phases:
     commands:
       - . .venv/bin/activate
       - cd ${PROJECT_DIR}
-      - $(npm bin)/cdk --verbose --require-approval never deploy -a ./${STACK_FILE} "*"
+      - cdk --verbose --require-approval never deploy -a ./${STACK_FILE} "*"
 artifacts:
   files:
     - dist/**/*
