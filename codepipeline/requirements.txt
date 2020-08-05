@@ -1,5 +1,5 @@
-aws-cdk.core>=1.29.0,<1.36.0
-aws-cdk-aws.codecommit>=1.29.0,<1.36.0
-aws-cdk-aws.codepipeline>=1.29.0,<1.36.0
-aws-cdk-aws.codepipeline_actions>=1.29.0,<1.36.0
-aws-cdk-aws.codedeploy>=1.29.0,<1.36.0
+aws-cdk.core
+aws-cdk-aws.codecommit
+aws-cdk-aws.codepipeline
+aws-cdk-aws.codepipeline_actions
+aws-cdk-aws.codedeploy

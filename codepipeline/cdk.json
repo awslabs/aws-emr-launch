@@ -1,0 +1,17 @@
+{
+    "context": {
+        "examples-pipeline": {
+            "deployment-secret": "aws-emr-launch-deployment-secrets",
+            "github-owner-key": "GitHubOwner",
+            "github-oauth-token-key": "GitHubOAuthToken",
+            "github-branch": "feature/update-pipelines"
+        },
+        "release-pipeline": {
+            "deployment-secret": "aws-emr-launch-deployment-secrets",
+            "github-owner-key": "GitHubOwner",
+            "github-oauth-token-key": "GitHubOAuthToken",
+            "pypi-api-key-key": "PyPiApiKey",
+            "github-branch": "release"
+        }
+    }
+}

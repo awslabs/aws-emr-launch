@@ -134,5 +134,4 @@ cdk.out
 cdk.context.json
 
 examples/environment_vars.sh
-codepipeline/cdk.json
 aws_emr_launch/lambda_sources/layers/

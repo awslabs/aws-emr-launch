@@ -1,9 +1,4 @@
 version: 0.2
-env:
-  variables:
-    TWINE_USERNAME: __token__
-  secrets-manager:
-    TWINE_PASSWORD: emr-launch-pypi-api-key:api-key
 phases:
   install:
     runtime-versions:
@@ -12,7 +7,6 @@ phases:
     commands:
       - python3 -m venv .venv
       - . .venv/bin/activate
-      - pip install -r requirements-dev.txt
       - pip install -r requirements.txt
       - pip install -r requirements-lambda-layer.txt --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/
       - pip install -e .
@@ -23,8 +17,8 @@ phases:
   build:
     commands:
       - . .venv/bin/activate
-      - python setup.py bdist_wheel
-      - twine upload dist/*
+      - cd ${PROJECT_DIR}
+      - $(npm bin)/cdk --verbose --require-approval never deploy -a ./${STACK_FILE} "*"
 artifacts:
   files:
     - dist/**/*
