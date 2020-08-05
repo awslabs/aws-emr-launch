@@ -1,0 +1,17 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+      nodejs: 12
+    commands:
+      - npm install -g aws-cdk
+      - python3 -m venv .venv
+      - . .venv/bin/activate
+      - cd ${PROJECT_DIR}
+      - pip install -r requirements.txt
+  build:
+    commands:
+      - . .venv/bin/activate
+      - cd ${PROJECT_DIR}
+      - cdk --verbose --require-approval never deploy -a ./${STACK_FILE} "*"

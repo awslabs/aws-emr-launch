@@ -21,7 +21,3 @@ phases:
       - . .venv/bin/activate
       - cd ${PROJECT_DIR}
       - cdk --verbose --require-approval never deploy -a ./${STACK_FILE} "*"
-artifacts:
-  files:
-    - dist/**/*
-  discard-paths: yes
