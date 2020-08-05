@@ -19,7 +19,7 @@ stack = core.Stack(
         account=os.environ["CDK_DEFAULT_ACCOUNT"],
         region=os.environ["CDK_DEFAULT_REGION"]))
 
-artifacts_bucket = s3.Bucket.from_bucket_name(stack, 'ArtifactsBucket')
+artifacts_bucket = s3.Bucket(stack, 'ArtifactsBucket')
 
 source_output = codepipeline.Artifact('SourceOutput')
 
