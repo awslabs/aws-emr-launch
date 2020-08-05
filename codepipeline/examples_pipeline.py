@@ -9,7 +9,6 @@ from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3 as s3
 from aws_cdk import core
 
-
 app = core.App()
 
 pipeline_params = app.node.try_get_context('examples-pipeline')
