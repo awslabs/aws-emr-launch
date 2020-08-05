@@ -53,7 +53,8 @@ pipeline = codepipeline.Pipeline(
                 action_name='Self_Deploy',
                 project=codebuild.PipelineProject(
                     stack, 'CodePipelineBuild',
-                    build_spec=codebuild.BuildSpec.from_source_filename('codepipeline/examples-pipeline-buildspec.yaml'),
+                    build_spec=codebuild.BuildSpec.from_source_filename(
+                        'codepipeline/examples-pipeline-buildspec.yaml'),
                     role=code_build_role,
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
@@ -71,7 +72,8 @@ pipeline = codepipeline.Pipeline(
                 action_name='Environment_Deploy',
                 project=codebuild.PipelineProject(
                     stack, 'EnvironmentBuild',
-                    build_spec=codebuild.BuildSpec.from_source_filename('codepipeline/examples-projects-buildspec.yaml'),
+                    build_spec=codebuild.BuildSpec.from_source_filename(
+                        'codepipeline/examples-projects-buildspec.yaml'),
                     role=code_build_role,
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
@@ -89,7 +91,8 @@ pipeline = codepipeline.Pipeline(
                action_name='ControlPlane_Deploy',
                project=codebuild.PipelineProject(
                    stack, 'ControlPlaneBuild',
-                   build_spec=codebuild.BuildSpec.from_source_filename('codepipeline/examples-projects-buildspec.yaml'),
+                   build_spec=codebuild.BuildSpec.from_source_filename(
+                       'codepipeline/examples-projects-buildspec.yaml'),
                    role=code_build_role,
                    environment=codebuild.BuildEnvironment(
                        build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
@@ -107,7 +110,8 @@ pipeline = codepipeline.Pipeline(
                 action_name='EMRProfiles_Deploy',
                 project=codebuild.PipelineProject(
                     stack, 'EMRProfilesBuild',
-                    build_spec=codebuild.BuildSpec.from_source_filename('codepipeline/examples-projects-buildspec.yaml'),
+                    build_spec=codebuild.BuildSpec.from_source_filename(
+                        'codepipeline/examples-projects-buildspec.yaml'),
                     role=code_build_role,
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
@@ -123,7 +127,8 @@ pipeline = codepipeline.Pipeline(
                 action_name='ClusterConfigurations_Deploy',
                 project=codebuild.PipelineProject(
                     stack, 'ClusterConfigurationsBuild',
-                    build_spec=codebuild.BuildSpec.from_source_filename('codepipeline/examples-projects-buildspec.yaml'),
+                    build_spec=codebuild.BuildSpec.from_source_filename(
+                        'codepipeline/examples-projects-buildspec.yaml'),
                     role=code_build_role,
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
@@ -141,7 +146,8 @@ pipeline = codepipeline.Pipeline(
                 action_name='EMRLaunchFunction_Deploy',
                 project=codebuild.PipelineProject(
                     stack, 'EMRLaunchFunctionBuild',
-                    build_spec=codebuild.BuildSpec.from_source_filename('codepipeline/examples-projects-buildspec.yaml'),
+                    build_spec=codebuild.BuildSpec.from_source_filename(
+                        'codepipeline/examples-projects-buildspec.yaml'),
                     role=code_build_role,
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
@@ -159,7 +165,8 @@ pipeline = codepipeline.Pipeline(
                 action_name='TransientClusterPipeline_Deploy',
                 project=codebuild.PipelineProject(
                     stack, 'TransientClusterPipelineBuild',
-                    build_spec=codebuild.BuildSpec.from_source_filename('codepipeline/examples-projects-buildspec.yaml'),
+                    build_spec=codebuild.BuildSpec.from_source_filename(
+                        'codepipeline/examples-projects-buildspec.yaml'),
                     role=code_build_role,
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
@@ -176,7 +183,8 @@ pipeline = codepipeline.Pipeline(
                 action_name='PersistentClusterPipeline_Deploy',
                 project=codebuild.PipelineProject(
                     stack, 'PersistentClusterPipelineBuild',
-                    build_spec=codebuild.BuildSpec.from_source_filename('codepipeline/examples-projects-buildspec.yaml'),
+                    build_spec=codebuild.BuildSpec.from_source_filename(
+                        'codepipeline/examples-projects-buildspec.yaml'),
                     role=code_build_role,
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
@@ -193,7 +201,8 @@ pipeline = codepipeline.Pipeline(
                 action_name='SNSTriggeredPipeline_Deploy',
                 project=codebuild.PipelineProject(
                     stack, 'SNSTriggeredPipelineBuild',
-                    build_spec=codebuild.BuildSpec.from_source_filename('codepipeline/examples-projects-buildspec.yaml'),
+                    build_spec=codebuild.BuildSpec.from_source_filename(
+                        'codepipeline/examples-projects-buildspec.yaml'),
                     role=code_build_role,
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
