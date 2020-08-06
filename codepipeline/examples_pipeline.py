@@ -152,7 +152,7 @@ pipeline = codepipeline.Pipeline(
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
                         environment_variables={
-                            'PROJECT_DIR': codebuild.BuildEnvironmentVariable(value='examples/emr_launch_functions'),
+                            'PROJECT_DIR': codebuild.BuildEnvironmentVariable(value='examples/emr_launch_function'),
                             'STACK_FILE': codebuild.BuildEnvironmentVariable(value='app.py')
                         }
                     )
