@@ -5,6 +5,7 @@ import os
 from aws_cdk import aws_codebuild as codebuild
 from aws_cdk import aws_codepipeline as codepipeline
 from aws_cdk import aws_codepipeline_actions as codepipeline_actions
+from aws_cdk import aws_codestarnotifications as notifications
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3 as s3
 from aws_cdk import core
@@ -216,5 +217,20 @@ pipeline = codepipeline.Pipeline(
             )
         ]),
     ])
+
+notification_rule = notifications.CfnNotificationRule(
+    stack, 'CodePipelineNotifications',
+    detail_type='FULL',
+    event_type_ids=[
+        'codepipeline-pipeline-pipeline-execution-failed',
+        'codepipeline-pipeline-pipeline-execution-canceled',
+        'codepipeline-pipeline-pipeline-execution-succeeded'
+    ],
+    name='aws-emr-launch-codepipeline-notifications',
+    resource=pipeline.pipeline_arn,
+    targets=core.SecretValue.secrets_manager(
+        secret_id=pipeline_params['aws-emr-launch-deployment-secrets'],
+        json_field=pipeline_params['slack-chatbot-key']),
+)
 
 app.synth()

@@ -4,7 +4,8 @@
             "deployment-secret": "aws-emr-launch-deployment-secrets",
             "github-owner": "awslabs",
             "github-branch": "feature/update-pipelines",
-            "github-oauth-token-key": "GitHubOAuthToken"
+            "github-oauth-token-key": "GitHubOAuthToken",
+            "slack-chatbot-key": "SlackChatbot"
         },
         "release-pipeline": {
             "deployment-secret": "aws-emr-launch-deployment-secrets",
