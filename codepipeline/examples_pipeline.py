@@ -10,6 +10,7 @@ from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3 as s3
 from aws_cdk import core
 
+
 app = core.App()
 
 pipeline_params = app.node.try_get_context('examples-pipeline')
@@ -228,9 +229,13 @@ notification_rule = notifications.CfnNotificationRule(
     ],
     name='aws-emr-launch-codepipeline-notifications',
     resource=pipeline.pipeline_arn,
-    targets=[core.SecretValue.secrets_manager(
-        secret_id=pipeline_params['deployment-secret'],
-        json_field=pipeline_params['slack-chatbot-key'])],
+    targets=[
+        notifications.CfnNotificationRule.TargetProperty(
+            target_address=core.Token.as_string(core.SecretValue.secrets_manager(
+                secret_id=pipeline_params['deployment-secret'],
+                json_field=pipeline_params['slack-chatbot-key'])),
+            target_type='AWSChatbotSlack')
+    ],
 )
 
 app.synth()
