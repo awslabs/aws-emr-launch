@@ -228,9 +228,9 @@ notification_rule = notifications.CfnNotificationRule(
     ],
     name='aws-emr-launch-codepipeline-notifications',
     resource=pipeline.pipeline_arn,
-    targets=core.SecretValue.secrets_manager(
-        secret_id=pipeline_params['aws-emr-launch-deployment-secrets'],
-        json_field=pipeline_params['slack-chatbot-key']),
+    targets=[core.SecretValue.secrets_manager(
+        secret_id=pipeline_params['deployment-secret'],
+        json_field=pipeline_params['slack-chatbot-key'])],
 )
 
 app.synth()
