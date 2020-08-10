@@ -24,7 +24,9 @@ phases:
     commands:
       - . .venv/bin/activate
       - python setup.py bdist_wheel
-      - twine upload dist/*
+#  post_build:
+#    commands:
+#      - twine upload dist/*
 artifacts:
   files:
     - dist/**/*

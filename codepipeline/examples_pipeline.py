@@ -13,6 +13,7 @@ from aws_cdk import core
 app = core.App()
 
 pipeline_params = app.node.try_get_context('examples-pipeline')
+deployment_secret = pipeline_params['deployment-secret']
 
 stack = core.Stack(
     app, 'EMRLaunchExamplesDeploymentPipeline', env=core.Environment(
@@ -44,8 +45,8 @@ pipeline = codepipeline.Pipeline(
                 branch=pipeline_params['github-branch'],
                 owner=pipeline_params['github-owner'],
                 oauth_token=core.SecretValue.secrets_manager(
-                    secret_id=pipeline_params['deployment-secret'],
-                    json_field=pipeline_params['github-oauth-token-key']),
+                    secret_id=deployment_secret['secret-id'],
+                    json_field=deployment_secret['json-fields']['github-oauth-token']),
                 trigger=codepipeline_actions.GitHubTrigger.WEBHOOK,
                 output=source_output,
             )]),
@@ -231,8 +232,8 @@ notification_rule = notifications.CfnNotificationRule(
     targets=[
         notifications.CfnNotificationRule.TargetProperty(
             target_address=core.Token.as_string(core.SecretValue.secrets_manager(
-                secret_id=pipeline_params['deployment-secret'],
-                json_field=pipeline_params['slack-chatbot-key'])),
+                secret_id=deployment_secret['secret-id'],
+                json_field=deployment_secret['json-fields']['slack-chatbot'])),
             target_type='AWSChatbotSlack')
     ],
 )

@@ -1,18 +1,29 @@
 {
     "context": {
         "examples-pipeline": {
-            "deployment-secret": "aws-emr-launch-deployment-secrets",
+            "deployment-secret": {
+                "secret-id": "aws-emr-launch-deployment-secrets",
+                "json-fields": {
+                    "github-oauth-token": "GitHubOAuthToken",
+                    "slack-chatbot": "SlackChatbot"
+                }
+            },
             "github-owner": "awslabs",
-            "github-branch": "feature/update-pipelines",
-            "github-oauth-token-key": "GitHubOAuthToken",
-            "slack-chatbot-key": "SlackChatbot"
+            "github-branch": "feature/update-pipelines"
         },
         "release-pipeline": {
-            "deployment-secret": "aws-emr-launch-deployment-secrets",
+            "deployment-secret": {
+                "secret-id": "aws-emr-launch-deployment-secrets",
+                "json-fields": {
+                    "github-oauth-token": "GitHubOAuthToken",
+                    "slack-chatbot": "SlackChatbot",
+                    "pypi-api-key": "PyPiApiKey",
+                    "deployment-bucket": "DeploymentBucket",
+                    "deployment-path": "DeploymentPath"
+                }
+            },
             "github-owner": "awslabs",
-            "github-branch": "release",
-            "github-oauth-token-key": "GitHubOAuthToken",
-            "pypi-api-key-key": "PyPiApiKey"
+            "github-branch": "feature/update-pipelines"
         }
     }
 }
