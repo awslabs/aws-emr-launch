@@ -65,7 +65,7 @@ pipeline = codepipeline.Pipeline(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
                         environment_variables={
                             'PROJECT_DIR': codebuild.BuildEnvironmentVariable(value='codepipeline'),
-                            'STACK_FILE': codebuild.BuildEnvironmentVariable(value='examples_pipeline.py')
+                            'STACK_FILE': codebuild.BuildEnvironmentVariable(value='release_pipeline.py')
                         }
                     )
                 ),
