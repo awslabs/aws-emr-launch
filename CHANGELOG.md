@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.4.0 (unreleased)
 ------------------
 
+- NEW: requirements.txt for specific versions
+
 - FIX: cdk compatibility >= 1.36.0
 
 
