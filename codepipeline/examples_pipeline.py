@@ -36,7 +36,7 @@ code_build_role = iam.Role(
 
 pipeline = codepipeline.Pipeline(
     stack, 'CodePipeline',
-    pipeline_name='EMR Launch Examples',
+    pipeline_name='EMR_Launch_Examples',
     restart_execution_on_update=True,
     artifact_bucket=artifacts_bucket, stages=[
         codepipeline.StageProps(stage_name='Source', actions=[
