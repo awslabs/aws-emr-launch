@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.4.0 (unreleased)
+1.4.0 (2020-08-12)
 ------------------
 
 - NEW: requirements.txt for specific versions
