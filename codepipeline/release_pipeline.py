@@ -62,7 +62,7 @@ pipeline = codepipeline.Pipeline(
                 project=codebuild.PipelineProject(
                     stack, 'CodePipelineBuild',
                     build_spec=codebuild.BuildSpec.from_source_filename(
-                        'codepipeline/examples-pipeline-buildspec.yaml'),
+                        'codepipeline/pipelines-buildspec.yaml'),
                     role=code_build_role,
                     environment=codebuild.BuildEnvironment(
                         build_image=codebuild.LinuxBuildImage.STANDARD_4_0,
