@@ -22,7 +22,9 @@ stack = core.Stack(
 
 artifacts_bucket = s3.Bucket(stack, 'ArtifactsBucket')
 deployment_bucket = s3.Bucket.from_bucket_name(
-    stack, 'DeploymentBucket', deployment_secret['json-fields']['deployment-bucket'])
+    stack, 'DeploymentBucket', core.Token.as_string(core.SecretValue.secrets_manager(
+        secret_id=deployment_secret['secret-id'],
+        json_field=deployment_secret['json-fields']['deployment-bucket'])))
 
 source_output = codepipeline.Artifact('SourceOutput')
 release_output = codepipeline.Artifact('ReleaseOutput')
@@ -93,7 +95,9 @@ pipeline = codepipeline.Pipeline(
                 action_name='S3_Deployment',
                 bucket=deployment_bucket,
                 input=release_output,
-                object_key=deployment_secret['json-fields']['deployment-path'],
+                object_key=core.Token.as_string(core.SecretValue.secrets_manager(
+                    secret_id=deployment_secret['secret-id'],
+                    json_field=deployment_secret['json-fields']['deployment-path'])),
             )
         ]),
     ])
