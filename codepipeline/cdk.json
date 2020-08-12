@@ -9,7 +9,7 @@
                 }
             },
             "github-owner": "awslabs",
-            "github-branch": "feature/update-pipelines"
+            "github-branch": "master"
         },
         "release-pipeline": {
             "deployment-secret": {
@@ -23,7 +23,7 @@
                 }
             },
             "github-owner": "awslabs",
-            "github-branch": "feature/update-pipelines"
+            "github-branch": "release"
         }
     }
 }
