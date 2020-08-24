@@ -113,6 +113,7 @@ def test_emr_create_cluster_task():
             'JobFlowRole.$': '$.ClusterConfiguration.Cluster.JobFlowRole',
             'KerberosAttributes.$': '$.ClusterConfiguration.Cluster.KerberosAttributes',
             'LogUri.$': '$.ClusterConfiguration.Cluster.LogUri',
+            'ManagedScalingPolicy.$': '$.ClusterConfiguration.Cluster.ManagedScalingPolicy',
             'Name.$': '$.ClusterConfiguration.Cluster.Name',
             'NewSupportedProducts.$': '$.ClusterConfiguration.Cluster.NewSupportedProducts',
             'ReleaseLabel.$': '$.ClusterConfiguration.Cluster.ReleaseLabel',
@@ -123,8 +124,7 @@ def test_emr_create_cluster_task():
             'StepConcurrencyLevel.$': '$.ClusterConfiguration.Cluster.StepConcurrencyLevel',
             'SupportedProducts.$': '$.ClusterConfiguration.Cluster.SupportedProducts',
             'Tags.$': '$.ClusterConfiguration.Cluster.Tags',
-            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers',
-            'ManagedScalingPolicy.$': '$.ClusterConfiguration.Cluster.ManagedScalingPolicy'
+            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers'
         },
         'Resource':
             {'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::elasticmapreduce:createCluster.sync']]
@@ -306,6 +306,7 @@ def test_create_cluster_builder():
             'JobFlowRole.$': '$.ClusterConfiguration.Cluster.JobFlowRole',
             'KerberosAttributes.$': '$.ClusterConfiguration.Cluster.KerberosAttributes',
             'LogUri.$': '$.ClusterConfiguration.Cluster.LogUri',
+            'ManagedScalingPolicy.$': '$.ClusterConfiguration.Cluster.ManagedScalingPolicy',
             'Name.$': '$.ClusterConfiguration.Cluster.Name',
             'NewSupportedProducts.$': '$.ClusterConfiguration.Cluster.NewSupportedProducts',
             'ReleaseLabel.$': '$.ClusterConfiguration.Cluster.ReleaseLabel',
@@ -316,8 +317,7 @@ def test_create_cluster_builder():
             'StepConcurrencyLevel.$': '$.ClusterConfiguration.Cluster.StepConcurrencyLevel',
             'SupportedProducts.$': '$.ClusterConfiguration.Cluster.SupportedProducts',
             'Tags.$': '$.ClusterConfiguration.Cluster.Tags',
-            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers',
-            'ManagedScalingPolicy.$': '$.ClusterConfiguration.Cluster.ManagedScalingPolicy'
+            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers'
         },
         'Type': 'Task',
         'Resource':
