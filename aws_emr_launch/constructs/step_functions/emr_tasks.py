@@ -223,6 +223,8 @@ class EmrCreateClusterTask(BaseTask):
                     f'{self._cluster_configuration_path}.Tags').value,
                 'VisibleToAllUsers': sfn.TaskInput.from_data_at(
                     f'{self._cluster_configuration_path}.VisibleToAllUsers').value,
+                'ManagedScalingPolicy': sfn.TaskInput.from_data_at(
+                    f'{self._cluster_configuration_path}.ManagedScalingPolicy').value,
             },
             policy_statements=self._create_policy_statements(task)
         )

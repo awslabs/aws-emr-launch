@@ -108,6 +108,7 @@ class ClusterConfiguration(BaseConstruct):
             'SupportedProducts': None,
             'Tags': [],
             'VisibleToAllUsers': True,
+            'ManagedScalingPolicy': None,
         }
 
         self._configuration_artifacts = []

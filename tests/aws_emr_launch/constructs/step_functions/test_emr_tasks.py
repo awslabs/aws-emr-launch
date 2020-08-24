@@ -123,7 +123,8 @@ def test_emr_create_cluster_task():
             'StepConcurrencyLevel.$': '$.ClusterConfiguration.Cluster.StepConcurrencyLevel',
             'SupportedProducts.$': '$.ClusterConfiguration.Cluster.SupportedProducts',
             'Tags.$': '$.ClusterConfiguration.Cluster.Tags',
-            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers'
+            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers',
+            'ManagedScalingPolicy.$': '$.ClusterConfiguration.Cluster.ManagedScalingPolicy'
         },
         'Resource':
             {'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::elasticmapreduce:createCluster.sync']]
@@ -315,7 +316,8 @@ def test_create_cluster_builder():
             'StepConcurrencyLevel.$': '$.ClusterConfiguration.Cluster.StepConcurrencyLevel',
             'SupportedProducts.$': '$.ClusterConfiguration.Cluster.SupportedProducts',
             'Tags.$': '$.ClusterConfiguration.Cluster.Tags',
-            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers'
+            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers',
+            'ManagedScalingPolicy.$': '$.ClusterConfiguration.Cluster.ManagedScalingPolicy'
         },
         'Type': 'Task',
         'Resource':
