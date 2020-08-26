@@ -117,6 +117,10 @@ def handler(event, context):
             emr_profile['SecurityGroups'].get('ServiceGroup', None)
         cluster_configuration['SecurityConfiguration'] = emr_profile.get('SecurityConfiguration', None)
 
+        # Set a default for new Parameters added to the RunJobFlow API that may
+        # not be stored on existing ClusterConfigurations
+        cluster_configuration['ManagedScalingPolicy'] = cluster_configuration.get('ManagedScalingPolicy', None)
+
         cluster = {
             'Cluster': cluster_configuration,
             'SecretConfigurations': secret_configurations,
