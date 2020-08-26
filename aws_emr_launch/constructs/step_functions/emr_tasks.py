@@ -201,6 +201,8 @@ class EmrCreateClusterTask(BaseTask):
                     f'{self._cluster_configuration_path}.KerberosAttributes').value,
                 'LogUri': sfn.TaskInput.from_data_at(
                     f'{self._cluster_configuration_path}.LogUri').value,
+                'ManagedScalingPolicy': sfn.TaskInput.from_data_at(
+                    f'{self._cluster_configuration_path}.ManagedScalingPolicy').value,
                 'Name': sfn.TaskInput.from_data_at(
                     f'{self._cluster_configuration_path}.Name').value,
                 'NewSupportedProducts': sfn.TaskInput.from_data_at(

@@ -97,6 +97,7 @@ class ClusterConfiguration(BaseConstruct):
             'JobFlowRole': None,
             'KerberosAttributes': None,
             'LogUri': None,
+            'ManagedScalingPolicy': None,
             'Name': configuration_name,
             'NewSupportedProducts': None,
             'ReleaseLabel': release_label,
