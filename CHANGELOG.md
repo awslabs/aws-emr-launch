@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.4.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- NEW: Added support for ManagedScalingPolicy cluster parameter (thanks to mbadwalgithub)
 
 
 1.4.0 (2020-08-12)
