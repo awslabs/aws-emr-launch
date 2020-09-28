@@ -1,7 +1,5 @@
-import typing
 from typing import Any, Dict, List, Mapping, Optional
 
-import jsii
 from aws_cdk import aws_events as events
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda
@@ -38,7 +36,7 @@ class StartExecutionTask(BaseTask):
                  comment: Optional[str] = None,
                  heartbeat: Optional[core.Duration] = None,
                  input_path: Optional[str] = None,
-                 integration_pattern: Optional[sfn.IntegrationPattern] = None,
+                 integration_pattern: Optional[sfn.IntegrationPattern] = sfn.IntegrationPattern.RUN_JOB,
                  output_path: Optional[str] = None,
                  result_path: Optional[str] = None,
                  timeout: Optional[core.Duration] = None,
@@ -120,7 +118,7 @@ class EmrCreateClusterTask(BaseTask):
                  comment: Optional[str] = None,
                  heartbeat: Optional[core.Duration] = None,
                  input_path: Optional[str] = None,
-                 integration_pattern: Optional[sfn.IntegrationPattern] = None,
+                 integration_pattern: Optional[sfn.IntegrationPattern] = sfn.IntegrationPattern.RUN_JOB,
                  output_path: Optional[str] = None,
                  result_path: Optional[str] = None,
                  timeout: Optional[core.Duration] = None,
@@ -281,7 +279,7 @@ class EmrAddStepTask(BaseTask):
                  comment: Optional[str] = None,
                  heartbeat: Optional[core.Duration] = None,
                  input_path: Optional[str] = None,
-                 integration_pattern: Optional[sfn.IntegrationPattern] = None,
+                 integration_pattern: Optional[sfn.IntegrationPattern] = sfn.IntegrationPattern.RUN_JOB,
                  output_path: Optional[str] = None,
                  result_path: Optional[str] = None,
                  timeout: Optional[core.Duration] = None,
