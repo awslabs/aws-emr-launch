@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.4.2 (unreleased)
+1.4.2 (2020-09-28)
 ------------------
 
 - FIX: bug in handling of allowed_cluster_configuration_overrides
