@@ -39,7 +39,6 @@ launch_function = emr_launch_function.EMRLaunchFunction(
     emr_profile=sse_kms_profile,
     cluster_name='basic-cluster',
     default_fail_if_cluster_running=True,
-    allowed_cluster_config_overrides=cluster_config.override_interfaces['default'],
     cluster_tags=[core.Tag('Key1', 'Value1'), core.Tag('Key2', 'Value2')],
     wait_for_cluster_start=True)
 

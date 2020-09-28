@@ -43,9 +43,8 @@ cluster_config = cluster_configuration.ClusterConfiguration.from_stored_configur
     stack, 'ClusterConfiguration', 'high-mem-instance-group-cluster')
 
 # Create a new State Machine to launch a cluster with the Basic configuration
-# Allow the Name, Instances.InstanceGroups.1.InstanceCount, and
-# Instances.InstanceGroups.1.InstanceType to be overwritten at runtime and assign
-# simple names to them. Unless specifically indicated, fail to start if a cluster
+# Don't allow any Cluster Configuration parameters to be overwritten at launch time.
+# Unless specifically indicated, fail to start if a cluster
 # of the same name is already running.
 launch_function = emr_launch_function.EMRLaunchFunction(
     stack, 'EMRLaunchFunction',
@@ -55,6 +54,7 @@ launch_function = emr_launch_function.EMRLaunchFunction(
     cluster_name='sns-triggered-pipeline',
     success_topic=success_topic,
     failure_topic=failure_topic,
+    allowed_cluster_config_overrides={},
     default_fail_if_cluster_running=True,)
 
 deployment_bucket = s3.Bucket.from_bucket_name(
