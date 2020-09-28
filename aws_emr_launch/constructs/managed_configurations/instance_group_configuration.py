@@ -169,5 +169,3 @@ class ManagedScalingConfiguration(InstanceGroupConfiguration):
         })
 
         self.update_config(config)
-
-
