@@ -44,7 +44,7 @@ class S3EncryptionMode(Enum):
 class EMRProfile(BaseConstruct):
 
     def __init__(self, scope: core.Construct, id: str, *,
-                 profile_name: Optional[str] = None,
+                 profile_name: str,
                  namespace: str = 'default',
                  vpc: Optional[ec2.Vpc] = None,
                  artifacts_bucket: Optional[s3.Bucket] = None,
