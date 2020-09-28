@@ -114,7 +114,7 @@ class ManagedScalingConfiguration(InstanceGroupConfiguration):
                  configuration_name: str,
                  subnet: ec2.Subnet,
                  namespace: str = 'default',
-                 release_label: Optional[str] = 'emr-5.29.0',
+                 release_label: Optional[str] = 'emr-5.30.0',
                  master_instance_type: Optional[str] = 'm5.2xlarge',
                  master_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
                  core_instance_type: Optional[str] = 'm5.xlarge',

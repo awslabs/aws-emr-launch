@@ -27,6 +27,7 @@ class EMRSecurityGroups(BaseConstruct):
             # Service SG rules
             self._service_group.add_egress_rule(self._master_group, ec2.Port.tcp(8443))
             self._service_group.add_egress_rule(self._workers_group, ec2.Port.tcp(8443))
+            self._service_group.add_ingress_rule(self._master_group, ec2.Port.tcp(9443))
 
     @staticmethod
     def _set_common_ingress_rules(primary: ec2.SecurityGroup, secondary: ec2.SecurityGroup) -> ec2.SecurityGroup:
