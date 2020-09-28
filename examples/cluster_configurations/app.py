@@ -53,7 +53,7 @@ secret = secretsmanager.Secret.from_secret_arn(
 # Create a basic Cluster Configuration using InstanceGroups, the Subnet and Bootstrap
 # Action defined above, the EMR Profile we loaded, and defaults defined in
 # the InstanceGroupConfiguration
-basic_cluster_config = instance_group_configuration.InstanceGroupConfiguration(
+basic_cluster_config = instance_group_configuration.ManagedScalingConfiguration(
     stack, 'BasicClusterConfiguration',
     configuration_name='basic-instance-group-cluster',
     subnet=subnet,
