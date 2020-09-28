@@ -107,3 +107,67 @@ class InstanceGroupConfiguration(ClusterConfiguration):
         })
 
         self.update_config(config)
+
+
+class ManagedScalingConfiguration(InstanceGroupConfiguration):
+    def __init__(self, scope: core.Construct, id: str, *,
+                 configuration_name: str,
+                 subnet: ec2.Subnet,
+                 namespace: str = 'default',
+                 release_label: Optional[str] = 'emr-5.29.0',
+                 master_instance_type: Optional[str] = 'm5.2xlarge',
+                 master_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
+                 core_instance_type: Optional[str] = 'm5.xlarge',
+                 core_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
+                 core_instance_count: Optional[int] = 2,
+                 applications: Optional[List[str]] = None,
+                 bootstrap_actions: Optional[List[emr_code.EMRBootstrapAction]] = None,
+                 configurations: Optional[List[dict]] = None,
+                 use_glue_catalog: Optional[bool] = True,
+                 step_concurrency_level: Optional[int] = 1,
+                 description: Optional[str] = None,
+                 secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None,
+                 minimum_instances: Optional[int] = 2,
+                 maximum_instances: Optional[int] = 10):
+
+        super().__init__(scope=scope, id=id,
+                         configuration_name=configuration_name,
+                         subnet=subnet,
+                         namespace=namespace,
+                         release_label=release_label,
+                         master_instance_type=master_instance_type,
+                         master_instance_market=master_instance_market,
+                         core_instance_type=core_instance_type,
+                         core_instance_market=core_instance_market,
+                         core_instance_count=core_instance_count,
+                         applications=applications,
+                         bootstrap_actions=bootstrap_actions,
+                         configurations=configurations,
+                         use_glue_catalog=use_glue_catalog,
+                         step_concurrency_level=step_concurrency_level,
+                         description=description,
+                         secret_configurations=secret_configurations)
+
+        config = self.config
+        config['ManagedScalingPolicy'] = {
+            'ComputeLimits': {
+                'MinimumCapacityUnits': minimum_instances,
+                'MaximumCapacityUnits': maximum_instances,
+                'UnitType': 'Instances'
+            }
+        }
+
+        self.override_interfaces['default'].update({
+            'MinimumInstances': {
+                'JsonPath': 'ManagedScalingPolicy.ComputeLimits.MinimumCapacityUnits',
+                'Default': minimum_instances
+            },
+            'MaximumInstances': {
+                'JsonPath': 'ManagedScalingPolicy.ComputeLimits.MaximumCapacityUnits',
+                'Default': maximum_instances
+            },
+        })
+
+        self.update_config(config)
+
+
