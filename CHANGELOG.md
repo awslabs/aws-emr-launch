@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.4.2 (unreleased)
 ------------------
 
+- added instance_group_configuration.ManagedScalingConfiguration to managed_configurations
+
 - remove incorrect Optional hint on EMRProfile.profile_name
 
 
