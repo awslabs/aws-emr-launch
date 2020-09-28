@@ -24,19 +24,21 @@ def handler(event, context):
     allowed_overrides = event.get('AllowedClusterConfigOverrides', None)
     cluster_config = event.get('ClusterConfiguration', {})
 
+    if overrides and not allowed_overrides:
+        raise InvalidOverrideError('Cluster configuration overrides are not allowed')
+
     try:
         for path, new_value in overrides.items():
             minimum = None
             maximum = None
 
-            if allowed_overrides:
-                new_path = allowed_overrides.get(path, None)
-                if new_path is None:
-                    raise InvalidOverrideError(f'Value "{path}" is not an allowed cluster configuration override')
-                else:
-                    path = new_path['JsonPath']
-                    minimum = new_path.get('Minimum', None)
-                    maximum = new_path.get('Maximum', None)
+            new_path = allowed_overrides.get(path, None)
+            if new_path is None:
+                raise InvalidOverrideError(f'Value "{path}" is not an allowed cluster configuration override')
+            else:
+                path = new_path['JsonPath']
+                minimum = new_path.get('Minimum', None)
+                maximum = new_path.get('Maximum', None)
 
             path_parts = path.split('.')
             update_key = path_parts[-1]

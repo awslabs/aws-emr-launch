@@ -112,7 +112,7 @@ class EMRLaunchFunction(BaseConstruct):
         override_cluster_configs = emr_tasks.OverrideClusterConfigsBuilder.build(
             self, 'OverrideClusterConfigsTask',
             override_cluster_configs_lambda=override_cluster_configs_lambda,
-            allowed_cluster_config_overrides=allowed_cluster_config_overrides)
+            allowed_cluster_config_overrides=self._allowed_cluster_config_overrides)
         # Attach an error catch to the Task
         override_cluster_configs.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
