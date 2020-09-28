@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.4.2 (unreleased)
 ------------------
 
+- FIX: bug in handling of allowed_cluster_configuration_overrides
+
 - default allowed_cluster_confgiuration_overrides to cluster_configuration's default
 
 - added instance_group_configuration.ManagedScalingConfiguration to managed_configurations
