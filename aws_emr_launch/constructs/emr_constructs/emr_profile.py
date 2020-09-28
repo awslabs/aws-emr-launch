@@ -623,5 +623,5 @@ class EMRProfile(BaseConstruct):
     @staticmethod
     def from_stored_profile(scope: core.Construct, id: str, profile_name: str, namespace: str = 'default'):
         stored_profile = EMRProfile.get_profile(profile_name, namespace)
-        profile = EMRProfile(scope, id)
+        profile = EMRProfile(scope, id, profile_name=None)
         return profile.from_json(stored_profile)
