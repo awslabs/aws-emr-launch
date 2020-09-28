@@ -53,9 +53,13 @@ class EMRLaunchFunction(BaseConstruct):
         self._success_topic = success_topic
         self._failure_topic = failure_topic
         self._override_cluster_configs_lambda = override_cluster_configs_lambda
-        self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
         self._description = description
         self._wait_for_cluster_start = wait_for_cluster_start
+
+        if allowed_cluster_config_overrides is None:
+            self._allowed_cluster_config_overrides = cluster_configuration.override_interfaces.get('default', None)
+        else:
+            self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
 
         if isinstance(cluster_tags, dict):
             self._cluster_tags = [core.Tag(k, v) for k, v in cluster_tags.items()]
