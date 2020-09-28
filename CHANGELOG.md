@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.4.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- remove incorrect Optional hint on EMRProfile.profile_name
 
 
 1.4.1 (2020-08-26)
