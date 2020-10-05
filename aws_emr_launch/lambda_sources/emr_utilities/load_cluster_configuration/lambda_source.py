@@ -108,7 +108,7 @@ def handler(event, context):
         cluster_configuration['ServiceRole'] = emr_profile['Roles']['ServiceRole'].split('/')[-1]
         cluster_configuration['AutoScalingRole'] = emr_profile['Roles']['AutoScalingRole'].split('/')[-1] \
             if cluster_configuration['Instances'].get('InstanceGroups', []) \
-                and len(cluster_configuration['Instances'].get('InstanceGroups', [])) > 0 else None
+            and len(cluster_configuration['Instances'].get('InstanceGroups', [])) > 0 else None
         cluster_configuration['Tags'] = tags
         cluster_configuration['Instances']['EmrManagedMasterSecurityGroup'] = \
             emr_profile['SecurityGroups']['MasterGroup']
