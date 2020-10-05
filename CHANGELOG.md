@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.4.2 (2020-09-28)
 ------------------
 
+- NEW: instance_fleet_configuration.ManagedScalingConfiguration
+
 - FIX: handle NoneType for some InstanceGroups configs
 
 - FIX: bug in handling of allowed_cluster_configuration_overrides
