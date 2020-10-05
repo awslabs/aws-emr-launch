@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.4.3 (unreleased)
+1.4.3 (2020-10-05)
 ------------------
 
 - NEW: instance_fleet_configuration.ManagedScalingConfiguration
