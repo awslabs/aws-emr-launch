@@ -7,6 +7,14 @@ Changelog for emr-launch
 - Nothing changed yet.
 
 
+1.4.3 (2020-10-05)
+------------------
+
+- NEW: instance_fleet_configuration.ManagedScalingConfiguration
+
+- FIX: handle NoneType for some InstanceGroups configs
+
+
 1.4.2 (2020-09-28)
 ------------------
 

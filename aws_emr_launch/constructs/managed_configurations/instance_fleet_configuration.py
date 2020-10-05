@@ -13,7 +13,7 @@ class InstanceFleetConfiguration(ClusterConfiguration):
 
     def __init__(self, scope: core.Construct, id: str, *,
                  configuration_name: str,
-                 subnets: [ec2.Subnet],
+                 subnets: List[ec2.Subnet],
                  namespace: str = 'default',
                  release_label: Optional[str] = 'emr-5.29.0',
                  master_instance_type: Optional[str] = 'm5.2xlarge',
@@ -108,6 +108,69 @@ class InstanceFleetConfiguration(ClusterConfiguration):
                 'JsonPath': 'Instances.InstanceFleets.1.TargetSpotCapacity',
                 'Default': core_instance_spot_count
             }
+        })
+
+        self.update_config(config)
+
+
+class ManagedScalingConfiguration(InstanceFleetConfiguration):
+
+    def __init__(self, scope: core.Construct, id: str, *,
+                 configuration_name: str,
+                 subnets: List[ec2.Subnet],
+                 namespace: str = 'default',
+                 release_label: Optional[str] = 'emr-5.30.0',
+                 master_instance_type: Optional[str] = 'm5.2xlarge',
+                 master_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
+                 core_instance_type: Optional[str] = 'm5.xlarge',
+                 core_instance_on_demand_count: Optional[int] = 2,
+                 core_instance_spot_count: Optional[int] = 0,
+                 applications: Optional[List[str]] = None,
+                 bootstrap_actions: Optional[List[emr_code.EMRBootstrapAction]] = None,
+                 configurations: Optional[List[dict]] = None,
+                 use_glue_catalog: Optional[bool] = True,
+                 step_concurrency_level: Optional[int] = 1,
+                 description: Optional[str] = None,
+                 secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None,
+                 minimum_capacity: Optional[int] = 2,
+                 maximum_capcity: Optional[int] = 10):
+
+        super().__init__(scope, id,
+                         configuration_name=configuration_name,
+                         subnets=subnets,
+                         namespace=namespace,
+                         release_label=release_label,
+                         master_instance_type=master_instance_type,
+                         master_instance_market=master_instance_market,
+                         core_instance_type=core_instance_type,
+                         core_instance_on_demand_count=core_instance_on_demand_count,
+                         core_instance_spot_count=core_instance_spot_count,
+                         applications=applications,
+                         bootstrap_actions=bootstrap_actions,
+                         configurations=configurations,
+                         use_glue_catalog=use_glue_catalog,
+                         step_concurrency_level=step_concurrency_level,
+                         description=description,
+                         secret_configurations=secret_configurations)
+
+        config = self.config
+        config['ManagedScalingPolicy'] = {
+            'ComputeLimits': {
+                'MinimumCapacityUnits': minimum_capacity,
+                'MaximumCapacityUnits': maximum_capcity,
+                'UnitType': 'InstanceFleetUnits'
+            }
+        }
+
+        self.override_interfaces['default'].update({
+            'MinimumCapacity': {
+                'JsonPath': 'ManagedScalingPolicy.ComputeLimits.MinimumCapacityUnits',
+                'Default': minimum_capacity
+            },
+            'MaximumCapacity': {
+                'JsonPath': 'ManagedScalingPolicy.ComputeLimits.MaximumCapacityUnits',
+                'Default': maximum_capcity
+            },
         })
 
         self.update_config(config)
