@@ -110,12 +110,11 @@ def test_nested_state_machine_chain():
             'StartAt': 'test-fragment: test-nested-state-machine',
             'States': {
                 'test-fragment: test-nested-state-machine': {
-                    'Next': 'test-fragment: test-nested-state-machine - Parse JSON Output',
-                    'Catch': [{
-                        'ErrorEquals': ['States.ALL'],
-                        'ResultPath': '$.Error',
-                        'Next': 'test-fail'
-                    }],
+                    'ResourceArn': {
+                        'Fn::Join': ['', ['arn:', {
+                            'Ref': 'AWS::Partition'
+                        }, ':states:::states:startExecution.sync']]
+                    },
                     'Parameters': {
                         'StateMachineArn': {
                             'Ref': 'teststatemachine7F4C511D'
@@ -123,25 +122,36 @@ def test_nested_state_machine_chain():
                         'Input': {
                             'Key1': 'Value1'
                         }
-                    },
-                    'Type': 'Task',
-                    'Resource':
-                        {'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::states:startExecution.sync']]
                     }
                 },
                 'test-fragment: test-nested-state-machine - Parse JSON Output': {
                     'End': True,
+                    'Retry': [{
+                        'ErrorEquals': ['Lambda.ServiceException', 'Lambda.AWSLambdaException', 'Lambda.SdkClientException'],
+                        'IntervalSeconds': 2,
+                        'MaxAttempts': 6,
+                        'BackoffRate': 2
+                    }],
                     'Catch': [{
                         'ErrorEquals': ['States.ALL'],
                         'ResultPath': '$.Error',
                         'Next': 'test-fail'
                     }],
-                    'Parameters': {
-                        'JsonString.$': '$.Output'
-                    },
                     'Type': 'Task',
-                    'Resource': {'Fn::GetAtt': ['ParseJsonString859DB4F0', 'Arn']},
-                    'ResultPath': '$'
+                    'ResultPath': '$',
+                    'Resource': {
+                        'Fn::Join': ['', ['arn:', {
+                            'Ref': 'AWS::Partition'
+                        }, ':states:::lambda:invoke']]
+                    },
+                    'Parameters': {
+                        'FunctionName': {
+                            'Fn::GetAtt': ['ParseJsonString859DB4F0', 'Arn']
+                        },
+                        'Payload': {
+                            'JsonString.$': '$.Output'
+                        }
+                    }
                 },
                 'test-fail': {
                     'Type': 'Fail'
@@ -176,27 +186,41 @@ def test_add_step_with_argument_overrides():
             'States': {
                 'test-fragment: test-step - Override Args': {
                     'Next': 'test-fragment: test-step',
+                    'Retry': [{
+                        'ErrorEquals': ['Lambda.ServiceException', 'Lambda.AWSLambdaException', 'Lambda.SdkClientException'],
+                        'IntervalSeconds': 2,
+                        'MaxAttempts': 6,
+                        'BackoffRate': 2
+                    }],
                     'Catch': [{
                         'ErrorEquals': ['States.ALL'],
                         'ResultPath': '$.Error',
                         'Next': 'test-fail'
                     }],
-                    'Parameters': {
-                        'ExecutionInput.$': '$$.Execution.Input',
-                        'StepName': 'test-step',
-                        'Args': ['Arg1', 'Arg2']
-                    },
                     'Type': 'Task',
-                    'Resource': {'Fn::GetAtt': ['OverrideStepArgsE9376C9F', 'Arn']},
-                    'ResultPath': '$.test-fragmentResultArgs'
+                    'ResultPath': '$.test-fragmentResultArgs',
+                    'Resource': {
+                        'Fn::Join': ['', ['arn:', {
+                            'Ref': 'AWS::Partition'
+                        }, ':states:::lambda:invoke']]
+                    },
+                    'Parameters': {
+                        'FunctionName': {
+                            'Fn::GetAtt': ['OverrideStepArgsE9376C9F', 'Arn']
+                        },
+                        'Payload': {
+                            'ExecutionInput.$': '$$.Execution.Input',
+                            'StepName': 'test-step',
+                            'Args': ['Arg1', 'Arg2']
+                        }
+                    }
                 },
                 'test-fragment: test-step': {
-                    'End': True,
-                    'Catch': [{
-                        'ErrorEquals': ['States.ALL'],
-                        'ResultPath': '$.Error',
-                        'Next': 'test-fail'
-                    }],
+                    'ResourceArn': {
+                        'Fn::Join': ['', ['arn:', {
+                            'Ref': 'AWS::Partition'
+                        }, ':states:::elasticmapreduce:addStep.sync']]
+                    },
                     'Parameters': {
                         'ClusterId': 'test-cluster-id',
                         'Step': {
@@ -209,9 +233,7 @@ def test_add_step_with_argument_overrides():
                                 'Properties': []
                             }
                         }
-                    },
-                    'Type': 'Task',
-                    'Resource': {'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::elasticmapreduce:addStep.sync']]}
+                    }
                 },
                 'test-fail': {
                     'Type': 'Fail'

@@ -11,8 +11,8 @@ def _tag_construct(construct: core.Construct):
                     ('1', 't', 'true', 'y', 'yes')
 
     if not suppress_tags:
-        core.Tag.add(construct, 'deployment:product:name', __product__)
-        core.Tag.add(construct, 'deployment:product:version', __version__)
+        core.Tags.of(construct).add('deployment:product:name', __product__)
+        core.Tags.of(construct).add('deployment:product:version', __version__)
     else:
         logger.info('Suppressing "deployment:product" tags for: %s', construct.node.id)
 

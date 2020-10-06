@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.5.0 (unreleased)
 ------------------
 
-- merge 1.4.3 enhancements into 1.5.x
+- support CDK >= 1.46.0
 
 
 1.4.3 (2020-10-05)

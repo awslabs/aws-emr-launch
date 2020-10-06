@@ -22,16 +22,14 @@ class Success(sfn.StateMachineFragment):
         )
 
         if topic is not None:
-            self._start = sfn.Task(
+            self._start = sfn_tasks.SnsPublish(
                 self, 'Success Notification',
                 input_path='$',
                 output_path='$',
                 result_path=result_path,
-                task=sfn_tasks.PublishToTopic(
-                    topic,
-                    message=message,
-                    subject=subject
-                )
+                topic=topic,
+                message=message,
+                subject=subject,
             )
             self._start.next(self._end)
         else:
@@ -60,16 +58,14 @@ class Fail(sfn.StateMachineFragment):
         )
 
         if topic is not None:
-            self._start = sfn.Task(
+            self._start = sfn_tasks.SnsPublish(
                 self, 'Failure Notification',
                 input_path='$',
                 output_path=output_path,
                 result_path=result_path,
-                task=sfn_tasks.PublishToTopic(
-                    topic,
-                    message=message,
-                    subject=subject
-                )
+                topic=topic,
+                message=message,
+                subject=subject,
             )
             self._start.next(self._end)
         else:
@@ -89,23 +85,22 @@ class NestedStateMachine(sfn.StateMachineFragment):
                  input: Optional[Mapping[str, any]] = None, fail_chain: Optional[sfn.IChainable] = None):
         super().__init__(scope, id)
 
-        state_machine_task = sfn.Task(
+        state_machine_task = emr_tasks.StartExecutionTask(
             self, name,
-            task=emr_tasks.StartExecutionTask(
-                state_machine=state_machine,
-                input=input,
-                integration_pattern=sfn.ServiceIntegrationPattern.SYNC))
+            state_machine=state_machine,
+            input=input,
+            integration_pattern=sfn.IntegrationPattern.RUN_JOB,
+        )
 
         parse_json_string = emr_lambdas.ParseJsonStringBuilder.get_or_build(self)
 
-        parse_json_string_task = sfn.Task(
+        parse_json_string_task = sfn_tasks.LambdaInvoke(
             self, f'{name} - Parse JSON Output',
             result_path='$',
-            task=sfn_tasks.InvokeFunction(
-                parse_json_string,
-                payload={
-                    'JsonString': sfn.TaskInput.from_data_at('$.Output').value
-                })
+            lambda_function=parse_json_string,
+            payload=sfn.TaskInput.from_object({
+                'JsonString': sfn.TaskInput.from_data_at('$.Output').value
+            }),
         )
 
         if fail_chain:
@@ -138,32 +133,30 @@ class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
 
         override_step_args = emr_lambdas.OverrideStepArgsBuilder.get_or_build(self)
 
-        override_step_args_task = sfn.Task(
+        override_step_args_task = sfn_tasks.LambdaInvoke(
             self, f'{emr_step.name} - Override Args',
             result_path=f'$.{id}ResultArgs',
-            task=sfn_tasks.InvokeFunction(
-                override_step_args,
-                payload={
-                    'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                    'StepName': emr_step.name,
-                    'Args': emr_step.args
-                })
+            lambda_function=override_step_args,
+            payload=sfn.TaskInput.from_object({
+                'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
+                'StepName': emr_step.name,
+                'Args': emr_step.args
+            }),
         )
 
         resolved_step = emr_step.resolve(self)
         resolved_step['HadoopJarStep']['Args'] = sfn.TaskInput.from_data_at(f'$.{id}ResultArgs').value
 
-        integration_pattern = sfn.ServiceIntegrationPattern.SYNC if wait_for_step_completion \
-            else sfn.ServiceIntegrationPattern.FIRE_AND_FORGET
+        integration_pattern = sfn.IntegrationPattern.RUN_JOB if wait_for_step_completion \
+            else sfn.IntegrationPattern.REQUEST_RESPONSE
 
-        add_step_task = sfn.Task(
+        add_step_task = emr_tasks.EmrAddStepTask(
             self, emr_step.name,
             output_path=output_path,
             result_path=result_path,
-            task=emr_tasks.EmrAddStepTask(
-                cluster_id=cluster_id,
-                step=resolved_step,
-                integration_pattern=integration_pattern)
+            cluster_id=cluster_id,
+            step=resolved_step,
+            integration_pattern=integration_pattern,
         )
 
         if fail_chain:

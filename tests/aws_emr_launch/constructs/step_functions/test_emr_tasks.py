@@ -16,14 +16,16 @@ def print_and_assert(default_task_json: dict, task: sfn.Task):
 
 def test_start_execution_task():
     default_task_json = {
-        'End': True,
-        'Parameters': {
-            'StateMachineArn': {'Ref': 'teststatemachine7F4C511D'},
-            'Input.$': '$$.Execution.Input'
+        'ResourceArn': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::states:startExecution.sync']]
         },
-        'Type': 'Task',
-        'Resource': {
-            'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::states:startExecution.sync']]
+        'Parameters': {
+            'StateMachineArn': {
+                'Ref': 'teststatemachine7F4C511D'
+            },
+            'Input.$': '$$.Execution.Input'
         }
     }
 
@@ -33,11 +35,9 @@ def test_start_execution_task():
         stack, 'test-state-machine',
         definition=sfn.Chain.start(sfn.Succeed(stack, 'Succeeded')))
 
-    task = sfn.Task(
+    task = emr_tasks.StartExecutionTask(
         stack, 'test-task',
-        task=emr_tasks.StartExecutionTask(
-            state_machine,
-        )
+        state_machine=state_machine,
     )
 
     print_and_assert(default_task_json, task)
@@ -45,15 +45,19 @@ def test_start_execution_task():
 
 def test_start_execution_task_with_input():
     default_task_json = {
-        'End': True,
-        'Parameters': {
-            'StateMachineArn': {'Ref': 'teststatemachine7F4C511D'},
-            'Input': {'Key1': 'Value1'},
-            'Name': 'test-sfn-task'
+        'ResourceArn': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::states:startExecution.sync']]
         },
-        'Type': 'Task',
-        'Resource': {
-            'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::states:startExecution.sync']]
+        'Parameters': {
+            'StateMachineArn': {
+                'Ref': 'teststatemachine7F4C511D'
+            },
+            'Input': {
+                'Key1': 'Value1'
+            },
+            'Name': 'test-sfn-task'
         }
     }
 
@@ -63,13 +67,11 @@ def test_start_execution_task_with_input():
         stack, 'test-state-machine',
         definition=sfn.Chain.start(sfn.Succeed(stack, 'Succeeded')))
 
-    task = sfn.Task(
+    task = emr_tasks.StartExecutionTask(
         stack, 'test-task',
-        task=emr_tasks.StartExecutionTask(
-            state_machine,
-            input={'Key1': 'Value1'},
-            name='test-sfn-task'
-        )
+        state_machine=state_machine,
+        input={'Key1': 'Value1'},
+        name='test-sfn-task'
     )
 
     print_and_assert(default_task_json, task)
@@ -77,204 +79,11 @@ def test_start_execution_task_with_input():
 
 def test_emr_create_cluster_task():
     default_task_json = {
-        'End': True,
-        'Parameters': {
-            'AdditionalInfo.$': '$.ClusterConfiguration.Cluster.AdditionalInfo',
-            'AmiVersion.$': '$.ClusterConfiguration.Cluster.AmiVersion',
-            'Applications.$': '$.ClusterConfiguration.Cluster.Applications',
-            'AutoScalingRole.$': '$.ClusterConfiguration.Cluster.AutoScalingRole',
-            'BootstrapActions.$': '$.ClusterConfiguration.Cluster.BootstrapActions',
-            'Configurations.$': '$.ClusterConfiguration.Cluster.Configurations',
-            'CustomAmiId.$': '$.ClusterConfiguration.Cluster.CustomAmiId',
-            'EbsRootVolumeSize.$': '$.ClusterConfiguration.Cluster.EbsRootVolumeSize',
-            'Instances': {
-                'AdditionalMasterSecurityGroups.$':
-                    '$.ClusterConfiguration.Cluster.Instances.AdditionalMasterSecurityGroups',
-                'AdditionalSlaveSecurityGroups.$':
-                    '$.ClusterConfiguration.Cluster.Instances.AdditionalSlaveSecurityGroups',
-                'Ec2KeyName.$': '$.ClusterConfiguration.Cluster.Instances.Ec2KeyName',
-                'Ec2SubnetId.$': '$.ClusterConfiguration.Cluster.Instances.Ec2SubnetId',
-                'Ec2SubnetIds.$': '$.ClusterConfiguration.Cluster.Instances.Ec2SubnetIds',
-                'EmrManagedMasterSecurityGroup.$':
-                    '$.ClusterConfiguration.Cluster.Instances.EmrManagedMasterSecurityGroup',
-                'EmrManagedSlaveSecurityGroup.$':
-                    '$.ClusterConfiguration.Cluster.Instances.EmrManagedSlaveSecurityGroup',
-                'HadoopVersion.$': '$.ClusterConfiguration.Cluster.Instances.HadoopVersion',
-                'InstanceCount.$': '$.ClusterConfiguration.Cluster.Instances.InstanceCount',
-                'InstanceFleets.$': '$.ClusterConfiguration.Cluster.Instances.InstanceFleets',
-                'InstanceGroups.$': '$.ClusterConfiguration.Cluster.Instances.InstanceGroups',
-                'KeepJobFlowAliveWhenNoSteps': True,
-                'MasterInstanceType.$': '$.ClusterConfiguration.Cluster.Instances.MasterInstanceType',
-                'Placement.$': '$.ClusterConfiguration.Cluster.Instances.Placement',
-                'ServiceAccessSecurityGroup.$': '$.ClusterConfiguration.Cluster.Instances.ServiceAccessSecurityGroup',
-                'SlaveInstanceType.$': '$.ClusterConfiguration.Cluster.Instances.SlaveInstanceType',
-                'TerminationProtected.$': '$.ClusterConfiguration.Cluster.Instances.TerminationProtected'
-            },
-            'JobFlowRole.$': '$.ClusterConfiguration.Cluster.JobFlowRole',
-            'KerberosAttributes.$': '$.ClusterConfiguration.Cluster.KerberosAttributes',
-            'LogUri.$': '$.ClusterConfiguration.Cluster.LogUri',
-            'ManagedScalingPolicy.$': '$.ClusterConfiguration.Cluster.ManagedScalingPolicy',
-            'Name.$': '$.ClusterConfiguration.Cluster.Name',
-            'NewSupportedProducts.$': '$.ClusterConfiguration.Cluster.NewSupportedProducts',
-            'ReleaseLabel.$': '$.ClusterConfiguration.Cluster.ReleaseLabel',
-            'RepoUpgradeOnBoot.$': '$.ClusterConfiguration.Cluster.RepoUpgradeOnBoot',
-            'ScaleDownBehavior.$': '$.ClusterConfiguration.Cluster.ScaleDownBehavior',
-            'SecurityConfiguration.$': '$.ClusterConfiguration.Cluster.SecurityConfiguration',
-            'ServiceRole.$': '$.ClusterConfiguration.Cluster.ServiceRole',
-            'StepConcurrencyLevel.$': '$.ClusterConfiguration.Cluster.StepConcurrencyLevel',
-            'SupportedProducts.$': '$.ClusterConfiguration.Cluster.SupportedProducts',
-            'Tags.$': '$.ClusterConfiguration.Cluster.Tags',
-            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers'
+        'ResourceArn': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::elasticmapreduce:createCluster.sync']]
         },
-        'Resource':
-            {'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::elasticmapreduce:createCluster.sync']]
-        },
-        'Type': 'Task'
-    }
-
-    stack = core.Stack(core.App(), 'test-stack')
-
-    task = sfn.Task(
-        stack, 'test-task',
-        task=emr_tasks.EmrCreateClusterTask(
-            roles=emr_profile.EMRRoles(stack, 'test-emr-roles', role_name_prefix='test-roles'),
-            cluster_configuration_path='$.ClusterConfiguration.Cluster',
-        )
-    )
-
-    print_and_assert(default_task_json, task)
-
-
-def test_emr_add_step_task():
-    default_task_json = {
-        'End': True,
-        'Parameters': {
-            'ClusterId': 'test-cluster-id',
-            'Step': {'Key1': {'Key2': 'Value2'}}
-        },
-        'Resource': {'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::elasticmapreduce:addStep.sync']]},
-        'Type': 'Task'
-    }
-
-    stack = core.Stack(core.App(), 'test-stack')
-
-    task = sfn.Task(
-        stack, 'test-task',
-        task=emr_tasks.EmrAddStepTask(
-            'test-cluster-id',
-            {'Key1': {'Key2': 'Value2'}}
-        )
-    )
-
-    print_and_assert(default_task_json, task)
-
-
-def test_load_cluster_configuration_builder():
-    default_task_json = {
-        'End': True,
-        'OutputPath': '$',
-        'Parameters': {
-            'ClusterName': 'test-cluster',
-            'ClusterTags': [{
-                'Key': 'Key1',
-                'Value': 'Value1'
-            }],
-            'ConfigurationName': 'test-configuration',
-            'ConfigurationNamespace': 'test',
-            'ProfileName': 'test-profile',
-            'ProfileNamespace': 'test'
-        },
-        'Resource': {'Fn::GetAtt': ['testtaskLoadClusterConfiguration518ECBAD', 'Arn'] },
-        'ResultPath': '$.ClusterConfiguration',
-        'Type': 'Task'
-    }
-
-    stack = core.Stack(core.App(), 'test-stack')
-
-    task = emr_tasks.LoadClusterConfigurationBuilder.build(
-        stack, 'test-task',
-        cluster_name='test-cluster',
-        cluster_tags=[core.Tag('Key1', 'Value1')],
-        profile_namespace='test',
-        profile_name='test-profile',
-        configuration_namespace='test',
-        configuration_name='test-configuration',
-    )
-
-    print_and_assert(default_task_json, task)
-
-
-def test_override_cluster_configs_builder():
-    default_task_json = {
-        'End': True,
-        'Parameters': {
-            'ExecutionInput.$': '$$.Execution.Input',
-            'ClusterConfiguration.$': '$.ClusterConfiguration.Cluster'
-        },
-        'OutputPath': '$',
-        'Type': 'Task',
-        'Resource': {'Fn::GetAtt': ['OverrideClusterConfigsAEEA22C0', 'Arn']},
-        'ResultPath': '$.ClusterConfiguration.Cluster'
-    }
-
-    stack = core.Stack(core.App(), 'test-stack')
-
-    task = emr_tasks.OverrideClusterConfigsBuilder.build(
-        stack, 'test-task',
-    )
-
-    print_and_assert(default_task_json, task)
-
-
-def test_fail_if_cluster_running_builder():
-    default_task_json = {
-        'End': True,
-        'Parameters': {
-            'ExecutionInput.$': '$$.Execution.Input',
-            'DefaultFailIfClusterRunning': True,
-            'ClusterConfiguration.$': '$.ClusterConfiguration.Cluster'
-        },
-        'OutputPath': '$',
-        'Type': 'Task',
-        'Resource': {'Fn::GetAtt': ['FailIfClusterRunningC0A7FE52', 'Arn']},
-        'ResultPath': '$.ClusterConfiguration.Cluster'
-    }
-
-    stack = core.Stack(core.App(), 'test-stack')
-
-    task = emr_tasks.FailIfClusterRunningBuilder.build(
-        stack, 'test-task',
-        default_fail_if_cluster_running=True
-    )
-
-    print_and_assert(default_task_json, task)
-
-
-def test_update_cluster_tags_builder():
-    default_task_json = {
-        'End': True,
-        'Parameters': {
-            'ExecutionInput.$': '$$.Execution.Input',
-            'ClusterConfiguration.$': '$.ClusterConfiguration.Cluster'
-        },
-        'OutputPath': '$',
-        'Type': 'Task',
-        'Resource': {'Fn::GetAtt': ['UpdateClusterTags9DD0067C', 'Arn']},
-        'ResultPath': '$.ClusterConfiguration.Cluster'
-    }
-
-    stack = core.Stack(core.App(), 'test-stack')
-
-    task = emr_tasks.UpdateClusterTagsBuilder.build(
-        stack, 'test-task',
-    )
-
-    print_and_assert(default_task_json, task)
-
-
-def test_create_cluster_builder():
-    default_task_json = {
-        'End': True,
         'Parameters': {
             'AdditionalInfo.$': '$.ClusterConfiguration.Cluster.AdditionalInfo',
             'AmiVersion.$': '$.ClusterConfiguration.Cluster.AmiVersion',
@@ -318,10 +127,262 @@ def test_create_cluster_builder():
             'SupportedProducts.$': '$.ClusterConfiguration.Cluster.SupportedProducts',
             'Tags.$': '$.ClusterConfiguration.Cluster.Tags',
             'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers'
+        }
+    }
+
+    stack = core.Stack(core.App(), 'test-stack')
+
+    task = emr_tasks.EmrCreateClusterTask(
+        stack, 'test-task',
+        roles=emr_profile.EMRRoles(stack, 'test-emr-roles', role_name_prefix='test-roles'),
+        cluster_configuration_path='$.ClusterConfiguration.Cluster',
+    )
+
+    print_and_assert(default_task_json, task)
+
+
+def test_emr_add_step_task():
+    default_task_json = {
+        'ResourceArn': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::elasticmapreduce:addStep.sync']]
         },
+        'Parameters': {
+            'ClusterId': 'test-cluster-id',
+            'Step': {
+                'Key1': {
+                    'Key2': 'Value2'
+                }
+            }
+        }
+    }
+
+    stack = core.Stack(core.App(), 'test-stack')
+
+    task = emr_tasks.EmrAddStepTask(
+        stack, 'test-task',
+        cluster_id='test-cluster-id',
+        step={'Key1': {'Key2': 'Value2'}}
+    )
+
+    print_and_assert(default_task_json, task)
+
+
+def test_load_cluster_configuration_builder():
+    default_task_json = {
+        'End': True,
+        'Retry': [{
+            'ErrorEquals': ['Lambda.ServiceException', 'Lambda.AWSLambdaException', 'Lambda.SdkClientException'],
+            'IntervalSeconds': 2,
+            'MaxAttempts': 6,
+            'BackoffRate': 2
+        }],
         'Type': 'Task',
-        'Resource':
-            {'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::elasticmapreduce:createCluster.sync']]}
+        'OutputPath': '$',
+        'ResultPath': '$.ClusterConfiguration',
+        'Resource': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::lambda:invoke']]
+        },
+        'Parameters': {
+            'FunctionName': {
+                'Fn::GetAtt': ['testtaskLoadClusterConfiguration518ECBAD', 'Arn']
+            },
+            'Payload': {
+                'ClusterName': 'test-cluster',
+                'ClusterTags': [{
+                    'Key': 'Key1',
+                    'Value': 'Value1'
+                }],
+                'ProfileNamespace': 'test',
+                'ProfileName': 'test-profile',
+                'ConfigurationNamespace': 'test',
+                'ConfigurationName': 'test-configuration'
+            }
+        }
+    }
+
+    stack = core.Stack(core.App(), 'test-stack')
+
+    task = emr_tasks.LoadClusterConfigurationBuilder.build(
+        stack, 'test-task',
+        cluster_name='test-cluster',
+        cluster_tags=[core.Tag('Key1', 'Value1')],
+        profile_namespace='test',
+        profile_name='test-profile',
+        configuration_namespace='test',
+        configuration_name='test-configuration',
+    )
+
+    print_and_assert(default_task_json, task)
+
+
+def test_override_cluster_configs_builder():
+    default_task_json = {
+        'End': True,
+        'Retry': [{
+            'ErrorEquals': ['Lambda.ServiceException', 'Lambda.AWSLambdaException', 'Lambda.SdkClientException'],
+            'IntervalSeconds': 2,
+            'MaxAttempts': 6,
+            'BackoffRate': 2
+        }],
+        'Type': 'Task',
+        'OutputPath': '$',
+        'ResultPath': '$.ClusterConfiguration.Cluster',
+        'Resource': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::lambda:invoke']]
+        },
+        'Parameters': {
+            'FunctionName': {
+                'Fn::GetAtt': ['OverrideClusterConfigsAEEA22C0', 'Arn']
+            },
+            'Payload': {
+                'ExecutionInput.$': '$$.Execution.Input',
+                'ClusterConfiguration.$': '$.ClusterConfiguration.Cluster'
+            }
+        }
+    }
+
+    stack = core.Stack(core.App(), 'test-stack')
+
+    task = emr_tasks.OverrideClusterConfigsBuilder.build(
+        stack, 'test-task',
+    )
+
+    print_and_assert(default_task_json, task)
+
+
+def test_fail_if_cluster_running_builder():
+    default_task_json = {
+        'End': True,
+        'Retry': [{
+            'ErrorEquals': ['Lambda.ServiceException', 'Lambda.AWSLambdaException', 'Lambda.SdkClientException'],
+            'IntervalSeconds': 2,
+            'MaxAttempts': 6,
+            'BackoffRate': 2
+        }],
+        'Type': 'Task',
+        'OutputPath': '$',
+        'ResultPath': '$.ClusterConfiguration.Cluster',
+        'Resource': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::lambda:invoke']]
+        },
+        'Parameters': {
+            'FunctionName': {
+                'Fn::GetAtt': ['FailIfClusterRunningC0A7FE52', 'Arn']
+            },
+            'Payload': {
+                'ExecutionInput.$': '$$.Execution.Input',
+                'DefaultFailIfClusterRunning': True,
+                'ClusterConfiguration.$': '$.ClusterConfiguration.Cluster'
+            }
+        }
+    }
+
+    stack = core.Stack(core.App(), 'test-stack')
+
+    task = emr_tasks.FailIfClusterRunningBuilder.build(
+        stack, 'test-task',
+        default_fail_if_cluster_running=True
+    )
+
+    print_and_assert(default_task_json, task)
+
+
+def test_update_cluster_tags_builder():
+    default_task_json = {
+        'End': True,
+        'Retry': [{
+            'ErrorEquals': ['Lambda.ServiceException', 'Lambda.AWSLambdaException', 'Lambda.SdkClientException'],
+            'IntervalSeconds': 2,
+            'MaxAttempts': 6,
+            'BackoffRate': 2
+        }],
+        'Type': 'Task',
+        'OutputPath': '$',
+        'ResultPath': '$.ClusterConfiguration.Cluster',
+        'Resource': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::lambda:invoke']]
+        },
+        'Parameters': {
+            'FunctionName': {
+                'Fn::GetAtt': ['UpdateClusterTags9DD0067C', 'Arn']
+            },
+            'Payload': {
+                'ExecutionInput.$': '$$.Execution.Input',
+                'ClusterConfiguration.$': '$.ClusterConfiguration.Cluster'
+            }
+        }
+    }
+
+    stack = core.Stack(core.App(), 'test-stack')
+
+    task = emr_tasks.UpdateClusterTagsBuilder.build(
+        stack, 'test-task',
+    )
+
+    print_and_assert(default_task_json, task)
+
+
+def test_create_cluster_builder():
+    default_task_json = {
+        'ResourceArn': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::elasticmapreduce:createCluster.sync']]
+        },
+        'Parameters': {
+            'AdditionalInfo.$': '$.ClusterConfiguration.Cluster.AdditionalInfo',
+            'AmiVersion.$': '$.ClusterConfiguration.Cluster.AmiVersion',
+            'Applications.$': '$.ClusterConfiguration.Cluster.Applications',
+            'AutoScalingRole.$': '$.ClusterConfiguration.Cluster.AutoScalingRole',
+            'BootstrapActions.$': '$.ClusterConfiguration.Cluster.BootstrapActions',
+            'Configurations.$': '$.ClusterConfiguration.Cluster.Configurations',
+            'CustomAmiId.$': '$.ClusterConfiguration.Cluster.CustomAmiId',
+            'EbsRootVolumeSize.$': '$.ClusterConfiguration.Cluster.EbsRootVolumeSize',
+            'Instances': {
+                'AdditionalMasterSecurityGroups.$': '$.ClusterConfiguration.Cluster.Instances.AdditionalMasterSecurityGroups',
+                'AdditionalSlaveSecurityGroups.$': '$.ClusterConfiguration.Cluster.Instances.AdditionalSlaveSecurityGroups',
+                'Ec2KeyName.$': '$.ClusterConfiguration.Cluster.Instances.Ec2KeyName',
+                'Ec2SubnetId.$': '$.ClusterConfiguration.Cluster.Instances.Ec2SubnetId',
+                'Ec2SubnetIds.$': '$.ClusterConfiguration.Cluster.Instances.Ec2SubnetIds',
+                'EmrManagedMasterSecurityGroup.$': '$.ClusterConfiguration.Cluster.Instances.EmrManagedMasterSecurityGroup',
+                'EmrManagedSlaveSecurityGroup.$': '$.ClusterConfiguration.Cluster.Instances.EmrManagedSlaveSecurityGroup',
+                'HadoopVersion.$': '$.ClusterConfiguration.Cluster.Instances.HadoopVersion',
+                'InstanceCount.$': '$.ClusterConfiguration.Cluster.Instances.InstanceCount',
+                'InstanceFleets.$': '$.ClusterConfiguration.Cluster.Instances.InstanceFleets',
+                'InstanceGroups.$': '$.ClusterConfiguration.Cluster.Instances.InstanceGroups',
+                'KeepJobFlowAliveWhenNoSteps': True,
+                'MasterInstanceType.$': '$.ClusterConfiguration.Cluster.Instances.MasterInstanceType',
+                'Placement.$': '$.ClusterConfiguration.Cluster.Instances.Placement',
+                'ServiceAccessSecurityGroup.$': '$.ClusterConfiguration.Cluster.Instances.ServiceAccessSecurityGroup',
+                'SlaveInstanceType.$': '$.ClusterConfiguration.Cluster.Instances.SlaveInstanceType',
+                'TerminationProtected.$': '$.ClusterConfiguration.Cluster.Instances.TerminationProtected'
+            },
+            'JobFlowRole.$': '$.ClusterConfiguration.Cluster.JobFlowRole',
+            'KerberosAttributes.$': '$.ClusterConfiguration.Cluster.KerberosAttributes',
+            'LogUri.$': '$.ClusterConfiguration.Cluster.LogUri',
+            'ManagedScalingPolicy.$': '$.ClusterConfiguration.Cluster.ManagedScalingPolicy',
+            'Name.$': '$.ClusterConfiguration.Cluster.Name',
+            'NewSupportedProducts.$': '$.ClusterConfiguration.Cluster.NewSupportedProducts',
+            'ReleaseLabel.$': '$.ClusterConfiguration.Cluster.ReleaseLabel',
+            'RepoUpgradeOnBoot.$': '$.ClusterConfiguration.Cluster.RepoUpgradeOnBoot',
+            'ScaleDownBehavior.$': '$.ClusterConfiguration.Cluster.ScaleDownBehavior',
+            'SecurityConfiguration.$': '$.ClusterConfiguration.Cluster.SecurityConfiguration',
+            'ServiceRole.$': '$.ClusterConfiguration.Cluster.ServiceRole',
+            'StepConcurrencyLevel.$': '$.ClusterConfiguration.Cluster.StepConcurrencyLevel',
+            'SupportedProducts.$': '$.ClusterConfiguration.Cluster.SupportedProducts',
+            'Tags.$': '$.ClusterConfiguration.Cluster.Tags',
+            'VisibleToAllUsers.$': '$.ClusterConfiguration.Cluster.VisibleToAllUsers'
+        }
     }
 
     stack = core.Stack(core.App(), 'test-stack')
@@ -337,9 +398,21 @@ def test_create_cluster_builder():
 def test_run_job_flow_builder():
     default_task_json = {
         'End': True,
+        'Retry': [{
+            'ErrorEquals': ['Lambda.ServiceException', 'Lambda.AWSLambdaException', 'Lambda.SdkClientException'],
+            'IntervalSeconds': 2,
+            'MaxAttempts': 6,
+            'BackoffRate': 2
+        }],
+        'Type': 'Task',
+        'Resource': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::lambda:invoke.waitForTaskToken']]
+        },
         'Parameters': {
             'FunctionName': {
-                'Ref': 'RunJobFlow9B18A53F'
+                'Fn::GetAtt': ['RunJobFlow9B18A53F', 'Arn']
             },
             'Payload': {
                 'ExecutionInput.$': '$$.Execution.Input',
@@ -353,9 +426,7 @@ def test_run_job_flow_builder():
                 },
                 'FireAndForget': False
             }
-        },
-        'Type': 'Task',
-        'Resource': {'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::lambda:invoke.waitForTaskToken']]}
+        }
     }
 
     stack = core.Stack(core.App(), 'test-stack')
@@ -372,7 +443,11 @@ def test_run_job_flow_builder():
 
 def test_add_step_builder():
     default_task_json = {
-        'End': True,
+        'ResourceArn': {
+            'Fn::Join': ['', ['arn:', {
+                'Ref': 'AWS::Partition'
+            }, ':states:::elasticmapreduce:addStep.sync']]
+        },
         'Parameters': {
             'ClusterId': 'test-cluster-id',
             'Step': {
@@ -385,9 +460,7 @@ def test_add_step_builder():
                     'Properties': []
                 }
             }
-        },
-        'Type': 'Task',
-        'Resource': {'Fn::Join': ['', ['arn:', {'Ref': 'AWS::Partition'}, ':states:::elasticmapreduce:addStep.sync']]}
+        }
     }
 
     stack = core.Stack(core.App(), 'test-stack')
