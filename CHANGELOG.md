@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.5.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- merge 1.4.3 enhancements into 1.5.x
 
 
 1.4.3 (2020-10-05)
