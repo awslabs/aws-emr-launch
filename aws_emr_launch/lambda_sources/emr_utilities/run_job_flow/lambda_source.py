@@ -75,12 +75,12 @@ def update_configurations(configurations: List[dict], classification: str, prope
 def handler(event, context):
     try:
         logger.info(f'Lambda metadata: {json.dumps(event)} (type = {type(event)})')
-        cluster_configuration = event['ClusterConfiguration']['Cluster']
+        cluster_configuration = event['Input']['Cluster']
         task_token = event.get('TaskToken', None)
         cluster_status_lambda = event.get('CheckStatusLambda', None)
         fire_and_forget = event.get('FireAndForget', False)
-        secret_configurations = event['ClusterConfiguration'].get('SecretConfigurations', None)
-        kerberos_attributes_secret = event['ClusterConfiguration'].get('KerberosAttributesSecret', None)
+        secret_configurations = event['Input'].get('SecretConfigurations', None)
+        kerberos_attributes_secret = event['Input'].get('KerberosAttributesSecret', None)
         rule_name = event.get('RuleName', None)
 
         # NoneType values need to be removed from the cluster_configuration

@@ -11,7 +11,7 @@ emr = boto3.client('emr')
 def handler(event, context):
     logger.info(f'Lambda metadata: {json.dumps(event)} (type = {type(event)})')
     new_tags = event.get('ExecutionInput', {}).get('Tags', [])
-    cluster_config = event.get('ClusterConfiguration', {})
+    cluster_config = event.get('Input', {})
     current_tags = cluster_config.get('Tags', [])
 
     try:

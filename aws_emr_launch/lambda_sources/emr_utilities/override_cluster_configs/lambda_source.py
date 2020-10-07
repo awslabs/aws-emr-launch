@@ -22,7 +22,7 @@ def handler(event, context):
         overrides = event.get('ExecutionInput', {}).get('ClusterConfigOverrides', {})
 
     allowed_overrides = event.get('AllowedClusterConfigOverrides', None)
-    cluster_config = event.get('ClusterConfiguration', {})
+    cluster_config = event.get('Input', {})
 
     if overrides and not allowed_overrides:
         raise InvalidOverrideError('Cluster configuration overrides are not allowed')

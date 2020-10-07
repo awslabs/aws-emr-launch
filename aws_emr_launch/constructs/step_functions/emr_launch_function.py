@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Dict, List, Optional, Union
 
 import boto3
@@ -105,14 +106,17 @@ class EMRLaunchFunction(BaseConstruct):
             profile_namespace=emr_profile.namespace,
             profile_name=emr_profile.profile_name,
             configuration_namespace=cluster_configuration.namespace,
-            configuration_name=cluster_configuration.configuration_name)
+            configuration_name=cluster_configuration.configuration_name,
+            result_path='$.ClusterConfiguration',)
         load_cluster_configuration.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create Task for overriding cluster configurations
         override_cluster_configs = emr_tasks.OverrideClusterConfigsBuilder.build(
             self, 'OverrideClusterConfigsTask',
             override_cluster_configs_lambda=override_cluster_configs_lambda,
-            allowed_cluster_config_overrides=self._allowed_cluster_config_overrides)
+            allowed_cluster_config_overrides=self._allowed_cluster_config_overrides,
+            input_path='$.ClusterConfiguration.Cluster',
+            result_path='$.ClusterConfiguration.Cluster',)
         # Attach an error catch to the Task
         override_cluster_configs.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
@@ -120,13 +124,17 @@ class EMRLaunchFunction(BaseConstruct):
         # running, based on user input
         fail_if_cluster_running = emr_tasks.FailIfClusterRunningBuilder.build(
             self, 'FailIfClusterRunningTask',
-            default_fail_if_cluster_running=default_fail_if_cluster_running,)
+            default_fail_if_cluster_running=default_fail_if_cluster_running,
+            input_path='$.ClusterConfiguration.Cluster',
+            result_path='$.ClusterConfiguration.Cluster',)
         # Attach an error catch to the task
         fail_if_cluster_running.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
         # Create a Task for updating the cluster tags at runtime
         update_cluster_tags = emr_tasks.UpdateClusterTagsBuilder.build(
-            self, 'UpdateClusterTagsTask')
+            self, 'UpdateClusterTagsTask',
+            input_path='$.ClusterConfiguration.Cluster',
+            result_path='$.ClusterConfiguration.Cluster',)
         # Attach an error catch to the Task
         update_cluster_tags.add_catch(fail, errors=['States.ALL'], result_path='$.Error')
 
@@ -136,8 +144,9 @@ class EMRLaunchFunction(BaseConstruct):
             create_cluster = emr_tasks.CreateClusterBuilder.build(
                 self, 'CreateClusterTask',
                 roles=emr_profile.roles,
+                input_path='$.ClusterConfiguration.Cluster',
                 result_path='$.LaunchClusterResult',
-                wait_for_cluster_start=wait_for_cluster_start)
+                wait_for_cluster_start=wait_for_cluster_start,)
         else:
             # Use the RunJobFlow Lambda to create the cluster to avoid exposing the
             # SecretConfigurations and KerberosAttributes values
@@ -146,8 +155,9 @@ class EMRLaunchFunction(BaseConstruct):
                 roles=emr_profile.roles,
                 kerberos_attributes_secret=emr_profile.kerberos_attributes_secret,
                 secret_configurations=cluster_configuration.secret_configurations,
+                input_path='$.ClusterConfiguration',
                 result_path='$.LaunchClusterResult',
-                wait_for_cluster_start=wait_for_cluster_start)
+                wait_for_cluster_start=wait_for_cluster_start,)
 
         # Attach an error catch to the Task
         create_cluster.add_catch(fail, errors=['States.ALL'], result_path='$.Error')

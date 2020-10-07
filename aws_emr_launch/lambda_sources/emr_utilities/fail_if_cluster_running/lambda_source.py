@@ -28,7 +28,7 @@ def handler(event, context):
 
         # check if job flow already exists
         if fail_if_cluster_running:
-            cluster_name = event.get('ClusterConfiguration', {}).get('Name', '')
+            cluster_name = event.get('Input', {}).get('Name', '')
             cluster_is_running = False
             logger.info(f'Checking if job flow "{cluster_name}" is running already')
             response = emr.list_clusters(ClusterStates=['STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING'])
@@ -45,10 +45,10 @@ def handler(event, context):
                     f'Found running Cluster with name {cluster_name}. '
                     f'ClusterId: {cluster_id}. FailIfClusterRunning is {fail_if_cluster_running}')
             else:
-                return event['ClusterConfiguration']
+                return event['Input']
 
         else:
-            return event['ClusterConfiguration']
+            return event['Input']
 
     except Exception as e:
         logger.error(f'Error processing event {json.dumps(event)}')

@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.5.0 (unreleased)
 ------------------
 
+- FIX: expand implementation of sfn.TaskStateBase
+
 - support CDK >= 1.46.0
 
 
