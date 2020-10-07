@@ -7,9 +7,6 @@ from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_stepfunctions as sfn
 from aws_cdk import aws_stepfunctions_tasks as sfn_tasks
 from aws_cdk import core
-from aws_cdk.core import ValidationError
-from botocore.utils import parse_key_val_file
-import jsii
 
 from aws_emr_launch.constructs.base import BaseBuilder
 from aws_emr_launch.constructs.emr_constructs import emr_code
@@ -20,14 +17,13 @@ from aws_emr_launch.constructs.lambdas import emr_lambdas
 class BaseTask(sfn.TaskStateBase):
 
     def __init__(self, scope: core.Construct, id: str, *,
-        comment: Optional[str] = None,
-        heartbeat: Optional[core.Duration] = None,
-        input_path: Optional[str] = None,
-        integration_pattern: Optional[sfn.IntegrationPattern] = None,
-        output_path: Optional[str] = None,
-        result_path: Optional[str] = None,
-        timeout: Optional[core.Duration] = None,
-    ):
+                 comment: Optional[str] = None,
+                 heartbeat: Optional[core.Duration] = None,
+                 input_path: Optional[str] = None,
+                 integration_pattern: Optional[sfn.IntegrationPattern] = None,
+                 output_path: Optional[str] = None,
+                 result_path: Optional[str] = None,
+                 timeout: Optional[core.Duration] = None,):
         super().__init__(
             scope, id,
             comment=comment,
@@ -411,7 +407,6 @@ class EmrAddStepTask(BaseTask):
         task.update(self._render_retry_catch())
         task.update(self._render_task_base())
         return task
-
 
 
 class LoadClusterConfigurationBuilder:

@@ -110,7 +110,7 @@ def test_nested_state_machine_chain():
             'StartAt': 'test-fragment: test-nested-state-machine',
             'States': {
                 'test-fragment: test-nested-state-machine': {
-                    'ResourceArn': {
+                    'Resource': {
                         'Fn::Join': ['', ['arn:', {
                             'Ref': 'AWS::Partition'
                         }, ':states:::states:startExecution.sync']]
@@ -122,7 +122,14 @@ def test_nested_state_machine_chain():
                         'Input': {
                             'Key1': 'Value1'
                         }
-                    }
+                    },
+                    'Next': 'test-fragment: test-nested-state-machine - Parse JSON Output',
+                    'Catch': [{
+                        'ErrorEquals': ['States.ALL'],
+                        'ResultPath': '$.Error',
+                        'Next': 'test-fail'
+                    }],
+                    'Type': 'Task'
                 },
                 'test-fragment: test-nested-state-machine - Parse JSON Output': {
                     'End': True,
@@ -216,7 +223,7 @@ def test_add_step_with_argument_overrides():
                     }
                 },
                 'test-fragment: test-step': {
-                    'ResourceArn': {
+                    'Resource': {
                         'Fn::Join': ['', ['arn:', {
                             'Ref': 'AWS::Partition'
                         }, ':states:::elasticmapreduce:addStep.sync']]
@@ -233,7 +240,14 @@ def test_add_step_with_argument_overrides():
                                 'Properties': []
                             }
                         }
-                    }
+                    },
+                    'End': True,
+                    'Catch': [{
+                        'ErrorEquals': ['States.ALL'],
+                        'ResultPath': '$.Error',
+                        'Next': 'test-fail'
+                    }],
+                    'Type': 'Task'
                 },
                 'test-fail': {
                     'Type': 'Fail'

@@ -1,5 +1,4 @@
 import json
-import re
 from typing import Dict, List, Optional, Union
 
 import boto3
