@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.5.0 (unreleased)
+1.5.0 (2020-10-08)
 ------------------
 
 - FIX: expand implementation of sfn.TaskStateBase
