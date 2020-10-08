@@ -98,6 +98,7 @@ class NestedStateMachine(sfn.StateMachineFragment):
             self, f'{name} - Parse JSON Output',
             result_path='$',
             lambda_function=parse_json_string,
+            payload_response_only=True,
             payload=sfn.TaskInput.from_object({
                 'JsonString': sfn.TaskInput.from_data_at('$.Output').value
             }),
@@ -137,6 +138,7 @@ class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
             self, f'{emr_step.name} - Override Args',
             result_path=f'$.{id}ResultArgs',
             lambda_function=override_step_args,
+            payload_response_only=True,
             payload=sfn.TaskInput.from_object({
                 'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
                 'StepName': emr_step.name,
