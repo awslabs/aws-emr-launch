@@ -17,7 +17,7 @@ def handler(event, context):
         pipeline_arn = os.environ.get('PIPELINE_ARN', '')
         pipeline_input = json.dumps({
             'ClusterConfigurationOverrides': {
-                'Name': 'sns-triggered-pipeline'
+                'ClusterName': 'sns-triggered-pipeline'
             },
             'Tags': []
         })

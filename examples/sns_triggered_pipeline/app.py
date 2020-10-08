@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from os import close
 
 from aws_cdk import (
     aws_lambda,
@@ -43,7 +44,7 @@ cluster_config = cluster_configuration.ClusterConfiguration.from_stored_configur
     stack, 'ClusterConfiguration', 'high-mem-instance-group-cluster')
 
 # Create a new State Machine to launch a cluster with the Basic configuration
-# Don't allow any Cluster Configuration parameters to be overwritten at launch time.
+# Don't allow only ClusterName to be overwritten at launch time.
 # Unless specifically indicated, fail to start if a cluster
 # of the same name is already running.
 launch_function = emr_launch_function.EMRLaunchFunction(
@@ -54,7 +55,9 @@ launch_function = emr_launch_function.EMRLaunchFunction(
     cluster_name='sns-triggered-pipeline',
     success_topic=success_topic,
     failure_topic=failure_topic,
-    allowed_cluster_config_overrides={},
+    allowed_cluster_config_overrides={
+        'ClusterName': cluster_config.override_interfaces['default']['ClusterName']
+    },
     default_fail_if_cluster_running=True,)
 
 deployment_bucket = s3.Bucket.from_bucket_name(
