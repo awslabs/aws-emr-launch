@@ -147,17 +147,10 @@ def test_nested_state_machine_chain():
                     'Type': 'Task',
                     'ResultPath': '$',
                     'Resource': {
-                        'Fn::Join': ['', ['arn:', {
-                            'Ref': 'AWS::Partition'
-                        }, ':states:::lambda:invoke']]
+                        'Fn::GetAtt': ['ParseJsonString859DB4F0', 'Arn']
                     },
                     'Parameters': {
-                        'FunctionName': {
-                            'Fn::GetAtt': ['ParseJsonString859DB4F0', 'Arn']
-                        },
-                        'Payload': {
-                            'JsonString.$': '$.Output'
-                        }
+                        'JsonString.$': '$.Output'
                     }
                 },
                 'test-fail': {
@@ -207,19 +200,12 @@ def test_add_step_with_argument_overrides():
                     'Type': 'Task',
                     'ResultPath': '$.test-fragmentResultArgs',
                     'Resource': {
-                        'Fn::Join': ['', ['arn:', {
-                            'Ref': 'AWS::Partition'
-                        }, ':states:::lambda:invoke']]
+                        'Fn::GetAtt': ['OverrideStepArgsE9376C9F', 'Arn']
                     },
                     'Parameters': {
-                        'FunctionName': {
-                            'Fn::GetAtt': ['OverrideStepArgsE9376C9F', 'Arn']
-                        },
-                        'Payload': {
-                            'ExecutionInput.$': '$$.Execution.Input',
-                            'StepName': 'test-step',
-                            'Args': ['Arg1', 'Arg2']
-                        }
+                        'ExecutionInput.$': '$$.Execution.Input',
+                        'StepName': 'test-step',
+                        'Args': ['Arg1', 'Arg2']
                     }
                 },
                 'test-fragment: test-step': {
