@@ -1,18 +1,19 @@
 
 import json
-
 from datetime import timedelta
 
 from airflow import DAG
-from airflow.contrib.operators.emr_add_steps_operator import EmrAddStepsOperator
-from airflow.contrib.operators.emr_terminate_job_flow_operator import EmrTerminateJobFlowOperator
+from airflow.contrib.operators.emr_add_steps_operator import \
+    EmrAddStepsOperator
+from airflow.contrib.operators.emr_terminate_job_flow_operator import \
+    EmrTerminateJobFlowOperator
+from airflow.contrib.secrets.aws_systems_manager import \
+    SystemsManagerParameterStoreBackend
 from airflow.contrib.sensors.emr_step_sensor import EmrStepSensor
-from airflow.contrib.secrets.aws_systems_manager import SystemsManagerParameterStoreBackend
-from airflow.utils.dates import days_ago
-
-from airflow.operators.aws_operators_plugin import StepFunctionStartExecutionOperator
+from airflow.operators.aws_operators_plugin import \
+    StepFunctionStartExecutionOperator
 from airflow.sensors.aws_operators_plugin import StepFunctionExecutionSensor
-
+from airflow.utils.dates import days_ago
 
 DEFAULT_ARGS = {
     'owner': 'airflow',
@@ -59,7 +60,10 @@ with DAG(
         aws_conn_id='aws_default'
     )
 
-    job_flow_id="{{ task_instance.xcom_pull(task_ids='watch_create_cluster', key='output')['LaunchClusterResult']['ClusterId'] }}"
+    job_flow_id = (
+        "{{ task_instance.xcom_pull(task_ids='watch_create_cluster', key='output')"
+        "['LaunchClusterResult']['ClusterId'] }}"
+    )
 
     step_adder = EmrAddStepsOperator(
         task_id='add_steps',
