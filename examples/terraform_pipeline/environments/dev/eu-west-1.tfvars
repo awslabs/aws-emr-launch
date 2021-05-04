@@ -2,9 +2,9 @@
 aws_region = "eu-west-1"
 stage = "dev"
 
-vpc_id = "vpc-0ad86fc2cfdd36384"
-subnet_id = "subnet-01df671b3ac7cdf95"
-emr_cluster_name = "knowledgemine"
+vpc_id = "vpc-XYZ"
+subnet_id = "subnet-XYZ"
+emr_cluster_name = "demo-tf-pipeline"
 
 
 # EMR Configuration
