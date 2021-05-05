@@ -1,0 +1,17 @@
+-e .
+aws_cdk.core==1.83.0
+aws_cdk.aws_ec2==1.83.0
+aws_cdk.aws_s3==1.83.0
+aws_cdk.aws_s3_deployment==1.83.0
+aws_cdk.aws_ecs==1.83.0
+aws_cdk.aws_emr==1.83.0
+aws_cdk.aws_efs==1.83.0
+aws_cdk.aws_ecs_patterns==1.83.0
+aws_cdk.aws_ecr==1.83.0
+aws_cdk.aws_stepfunctions_tasks==1.83.0
+aws_cdk.aws_stepfunctions==1.83.0
+aws_cdk.aws_logs==1.83.0
+aws_cdk.aws_lambda_event_sources==1.83.0
+aws_cdk.aws_lambda==1.83.0
+boto3
+aws_emr_launch==1.5.0
