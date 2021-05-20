@@ -1,0 +1,4 @@
+cdk.out
+.env
+*.pyc
+infrastructure/infrastructure.egg-info
