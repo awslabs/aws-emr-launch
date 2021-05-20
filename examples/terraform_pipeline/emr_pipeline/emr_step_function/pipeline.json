@@ -1,0 +1,193 @@
+{
+  "StartAt": "LaunchClusterStateMachine",
+  "States": {
+    "LaunchClusterStateMachine": {
+      "Next": "Json_Parser",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.Error",
+          "Next": "FailureNotification"
+        }
+      ],
+      "Parameters": {
+        "StateMachineArn": "${sfn-emr-launch-arn}",
+        "Input.$": "$$.Execution.Input"
+      },
+      "Type": "Task",
+      "ResultPath": "$.LaunchOutput",
+      "ResultSelector": {
+        "LaunchOutput.$": "$.Output"
+      },
+      "Resource": "arn:aws:states:::states:startExecution.sync"
+    },
+    "Json_Parser": {
+      "Next": "Enable_Termination_Protection",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.Error",
+          "Next": "FailureNotification"
+        }
+      ],
+      "Type": "Task",
+      "Resource": "${json-parser-arn}",
+      "ResultPath": "$.LaunchFunction"
+    },
+    "Enable_Termination_Protection": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:setClusterTerminationProtection",
+      "Parameters": {
+        "ClusterId.$": "$.LaunchFunction.ClusterId",
+        "TerminationProtected": true
+      },
+      "ResultPath": null,
+      "Next": "RunSparkScript",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.Error",
+          "Next": "FailureNotification"
+        }
+      ]
+    },
+    "RunSparkScript": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Parameters": {
+        "ClusterId.$": "$.LaunchFunction.ClusterId",
+        "Step": {
+          "Name": "Spark Step",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--master",
+              "yarn",
+              "--deploy-mode",
+              "cluster",
+              "--conf",
+              "spark.yarn.maxAppAttempts=1",
+              "${jar_path}",
+              "--output-s3-path",
+              "${output_s3_path}"
+            ]
+          }
+        }
+      },
+      "ResultPath": null,
+      "Next": "Disable_Termination_Protection",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.Error",
+          "Next": "FailureNotification"
+        }
+      ]
+    },
+    "Disable_Termination_Protection": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:setClusterTerminationProtection",
+      "Parameters": {
+        "ClusterId.$": "$.LaunchFunction.ClusterId",
+        "TerminationProtected": false
+      },
+      "ResultPath": null,
+      "Next": "Terminate_Cluster",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.Error",
+          "Next": "FailureNotification"
+        }
+      ]
+    },
+    "Terminate_Cluster": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:terminateCluster.sync",
+      "Parameters": {
+        "ClusterId.$": "$.LaunchFunction.ClusterId"
+      },
+      "ResultPath": null,
+      "Next": "SuccessNotification",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.Error",
+          "Next": "FailureNotification"
+        }
+      ]
+    },
+    "SuccessNotification": {
+      "Next": "Success",
+      "InputPath": "$",
+      "Parameters": {
+        "TopicArn": "${success-sns-arn}",
+        "Message.$": "$.LaunchFunction.Cluster.Name",
+        "Subject": "Pipeline Succeeded"
+      },
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "ResultPath": null,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.Error",
+          "Next": "FailureNotification"
+        }
+      ]
+    },
+    "Success": {
+      "Type": "Succeed"
+    },
+    "FailureNotification": {
+      "Next": "Disable_Termination_Protection_Failed",
+      "InputPath": "$",
+      "Parameters": {
+        "TopicArn": "${failure-sns-arn}",
+        "Message.$": "$.Error",
+        "Subject": "Pipeline Failure"
+      },
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "ResultPath": "$.PublishResult"
+    },
+    "Disable_Termination_Protection_Failed": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:setClusterTerminationProtection",
+      "Parameters": {
+        "ClusterId.$": "$.LaunchFunction.ClusterId",
+        "TerminationProtected": false
+      },
+      "ResultPath": null,
+      "Next": "TerminateFailedCluster"
+    },
+    "TerminateFailedCluster": {
+      "Next": "ExecutionFailed",
+      "Parameters": {
+        "ClusterId.$": "$.LaunchFunction.ClusterId"
+      },
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:terminateCluster.sync",
+      "ResultPath": "$.TerminateResult"
+    },
+    "ExecutionFailed": {
+      "Type": "Fail"
+    }
+  }
+}

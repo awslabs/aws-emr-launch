@@ -1,0 +1,4 @@
+emr_pipeline/.terraform/*
+emr_step_function/lambda.zip
+emr_pipeline/terraform.tfstate
+emr_pipeline/terraform.tfstate.backup
