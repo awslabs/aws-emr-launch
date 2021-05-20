@@ -1,0 +1,23 @@
+{
+  "stack-id": "my-emr-pipeline",
+  "emr": {
+      "CLUSTER_NAME": "demo-pipeline",
+      "MASTER_INSTANCE_TYPE": "m5.xlarge",
+      "CORE_INSTANCE_TYPE": "m5d.xlarge",
+      "CORE_INSTANCE_COUNT":  3,
+      "CORE_INSTANCE_MARKET": "ON_DEMAND",
+      "TASK_INSTANCE_TYPE": "m5.xlarge",
+      "TASK_INSTANCE_COUNT":  3,
+      "TASK_INSTANCE_MARKET": "SPOT",
+      "RELEASE_LABEL": "emr-6.2.0",
+      "APPLICATIONS": ["Hadoop", "Spark"],
+      "CONFIGURATION": [
+        {
+            "Classification": "spark",
+            "Properties": {
+                "maximizeResourceAllocation": "true"
+            }
+        }
+    ]
+  }
+}
