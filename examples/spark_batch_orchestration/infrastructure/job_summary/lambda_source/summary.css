@@ -1,0 +1,39 @@
+body {
+    font-family: sans-serif;
+}
+
+a {
+    text-decoration: none;
+    color: orange;
+}
+
+table {
+    margin-top: 1em;
+}
+
+th {
+    text-align: left;
+    padding-right: 2em;
+}
+
+td {
+    vertical-align: top;
+    padding-right: 2em;
+}
+
+textarea {
+    width: 100%;
+    height: 20em;
+    color: white;
+    background-color: black;
+}
+
+.success {
+    color: green;
+    font-weight: bold;
+}
+
+.failure {
+    color: red;
+    font-weight: bold;
+}

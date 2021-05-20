@@ -56,8 +56,8 @@ class StepFunctionStack(core.Stack):
         )
 
         # SNS Topics for Success/Failures messages from our Pipeline
-        success_topic = sns.Topic(self, 'SuccessTopic')
-        failure_topic = sns.Topic(self, 'FailureTopic')
+        self.success_topic = sns.Topic(self, 'SuccessTopic')
+        self.failure_topic = sns.Topic(self, 'FailureTopic')
 
         # Upload artifacts to S3
         step_code = s3d.BucketDeployment(
@@ -73,7 +73,7 @@ class StepFunctionStack(core.Stack):
             self, 'FailChain',
             message=sfn.TaskInput.from_data_at('$.Error'),
             subject='Pipeline Failure',
-            topic=failure_topic
+            topic=self.failure_topic
         )
 
         # # Define a Task to Terminate the Cluster on failure
@@ -128,7 +128,7 @@ class StepFunctionStack(core.Stack):
             self, 'SuccessChain',
             message=sfn.TaskInput.from_data_at('$.TerminateResult'),
             subject='Pipeline Succeeded',
-            topic=success_topic
+            topic=self.success_topic
         )
 
         # Assemble the Pipeline
