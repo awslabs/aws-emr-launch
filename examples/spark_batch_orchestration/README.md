@@ -52,11 +52,13 @@ command.
  ## Run the demo
 
  Steps to run the Data Pipelines:
-    1. Upload the parquet files stored under /sample_data folder in S3, into the "input" S3 Bucket as it follows:
-        /demo-pipeline-s3inputbucket-srcbucketa467747d-unbfunfcy9dm/
-            partition_folder/
-                file_slot=1/
-                    part-r-00....parquet
-                    part-r-00....parquet
-    2. Go to EMR console and check that a cluster is being created, including 2 steps
-    3. When the 2 steps are completed, open the logs "stdout" to check results, and check for output data in "output" S3 bucket.
+1. Upload the parquet files stored under /sample_data folder in S3, into the "input" S3 Bucket as it follows:
+```
+    /demo-pipeline-s3inputbucket-srcbucketa467747d-unbfunfcy9dm/
+        sample_data/
+            file_slot=1/
+                part-r-00....parquet
+                part-r-00....parquet
+```
+2. Go to EMR console and check that a cluster is being created, including 2 steps
+3. When the 2 steps are completed, open the logs "stdout" to check results, and check for output data in "output" S3 bucket.
