@@ -26,8 +26,8 @@ def parse_s3_event(s3_event):
         'size': int(s3_event['s3']['object']['size'] / 1024),
         's3_event': s3_event
     }
-    d['bag_file'] = [x for x in d['key'].split('/') if 'bag_file=' in x][0].replace('bag_file=', '')
-    d['topic'] = [x for x in d['key'].split('/')][0]
+    d['file_slot'] = [x for x in d['key'].split('/') if 'file_slot=' in x][0].replace('file_slot=', '')
+    d['file_partition'] = [x for x in d['key'].split('/')][0]
     return d
 
 
@@ -124,8 +124,8 @@ def process_sns_message(record, table, current_batch_id):
             'Name': message['key'],
             'FileBucket': message['bucket'],
             'FileSizeKb': message['size'],
-            'BagFile': message['bag_file'],
-            'Topic': message['topic']
+            'FileSlot': message['file_slot'],
+            'FilePartition': message['file_partition']
         }
     )
 
@@ -169,7 +169,10 @@ def trigger_pipeline(current_batch_id, pipeline_arn, cluster_name):
             'ClusterName': cluster_name,
         },
         "StepArgumentOverrides": {
-            "Scene Detection - PySpark Job": {
+            "Data Ingestion - PySpark Job": {
+                "DynamoDB.BatchId": current_batch_id
+            },
+            "Data Preparation - PySpark Job": {
                 "DynamoDB.BatchId": current_batch_id
             }
         },
@@ -215,7 +218,7 @@ def handler(event, context):
 
         if should_lambda_trigger_pipeline(latest):
             pipeline_arn = os.environ.get('PIPELINE_ARN', '')
-            cluster_name = f'demo-scene-detection-{current_batch_id}'
+            cluster_name = f'demo-pipeline-{current_batch_id}'
             execution = trigger_pipeline(current_batch_id, pipeline_arn, cluster_name)
             if execution:
                 reset_batch(table, latest, pipeline_arn, execution['executionArn'], cluster_name)

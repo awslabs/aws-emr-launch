@@ -1,7 +1,5 @@
 
-# Solution Architecture
-
-![alt text](https://github.com/awslabs/aws-emr-launch/blob/43a28f00f98399d838a8e403631fadef6d01750b/examples/spark_batch_orchestration/BatchSparkPipelineArchitecture.png?raw=true)
+# Welcome to your CDK Python project!
 
 Initial Configuration
     
@@ -10,6 +8,7 @@ Initial Configuration
     2. Add your spark script to emr_orchestration/steps/
     
     3. Update or duplicate the pyspark_step in emr_orchestration/stack.py [Line 95] according to your script's needs
+
     4. Update Triggering Logic in the 'should_lambda_trigger_pipeline' function in emr_trigger/lambda_source/trigger.py
         **Currently set to start a batch for every 1 megabyte of data for demo purposes**
 
@@ -29,6 +28,7 @@ To manually create a virtualenv on MacOS and Linux:
 
 ```
 $ python3 -m venv .env
+$ source .env/bin/activate
 ```
 
 After the init process completes and the virtualenv is created, you can use the following
@@ -45,3 +45,15 @@ command.
  * `bash deploy.sh deploy`      build and deploy this stack to your default AWS account/region
  * `bash deploy.sh diff`        compare deployed stack with current state
  * `bash deploy.sh docs`        open CDK documentation
+
+ ## Run the demo
+
+ Steps to run the Data Pipelines:
+    1. Upload the parquet files stored under /sample_data folder in S3, into the "input" S3 Bucket as it follows:
+        /demo-pipeline-s3inputbucket-srcbucketa467747d-unbfunfcy9dm/
+            partition_folder/
+                file_slot=1/
+                    part-r-00....parquet
+                    part-r-00....parquet
+    2. Go to EMR console and check that a cluster is being created, including 2 steps
+    3. When the 2 steps are completed, open the logs "stdout" to check results, and check for output data in "output" S3 bucket.

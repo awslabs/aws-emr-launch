@@ -56,8 +56,8 @@ class StepFunctionStack(core.Stack):
         )
 
         # SNS Topics for Success/Failures messages from our Pipeline
-        self.success_topic = sns.Topic(self, 'SuccessTopic')
-        self.failure_topic = sns.Topic(self, 'FailureTopic')
+        success_topic = sns.Topic(self, 'SuccessTopic')
+        failure_topic = sns.Topic(self, 'FailureTopic')
 
         # Upload artifacts to S3
         step_code = s3d.BucketDeployment(
@@ -73,7 +73,7 @@ class StepFunctionStack(core.Stack):
             self, 'FailChain',
             message=sfn.TaskInput.from_data_at('$.Error'),
             subject='Pipeline Failure',
-            topic=self.failure_topic
+            topic=failure_topic
         )
 
         # # Define a Task to Terminate the Cluster on failure
@@ -94,20 +94,42 @@ class StepFunctionStack(core.Stack):
         )
 
         pyspark_step = emr_chains.AddStepWithArgumentOverrides(
-            self, 'PySparkSceneDetection',
+            self, 'PySparkDataIngestion',
             emr_step=emr_code.EMRStep(
-                name=f'Scene Detection - PySpark Job',
+                name=f'Data Ingestion - PySpark Job',
                 jar='command-runner.jar',
                 args=[
                     'spark-submit',
                     '--master', 'yarn',
-                    '--deploy-mode', 'cluster',
+                    '--deploy-mode', 'client',
                     '--packages', 'com.audienceproject:spark-dynamodb_2.12:1.1.2',
-                    os.path.join(f's3://{artifact_bucket.bucket_name}', 'steps', 'scene_detection.py'),
+                    os.path.join(f's3://{artifact_bucket.bucket_name}', 'steps', 'data_ingestion.py'),
                     '--batch-id', 'DynamoDB.BatchId',
                     '--batch-metadata-table-name', dynamo_table.table_name,
                     '--output-bucket', output_bucket.bucket_name,
-                    '--synchronized-table-name', 'synchronized-signals'
+                    '--region', os.environ["CDK_DEFAULT_REGION"]
+                ]
+            ),
+            cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value,
+            result_path='$.PySparkResult',
+            fail_chain=terminate_failed_cluster
+        )
+
+
+        pyspark_example_step = emr_chains.AddStepWithArgumentOverrides(
+            self, 'PySparkDataPreparation',
+            emr_step=emr_code.EMRStep(
+                name=f'Data Preparation - PySpark Job',
+                jar='command-runner.jar',
+                args=[
+                    'spark-submit',
+                    '--master', 'yarn',
+                    '--deploy-mode', 'client',
+                    os.path.join(f's3://{artifact_bucket.bucket_name}', 'steps', 'data_preparation.py'),
+                    '--batch-id', 'DynamoDB.BatchId',
+                    '--batch-metadata-table-name', dynamo_table.table_name,
+                    '--input-bucket', output_bucket.bucket_name,
+                    '--region', os.environ["CDK_DEFAULT_REGION"]
                 ]
             ),
             cluster_id=sfn.TaskInput.from_data_at('$.LaunchClusterResult.ClusterId').value,
@@ -128,19 +150,20 @@ class StepFunctionStack(core.Stack):
             self, 'SuccessChain',
             message=sfn.TaskInput.from_data_at('$.TerminateResult'),
             subject='Pipeline Succeeded',
-            topic=self.success_topic
+            topic=success_topic
         )
 
         # Assemble the Pipeline
         definition = sfn.Chain \
             .start(launch_cluster) \
             .next(pyspark_step) \
+            .next(pyspark_example_step) \
             .next(terminate_cluster) \
             .next(success)
 
         # Create the State Machine
         self.state_machine = sfn.StateMachine(
-            self, 'SceneDetectionStateMachine',
-            state_machine_name='scene-detection-pipeline', definition=definition
+            self, 'PySparkExampleStateMachine',
+            state_machine_name='pyspark-example-pipeline', definition=definition
         )
         self.dynamo_table = dynamo_table

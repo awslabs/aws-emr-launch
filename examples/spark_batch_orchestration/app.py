@@ -6,7 +6,6 @@ import json
 from infrastructure.emr_launch.cluster_definition import EMRClusterDefinition
 from infrastructure.emr_orchestration.stack import StepFunctionStack
 from infrastructure.emr_trigger.stack import EmrTriggerStack
-from infrastructure.job_summary.stack import JobSummaryStack
 
 from aws_cdk import (
     aws_s3,
@@ -115,17 +114,6 @@ emr_trigger_stack = EmrTriggerStack(
     target_step_function_arn=emr_orchestration_stack.state_machine.state_machine_arn,
     source_bucket_sns=s3_stack.input_bucket_sns,
     dynamo_table=emr_orchestration_stack.dynamo_table
-)
-
-job_summary_stack = JobSummaryStack(
-    app,
-    id=cluster_name + '-JobSummary',
-    orchestration_sfn_name=emr_orchestration_stack.state_machine.state_machine_name,
-    launch_sfn_name=emr_cluster_stack.launch_function.state_machine.state_machine_name,
-    log_bucket_arn=emr_cluster_stack.emr_profile.logs_bucket.bucket_arn,
-    destination_bucket_name=emr_cluster_stack.emr_profile.logs_bucket.bucket_name,
-    success_sns_topic_arn=emr_orchestration_stack.success_topic.topic_arn,
-    failure_sns_topic_arn=emr_orchestration_stack.failure_topic.topic_arn
 )
 
 app.synth()
