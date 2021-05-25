@@ -1,3 +1,6 @@
+# Solution Architecture
+
+![alt text](https://github.com/awslabs/aws-emr-launch/blob/43a28f00f98399d838a8e403631fadef6d01750b/examples/spark_batch_orchestration/BatchSparkPipelineArchitecture.png?raw=true)
 
 # Welcome to your CDK Python project!
 
