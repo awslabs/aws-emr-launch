@@ -75,12 +75,11 @@ class EMRLaunchFunction(BaseConstruct):
 
         if len(cluster_configuration.configuration_artifacts) > 0:
             if emr_profile.mutable_instance_role:
-                for configuration_artifact in cluster_configuration.configuration_artifacts:
+                for i in range(len(cluster_configuration.configuration_artifacts)):
+                    configuration_artifact = cluster_configuration.configuration_artifacts[i]
                     bucket_name = configuration_artifact['Bucket']
                     path = configuration_artifact['Path']
-                    bucket = self.node.try_find_child(f'Bucket_{bucket_name}')
-                    bucket = s3.Bucket.from_bucket_name(self, f'Bucket_{bucket_name}', bucket_name) \
-                        if bucket is None else bucket
+                    bucket = s3.Bucket.from_bucket_name(self, f'Bucket_{i}', bucket_name)
                     bucket.grant_read(emr_profile.roles.instance_role, path)
             else:
                 logger.warn('--------------------------------------------------------------------------')
