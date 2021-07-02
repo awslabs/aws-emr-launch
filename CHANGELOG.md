@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.5.1 (unreleased)
+1.5.1 (2021-07-02)
 ------------------
 
 - FIX: new Glue required permission
