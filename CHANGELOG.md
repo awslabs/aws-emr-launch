@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- FIX: nested bucket id on emr_roles
 
 
 1.5.0 (2020-10-08)
