@@ -52,7 +52,8 @@ class EMRRoles(BaseConstruct):
                 effect=iam.Effect.ALLOW,
                 actions=[
                     'glue:GetDatabase',
-                    'glue:GetDatabases'
+                    'glue:GetDatabases',
+                    'glue:GetUserDefinedFunctions'
                 ],
                 resources=[
                     stack.format_arn(
