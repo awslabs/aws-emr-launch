@@ -29,6 +29,16 @@ recursive-exclude examples/.env *
 recursive-exclude examples/*/cdk.out *
 recursive-exclude codepipeline  *
 
+recursive-exclude examples *.css
+recursive-exclude examples *.parquet
+recursive-exclude examples *.png
+recursive-exclude examples *.tf
+recursive-exclude examples *.tfvars
+recursive-exclude examples *.txt
+recursive-exclude examples *.zip
+recursive-exclude extras *.md
+recursive-exclude extras *.py
+
 global-exclude *.pyc
 global-exclude __pycache__
 global-exclude environment_vars.sh
