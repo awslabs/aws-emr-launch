@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.5.1 (unreleased)
 ------------------
 
+- FIX: new Glue required permission
+
 - FIX: nested bucket id on emr_roles
 
 
