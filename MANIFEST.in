@@ -38,6 +38,8 @@ recursive-exclude examples *.txt
 recursive-exclude examples *.zip
 recursive-exclude extras *.md
 recursive-exclude extras *.py
+recursive-exclude docs *.pdf
+recursive-exclude docs *.png
 
 global-exclude *.pyc
 global-exclude __pycache__
