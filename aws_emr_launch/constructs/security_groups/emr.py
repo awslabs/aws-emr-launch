@@ -7,14 +7,13 @@ from aws_emr_launch.constructs.base import BaseConstruct
 
 
 class EMRSecurityGroups(BaseConstruct):
-
     def __init__(self, scope: core.Construct, id: str, *, vpc: Optional[ec2.Vpc] = None) -> None:
         super().__init__(scope, id)
 
         if vpc:
-            self._master_group = ec2.SecurityGroup(self, 'MasterGroup', allow_all_outbound=True, vpc=vpc)
-            self._workers_group = ec2.SecurityGroup(self, 'WorkersGroup', allow_all_outbound=True, vpc=vpc)
-            self._service_group = ec2.SecurityGroup(self, 'ServiceGroup', allow_all_outbound=False, vpc=vpc)
+            self._master_group = ec2.SecurityGroup(self, "MasterGroup", allow_all_outbound=True, vpc=vpc)
+            self._workers_group = ec2.SecurityGroup(self, "WorkersGroup", allow_all_outbound=True, vpc=vpc)
+            self._service_group = ec2.SecurityGroup(self, "ServiceGroup", allow_all_outbound=False, vpc=vpc)
 
             # Master SG rules
             self._master_group.add_ingress_rule(self._service_group, ec2.Port.tcp(8443))
@@ -40,15 +39,24 @@ class EMRSecurityGroups(BaseConstruct):
         return primary
 
     @staticmethod
-    def from_security_group_ids(scope: core.Construct, id: str, master_group_id: str, workers_group_id: str,
-                                service_group_id: str, mutable: Optional[bool] = None):
+    def from_security_group_ids(
+        scope: core.Construct,
+        id: str,
+        master_group_id: str,
+        workers_group_id: str,
+        service_group_id: str,
+        mutable: Optional[bool] = None,
+    ):
         security_groups = EMRSecurityGroups(scope, id)
         security_groups._master_group = ec2.SecurityGroup.from_security_group_id(
-            security_groups, 'MasterGroup', master_group_id, mutable=mutable)
+            security_groups, "MasterGroup", master_group_id, mutable=mutable
+        )
         security_groups._workers_group = ec2.SecurityGroup.from_security_group_id(
-            security_groups, 'WorkersGroup', workers_group_id, mutable=mutable)
+            security_groups, "WorkersGroup", workers_group_id, mutable=mutable
+        )
         security_groups._service_group = ec2.SecurityGroup.from_security_group_id(
-            security_groups, 'ServiceGroup', service_group_id, mutable=False)
+            security_groups, "ServiceGroup", service_group_id, mutable=False
+        )
         return security_groups
 
     @property

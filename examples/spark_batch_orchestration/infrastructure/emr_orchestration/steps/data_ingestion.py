@@ -1,9 +1,10 @@
-from pyspark.sql import SparkSession
-import boto3
 import argparse
-import sys
 import functools
+import sys
+
+import boto3
 import pyspark.sql.functions as func
+from pyspark.sql import SparkSession
 
 
 def union_all(dfs):
@@ -20,26 +21,23 @@ def parse_arguments(args):
 
 
 def get_batch_file_metadata(table_name, batch_id, region):
-    dynamodb = boto3.resource('dynamodb', region_name=region)
+    dynamodb = boto3.resource("dynamodb", region_name=region)
     table = dynamodb.Table(table_name)
-    response = table.query(
-        KeyConditions={
-                'BatchId': {
-                    'AttributeValueList': [batch_id],
-                    'ComparisonOperator': 'EQ'
-                }
-        }
-    )
-    data = response['Items']
-    while 'LastEvaluatedKey' in response:
-        response = table.query(ExclusiveStartKey=response['LastEvaluatedKey'])
-        data.update(response['Items'])
+    response = table.query(KeyConditions={"BatchId": {"AttributeValueList": [batch_id], "ComparisonOperator": "EQ"}})
+    data = response["Items"]
+    while "LastEvaluatedKey" in response:
+        response = table.query(ExclusiveStartKey=response["LastEvaluatedKey"])
+        data.update(response["Items"])
     return data
 
 
 def load_file_path(spark, bucket, prefix, file_partition, file_slot):
     s3path = "s3://" + bucket + "/" + prefix
-    df = spark.read.load(s3path).withColumn("file_partition", func.lit(file_partition)).withColumn("file_slot", func.lit(file_slot))
+    df = (
+        spark.read.load(s3path)
+        .withColumn("file_partition", func.lit(file_partition))
+        .withColumn("file_slot", func.lit(file_slot))
+    )
     return df
 
 
@@ -53,7 +51,7 @@ def load_and_union_data(spark, batch_metadata):
                 bucket=x["FileBucket"],
                 prefix=x["Name"],
                 file_partition=x["FilePartition"],
-                file_slot=x["FileSlot"]
+                file_slot=x["FileSlot"],
             )
             for x in batch_metadata
             if x["FilePartition"] == partition
@@ -62,17 +60,16 @@ def load_and_union_data(spark, batch_metadata):
 
     return partition_dfs
 
+
 def write_results(df, table_name, output_bucket, partition_cols=[]):
-    df.write.mode('append').partitionBy(*partition_cols).parquet(f"s3://{output_bucket}/{table_name}")
+    df.write.mode("append").partitionBy(*partition_cols).parquet(f"s3://{output_bucket}/{table_name}")
 
 
 def main(args, spark):
     arguments = parse_arguments(args)
     # Load files to process
     batch_metadata = get_batch_file_metadata(
-        table_name=arguments.batch_metadata_table_name,
-        batch_id=arguments.batch_id,
-        region=arguments.region
+        table_name=arguments.batch_metadata_table_name, batch_id=arguments.batch_id, region=arguments.region
     )
 
     # Load data from s3 and union
@@ -80,12 +77,7 @@ def main(args, spark):
 
     # Save Output to S3
     for dataset, df in input_data.items():
-        write_results(
-            df,
-            table_name=dataset,
-            output_bucket=arguments.output_bucket,
-            partition_cols=['file_slot']
-        )
+        write_results(df, table_name=dataset, output_bucket=arguments.output_bucket, partition_cols=["file_slot"])
         break
 
 

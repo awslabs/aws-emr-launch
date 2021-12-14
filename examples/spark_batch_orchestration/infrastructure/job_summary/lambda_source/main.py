@@ -1,10 +1,11 @@
-import os
 import io
-import re
+import json
+import os
 
-from helpers import *
-from extracting import *
-from rendering import *
+import boto3
+from extracting import extract_sfn_execution_info
+from helpers import make_s3_console_link
+from rendering import render_html_page
 
 s3_client = boto3.client("s3")
 sns_client = boto3.client("sns")
@@ -16,8 +17,9 @@ def lambda_handler(event, context):
     execution_arn = event["sfnExecutionArn"]
 
     destination_bucket_name = event.get("destinationBucketName") or os.environ["DESTINATION_BUCKET_NAME"]
-    destination_object_key = event.get("destinationObjectKey") or \
-        f'job-summary/{execution_arn.split(":")[-1]}/summary.html'
+    destination_object_key = (
+        event.get("destinationObjectKey") or f'job-summary/{execution_arn.split(":")[-1]}/summary.html'
+    )
 
     success_sns_topic_arn = event.get("successSnsTopicArn") or os.environ.get("SUCCESS_SNS_TOPIC_ARN")
     failure_sns_topic_arn = event.get("failureSnsTopicArn") or os.environ.get("FAILURE_SNS_TOPIC_ARN")

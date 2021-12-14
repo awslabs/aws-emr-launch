@@ -1,20 +1,14 @@
 import os
 
-from aws_cdk import (
-    core,
-    aws_lambda,
-    aws_lambda_event_sources as sources,
-    aws_iam as iam,
-    aws_s3 as s3,
-    aws_sns as sns,
-    aws_dynamodb as dynamo,
-    aws_events as events,
-    aws_events_targets as event_targets,
-)
+from aws_cdk import aws_events as events
+from aws_cdk import aws_events_targets as event_targets
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_lambda, core
 
 
 class JobSummaryStack(core.Stack):
-    def __init__(self,
+    def __init__(
+        self,
         scope: core.Construct,
         id: str,
         orchestration_sfn_name: str,
@@ -23,7 +17,7 @@ class JobSummaryStack(core.Stack):
         destination_bucket_name: str,
         success_sns_topic_arn: str,
         failure_sns_topic_arn: str,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(scope, id, **kwargs)
 
@@ -32,7 +26,9 @@ class JobSummaryStack(core.Stack):
 
         lambda_code = aws_lambda.Code.from_asset("infrastructure/job_summary/lambda_source/")
 
-        job_summary_lambda = aws_lambda.Function(self, "EmrLaunchJobSummaryLambda",
+        job_summary_lambda = aws_lambda.Function(
+            self,
+            "EmrLaunchJobSummaryLambda",
             code=lambda_code,
             handler="main.lambda_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
@@ -40,7 +36,7 @@ class JobSummaryStack(core.Stack):
             environment={
                 "DESTINATION_BUCKET_NAME": destination_bucket_name,
                 "SUCCESS_SNS_TOPIC_ARN": success_sns_topic_arn,
-                "FAILURE_SNS_TOPIC_ARN": failure_sns_topic_arn
+                "FAILURE_SNS_TOPIC_ARN": failure_sns_topic_arn,
             },
             initial_policy=[
                 iam.PolicyStatement(
@@ -52,7 +48,7 @@ class JobSummaryStack(core.Stack):
                     resources=[
                         f"arn:aws:states:{aws_region}:{aws_account}:execution:{orchestration_sfn_name}:*",
                         f"arn:aws:states:{aws_region}:{aws_account}:execution:{launch_sfn_name}:*",
-                    ]
+                    ],
                 ),
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
@@ -62,7 +58,7 @@ class JobSummaryStack(core.Stack):
                     ],
                     resources=[
                         f"arn:aws:elasticmapreduce:{aws_region}:{aws_account}:cluster/*",
-                    ]
+                    ],
                 ),
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
@@ -74,42 +70,42 @@ class JobSummaryStack(core.Stack):
                     resources=[
                         log_bucket_arn,
                         f"{log_bucket_arn}/*",
-                    ]
+                    ],
                 ),
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
                     actions=[
-                      "SNS:Publish",
+                        "SNS:Publish",
                     ],
                     resources=[
                         success_sns_topic_arn,
                         failure_sns_topic_arn,
-                    ]
-                )
+                    ],
+                ),
             ],
         )
 
-        job_summary_event_rule = events.Rule(self, "EmrLaunchJobSummaryEventRule",
+        job_summary_event_rule = events.Rule(
+            self,
+            "EmrLaunchJobSummaryEventRule",
             description="Triggers the creation of SFN execution summary",
             event_pattern=events.EventPattern(
                 source=["aws.states"],
                 detail_type=["Step Functions Execution Status Change"],
                 detail={
-                    "status": [
-                        "SUCCEEDED",
-                        "FAILED",
-                        "TIMED_OUT",
-                        "ABORTED"
-                    ],
+                    "status": ["SUCCEEDED", "FAILED", "TIMED_OUT", "ABORTED"],
                     "stateMachineArn": [
                         f"arn:aws:states:{aws_region}:{aws_account}:stateMachine:{orchestration_sfn_name}",
-                    ]
-                }
-            )
+                    ],
+                },
+            ),
         )
 
-        job_summary_event_rule.add_target(event_targets.LambdaFunction(job_summary_lambda,
-            event=events.RuleTargetInput.from_object({
-                "sfnExecutionArn": events.EventField.from_path("$.detail.executionArn")
-            })
-        ))
+        job_summary_event_rule.add_target(
+            event_targets.LambdaFunction(
+                job_summary_lambda,
+                event=events.RuleTargetInput.from_object(
+                    {"sfnExecutionArn": events.EventField.from_path("$.detail.executionArn")}
+                ),
+            )
+        )

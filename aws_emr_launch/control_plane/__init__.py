@@ -1,2 +1,3 @@
-from aws_emr_launch.control_plane.constructs.control_plane_stack import \
-    ControlPlaneStack
+from aws_emr_launch.control_plane.constructs.control_plane_stack import ControlPlaneStack
+
+__all__ = ["ControlPlaneStack"]

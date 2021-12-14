@@ -1,4 +1,6 @@
-from fetching import *
+import json
+
+from fetching import download_logs, extract_region_from_arn
 
 
 def flatten(info):
@@ -53,9 +55,7 @@ def render_html_page(info):
                         }
                     )
                     step["notes"] += " | "
-                    step["notes"] += render_html_element(
-                        "a", {"href": f"#{log_id}"}, children=["Log"]
-                    )
+                    step["notes"] += render_html_element("a", {"href": f"#{log_id}"}, children=["Log"])
             html_elements += render_html_for_emr(item)
 
     if len(logs) > 0:
@@ -67,9 +67,7 @@ def render_html_page(info):
             {"id": log["logId"]},
             children=[f'EMR: {log["emrClusterArn"]} --- STEP: {log["stepName"]}'],
         )
-        html_elements += render_html_element(
-            "textarea", {"readonly": "true"}, children=[log["content"]]
-        )
+        html_elements += render_html_element("textarea", {"readonly": "true"}, children=[log["content"]])
 
     with open("summary.css", "r") as css_file:
         css = css_file.read()
@@ -123,9 +121,7 @@ def render_html_for_sfn(item):
 
 def render_html_for_emr(item):
     return [
-        render_html_element(
-            "h2", {"id": item["emrClusterId"]}, children=[f'EMR: {item["emrClusterArn"]}']
-        ),
+        render_html_element("h2", {"id": item["emrClusterId"]}, children=[f'EMR: {item["emrClusterArn"]}']),
         render_html_element(
             "p",
             children=[
@@ -167,8 +163,7 @@ def render_html_table(headers, rows=[]):
             render_html_element(
                 "tr",
                 children=[
-                    render_html_element("td", children=[row[k] if k in row.keys() else ""])
-                    for k in headers.keys()
+                    render_html_element("td", children=[row[k] if k in row.keys() else ""]) for k in headers.keys()
                 ],
             )
         )

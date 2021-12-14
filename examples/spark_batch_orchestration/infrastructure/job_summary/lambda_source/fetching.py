@@ -1,8 +1,9 @@
 import gzip
 import io
 import json
+
 import boto3
-from helpers import *
+from helpers import parse_s3_uri
 
 sfn_client = boto3.client("stepfunctions")
 emr_client = boto3.client("emr")

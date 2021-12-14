@@ -1,4 +1,13 @@
-from fetching import *
+import json
+
+from fetching import (
+    download_logs,
+    extract_region_from_arn,
+    get_emr_cluster_info,
+    get_emr_cluster_steps,
+    get_sfn_execution_events,
+    get_sfn_execution_info,
+)
 
 
 def extract_sfn_execution_info(execution_arn):
@@ -59,17 +68,13 @@ def extract_sfn_step_info(step_name, group):
         if e["type"] == "TaskSubmitted":
             details = e["taskSubmittedEventDetails"]
 
-            if details["resourceType"] == "states" and details["resource"].startswith(
-                "startExecution"
-            ):
+            if details["resourceType"] == "states" and details["resource"].startswith("startExecution"):
                 if "sfnExecutionInfo" in step.keys():
                     raise Exception("Step already has 'sfnExecutionInfo'")
                 output = json.loads(details["output"])
                 step["sfnExecutionInfo"] = extract_sfn_execution_info(output["ExecutionArn"])
 
-            if details["resourceType"] == "elasticmapreduce" and details["resource"].startswith(
-                "createCluster"
-            ):
+            if details["resourceType"] == "elasticmapreduce" and details["resource"].startswith("createCluster"):
                 if "emrClusterInfo" in step.keys():
                     raise Exception("Step already has 'emrClusterInfo'")
                 output = json.loads(details["output"])
@@ -82,7 +87,9 @@ def extract_emr_cluster_info(output):
     cluster_id = output["ClusterId"]
     cluster_arn = output["ClusterArn"]
     region = extract_region_from_arn(cluster_arn)
-    cluster_link = f"https://{region}.console.aws.amazon.com/elasticmapreduce/home?region={region}#cluster-details:{cluster_id}"
+    cluster_link = (
+        f"https://{region}.console.aws.amazon.com/elasticmapreduce/home?region={region}#cluster-details:{cluster_id}"
+    )
 
     info = get_emr_cluster_info(cluster_id)
     steps = sorted(
