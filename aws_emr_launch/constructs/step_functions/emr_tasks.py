@@ -84,7 +84,11 @@ class BaseTask(sfn.TaskStateBase):
 
     def _when_bound_to_graph(self, graph: sfn.StateGraph) -> None:
         super()._when_bound_to_graph(graph)
-        for policy_statement in self._task_policies():  # type: ignore  This doesn't resolve correctly
+        # The following "type: ignore" is because the type checker identifies _task_policies as a property of
+        # List[PolicyStatement] rather than a function returning List[PolicyStatement]. The TaskStateBase does
+        # define an abstract property called _task_policies, but implementing it as a property fails. So the
+        # inheritors must implement it as a function
+        for policy_statement in self._task_policies():  # type: ignore
             graph.register_policy_statement(policy_statement)
 
 
@@ -166,6 +170,8 @@ class StartExecutionTask(BaseTask):
     def _task_metrics(self) -> Optional[sfn.TaskMetricsConfig]:
         return self._metrics
 
+    # Attempting to implement this as a property as it is defined in the inherited TastStateBase
+    # fails so it is implemented and called as a function
     def _task_policies(self) -> List[iam.PolicyStatement]:
         return self._statements
 
@@ -259,6 +265,8 @@ class EmrCreateClusterTask(BaseTask):
     def _task_metrics(self) -> Optional[sfn.TaskMetricsConfig]:
         return self._metrics
 
+    # Attempting to implement this as a property as it is defined in the inherited TastStateBase
+    # fails so it is implemented and called as a function
     def _task_policies(self) -> List[iam.PolicyStatement]:
         return self._statements
 
@@ -399,6 +407,8 @@ class EmrAddStepTask(BaseTask):
     def _task_metrics(self) -> Optional[sfn.TaskMetricsConfig]:
         return self._metrics
 
+    # Attempting to implement this as a property as it is defined in the inherited TastStateBase
+    # fails so it is implemented and called as a function
     def _task_policies(self) -> List[iam.PolicyStatement]:
         return self._statements
 
