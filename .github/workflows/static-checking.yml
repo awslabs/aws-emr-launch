@@ -39,5 +39,3 @@ jobs:
         run: black --check .
       - name: ISort Check
         run: isort --check .
-      - name: Pytest
-        run: pytest
