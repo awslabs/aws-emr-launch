@@ -1,4 +1,4 @@
-from typing import List, Mapping, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_stepfunctions as sfn
@@ -27,7 +27,7 @@ class Success(sfn.StateMachineFragment):
         self._end = sfn.Succeed(self, "Succeeded", output_path=output_path)
 
         if topic is not None:
-            self._start = sfn_tasks.SnsPublish(
+            self._start: Union[sfn_tasks.SnsPublish, sfn.Succeed] = sfn_tasks.SnsPublish(
                 self,
                 "Success Notification",
                 input_path="$",
@@ -70,7 +70,7 @@ class Fail(sfn.StateMachineFragment):
         self._end = sfn.Fail(self, "Execution Failed", cause=cause, comment=comment, error=error)
 
         if topic is not None:
-            self._start = sfn_tasks.SnsPublish(
+            self._start: Union[sfn_tasks.SnsPublish, sfn.Fail] = sfn_tasks.SnsPublish(
                 self,
                 "Failure Notification",
                 input_path="$",
@@ -99,8 +99,8 @@ class NestedStateMachine(sfn.StateMachineFragment):
         scope: core.Construct,
         id: str,
         name: str,
-        state_machine: sfn.StateMachine,
-        input: Optional[Mapping[str, any]] = None,
+        state_machine: sfn.IStateMachine,
+        input: Optional[Dict[str, Any]] = None,
         fail_chain: Optional[sfn.IChainable] = None,
     ):
         super().__init__(scope, id)

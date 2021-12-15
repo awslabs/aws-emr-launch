@@ -7,13 +7,19 @@ from aws_emr_launch.constructs.base import BaseConstruct
 
 
 class EMRSecurityGroups(BaseConstruct):
-    def __init__(self, scope: core.Construct, id: str, *, vpc: Optional[ec2.Vpc] = None) -> None:
+    def __init__(self, scope: core.Construct, id: str, *, vpc: Optional[ec2.IVpc] = None) -> None:
         super().__init__(scope, id)
 
         if vpc:
-            self._master_group = ec2.SecurityGroup(self, "MasterGroup", allow_all_outbound=True, vpc=vpc)
-            self._workers_group = ec2.SecurityGroup(self, "WorkersGroup", allow_all_outbound=True, vpc=vpc)
-            self._service_group = ec2.SecurityGroup(self, "ServiceGroup", allow_all_outbound=False, vpc=vpc)
+            self._master_group: ec2.ISecurityGroup = ec2.SecurityGroup(
+                self, "MasterGroup", allow_all_outbound=True, vpc=vpc
+            )
+            self._workers_group: ec2.ISecurityGroup = ec2.SecurityGroup(
+                self, "WorkersGroup", allow_all_outbound=True, vpc=vpc
+            )
+            self._service_group: ec2.ISecurityGroup = ec2.SecurityGroup(
+                self, "ServiceGroup", allow_all_outbound=False, vpc=vpc
+            )
 
             # Master SG rules
             self._master_group.add_ingress_rule(self._service_group, ec2.Port.tcp(8443))
@@ -29,7 +35,7 @@ class EMRSecurityGroups(BaseConstruct):
             self._service_group.add_ingress_rule(self._master_group, ec2.Port.tcp(9443))
 
     @staticmethod
-    def _set_common_ingress_rules(primary: ec2.SecurityGroup, secondary: ec2.SecurityGroup) -> ec2.SecurityGroup:
+    def _set_common_ingress_rules(primary: ec2.ISecurityGroup, secondary: ec2.ISecurityGroup) -> ec2.ISecurityGroup:
         primary.add_ingress_rule(primary, ec2.Port.tcp_range(0, 65535))
         primary.add_ingress_rule(primary, ec2.Port.udp_range(0, 65535))
         primary.add_ingress_rule(primary, ec2.Port.icmp_type(-1))
@@ -46,7 +52,7 @@ class EMRSecurityGroups(BaseConstruct):
         workers_group_id: str,
         service_group_id: str,
         mutable: Optional[bool] = None,
-    ):
+    ) -> "EMRSecurityGroups":
         security_groups = EMRSecurityGroups(scope, id)
         security_groups._master_group = ec2.SecurityGroup.from_security_group_id(
             security_groups, "MasterGroup", master_group_id, mutable=mutable
@@ -60,13 +66,13 @@ class EMRSecurityGroups(BaseConstruct):
         return security_groups
 
     @property
-    def master_group(self) -> ec2.SecurityGroup:
+    def master_group(self) -> ec2.ISecurityGroup:
         return self._master_group
 
     @property
-    def workers_group(self) -> ec2.SecurityGroup:
+    def workers_group(self) -> ec2.ISecurityGroup:
         return self._workers_group
 
     @property
-    def service_group(self) -> ec2.SecurityGroup:
+    def service_group(self) -> ec2.ISecurityGroup:
         return self._service_group

@@ -28,7 +28,7 @@ class EMRCode(Resolvable):
         self._deployment_bucket = deployment_props.destination_bucket
         self._deployment_prefix = deployment_props.destination_key_prefix
         self._id = id
-        self._bucket_deployment = None
+        self._bucket_deployment: Optional[s3_deployment.BucketDeployment] = None
 
     def resolve(self, scope: core.Construct) -> Dict[str, Any]:
         # If the same deployment is used multiple times, retain only the first instantiation
@@ -46,17 +46,21 @@ class EMRCode(Resolvable):
         return self._deployment_bucket
 
     @property
-    def deployment_prefix(self):
-        return self._deployment_prefix
+    def deployment_prefix(self) -> str:
+        return self._deployment_prefix if self._deployment_prefix else ""
 
     @property
     def s3_path(self) -> str:
-        return os.path.join(f"s3://{self._deployment_bucket.bucket_name}", self._deployment_prefix)
+        return os.path.join(
+            f"s3://{self._deployment_bucket.bucket_name}", self._deployment_prefix if self._deployment_prefix else ""
+        )
 
 
 class Code:
     @staticmethod
-    def from_path(path: str, deployment_bucket: s3.Bucket, deployment_prefix: str, id: Optional[str] = None) -> EMRCode:
+    def from_path(
+        path: str, deployment_bucket: s3.IBucket, deployment_prefix: str, id: Optional[str] = None
+    ) -> EMRCode:
         return EMRCode(
             id=id,
             deployment_props=s3_deployment.BucketDeploymentProps(
@@ -67,11 +71,11 @@ class Code:
         )
 
     @staticmethod
-    def from_props(deployment_props: s3_deployment.BucketDeploymentProps, id: Optional[str] = None):
+    def from_props(deployment_props: s3_deployment.BucketDeploymentProps, id: Optional[str] = None) -> EMRCode:
         return EMRCode(id=id, deployment_props=deployment_props)
 
     @staticmethod
-    def files_in_path(path: str, filter: str = "*.*"):
+    def files_in_path(path: str, filter: str = "*.*") -> List[str]:
         search_path = os.path.join(path, "")
         files = glob.glob(os.path.join(search_path, f"**/{filter}"), recursive=True)
         return [f.replace(search_path, "") for f in files]

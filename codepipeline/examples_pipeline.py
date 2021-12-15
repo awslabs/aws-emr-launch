@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# type: ignore
+
 import os
 
 from aws_cdk import aws_codebuild as codebuild

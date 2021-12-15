@@ -1,4 +1,4 @@
-from typing import Any, Dict, cast
+from typing import Any, Dict
 
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_stepfunctions as sfn
@@ -8,7 +8,7 @@ from aws_emr_launch.constructs.emr_constructs import emr_code, emr_profile
 from aws_emr_launch.constructs.step_functions import emr_tasks
 
 
-def print_and_assert(default_task_json: Dict[str, Any], task: sfn.Task) -> None:
+def print_and_assert(default_task_json: Dict[str, Any], task: sfn.TaskStateBase) -> None:
     stack = core.Stack.of(task)
     resolved_task = stack.resolve(task.to_state_json())
     print(default_task_json)
@@ -36,7 +36,7 @@ def test_start_execution_task() -> None:
         state_machine=state_machine,
     )
 
-    print_and_assert(default_task_json, cast(sfn.Task, task))
+    print_and_assert(default_task_json, task)
 
 
 def test_start_execution_task_with_input() -> None:
@@ -61,7 +61,7 @@ def test_start_execution_task_with_input() -> None:
         stack, "test-task", state_machine=state_machine, input={"Key1": "Value1"}, name="test-sfn-task"
     )
 
-    print_and_assert(default_task_json, cast(sfn.Task, task))
+    print_and_assert(default_task_json, task)
 
 
 def test_emr_create_cluster_task() -> None:
@@ -127,7 +127,7 @@ def test_emr_create_cluster_task() -> None:
         input_path="$.ClusterConfiguration.Cluster",
     )
 
-    print_and_assert(default_task_json, cast(sfn.Task, task))
+    print_and_assert(default_task_json, task)
 
 
 def test_emr_add_step_task() -> None:
@@ -142,7 +142,7 @@ def test_emr_add_step_task() -> None:
 
     task = emr_tasks.EmrAddStepTask(stack, "test-task", cluster_id="test-cluster-id", step={"Key1": {"Key2": "Value2"}})
 
-    print_and_assert(default_task_json, cast(sfn.Task, task))
+    print_and_assert(default_task_json, task)
 
 
 def test_load_cluster_configuration_builder() -> None:

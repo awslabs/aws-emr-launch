@@ -3,7 +3,7 @@ import hashlib
 import json
 import os
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import boto3
 from aws_cdk import aws_secretsmanager as secretsmanager
@@ -38,19 +38,19 @@ class ClusterConfiguration(BaseConstruct):
         *,
         configuration_name: str,
         namespace: str = "default",
-        release_label: Optional[str] = "emr-5.29.0",
+        release_label: str = "emr-5.29.0",
         applications: Optional[List[str]] = None,
         bootstrap_actions: Optional[List[emr_code.EMRBootstrapAction]] = None,
-        configurations: Optional[List[dict]] = None,
-        use_glue_catalog: Optional[bool] = True,
-        step_concurrency_level: Optional[int] = 1,
+        configurations: Optional[List[Dict[str, Any]]] = None,
+        use_glue_catalog: bool = True,
+        step_concurrency_level: int = 1,
         description: Optional[str] = None,
-        secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None,
+        secret_configurations: Optional[Dict[str, secretsmanager.ISecret]] = None,
     ):
 
         super().__init__(scope, id)
 
-        self._override_interfaces = {}
+        self._override_interfaces: Dict[str, Any] = {}
 
         if configuration_name is None:
             return
@@ -60,8 +60,8 @@ class ClusterConfiguration(BaseConstruct):
         self._description = description
         self._bootstrap_actions = bootstrap_actions
         self._secret_configurations = secret_configurations
-        self._spark_packages = []
-        self._spark_jars = []
+        self._spark_packages: List[str] = []
+        self._spark_jars: List[str] = []
 
         if bootstrap_actions:
             # Create a nested Construct to avoid Construct id collisions
@@ -70,7 +70,7 @@ class ClusterConfiguration(BaseConstruct):
         else:
             resolved_bootstrap_actions = []
 
-        self._config = {
+        self._config: Dict[str, Any] = {
             "AdditionalInfo": None,
             "AmiVersion": None,
             "Applications": self._get_applications(applications),
@@ -135,7 +135,7 @@ class ClusterConfiguration(BaseConstruct):
             name=f"{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}",
         )
 
-        self.override_interfaces["default"] = {
+        self._override_interfaces["default"] = {
             "ClusterName": {"JsonPath": "Name", "Default": configuration_name},
             "ReleaseLabel": {"JsonPath": "ReleaseLabel", "Default": release_label},
             "StepConcurrencyLevel": {"JsonPath": "StepConcurrencyLevel", "Default": step_concurrency_level},
@@ -156,7 +156,7 @@ class ClusterConfiguration(BaseConstruct):
             else None,
         }
 
-    def from_json(self, property_values: Dict[str, Any]):
+    def from_json(self, property_values: Dict[str, Any]) -> None:
         self._configuration_name = property_values["ConfigurationName"]
         self._namespace = property_values["Namespace"]
         self._config = property_values["ClusterConfiguration"]
@@ -171,17 +171,19 @@ class ClusterConfiguration(BaseConstruct):
             else None
         )
 
-    def update_config(self, new_config: dict = None):
+    def update_config(self, new_config: Optional[Dict[str, Any]] = None) -> None:
         if new_config is not None:
             self._config = new_config
         self._ssm_parameter.value = json.dumps(self.to_json())
 
     @staticmethod
-    def _get_applications(applications: Optional[List[str]]) -> List[dict]:
+    def _get_applications(applications: Optional[List[str]]) -> List[Dict[str, Any]]:
         return [{"Name": app} for app in (applications if applications else ["Hadoop", "Hive", "Spark"])]
 
     @staticmethod
-    def _get_configurations(configurations: Optional[List[dict]], use_glue_catalog: bool) -> List[dict]:
+    def _get_configurations(
+        configurations: Optional[List[Dict[str, Any]]], use_glue_catalog: bool
+    ) -> List[Dict[str, Any]]:
         configurations = [] if configurations is None else configurations
         metastore_property = (
             {}
@@ -201,7 +203,9 @@ class ClusterConfiguration(BaseConstruct):
         return configurations
 
     @staticmethod
-    def update_configurations(configurations: List[dict], classification: str, properties: Dict[str, str]):
+    def update_configurations(
+        configurations: List[Dict[str, Any]], classification: str, properties: Dict[str, str]
+    ) -> List[Dict[str, Any]]:
         found_classification = False
         configurations = [] if configurations is None else configurations
         for config in configurations:
@@ -215,7 +219,7 @@ class ClusterConfiguration(BaseConstruct):
 
         return configurations
 
-    def add_spark_package(self, package: str):
+    def add_spark_package(self, package: str) -> "ClusterConfiguration":
         if self._rehydrated:
             raise ReadOnlyClusterConfigurationError()
 
@@ -227,7 +231,7 @@ class ClusterConfiguration(BaseConstruct):
         self.update_config(config)
         return self
 
-    def add_spark_jars(self, code: emr_code.EMRCode, jars_in_code: List[str]):
+    def add_spark_jars(self, code: emr_code.EMRCode, jars_in_code: List[str]) -> "ClusterConfiguration":
         if self._rehydrated:
             raise ReadOnlyClusterConfigurationError()
 
@@ -244,7 +248,7 @@ class ClusterConfiguration(BaseConstruct):
         construct_id = f"EmrCode_SparkJar_{token}"
 
         # Then attempt to find a previous Construct with this id
-        construct = self.node.try_find_child(construct_id)
+        construct: Optional[core.Construct] = cast(Optional[core.Construct], self.node.try_find_child(construct_id))
         # If we didn't find a previous Construct, construct a new one
         construct = core.Construct(self, construct_id) if construct is None else construct
 
@@ -267,15 +271,15 @@ class ClusterConfiguration(BaseConstruct):
         return self._namespace
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         return self._description
 
     @property
-    def config(self) -> dict:
+    def config(self) -> Dict[str, Any]:
         return self._config
 
     @property
-    def override_interfaces(self) -> Dict[str, Dict[str, Dict[str, str]]]:
+    def override_interfaces(self) -> Dict[str, Dict[str, Dict[str, Any]]]:
         return self._override_interfaces
 
     @property
@@ -283,13 +287,13 @@ class ClusterConfiguration(BaseConstruct):
         return self._configuration_artifacts
 
     @property
-    def secret_configurations(self) -> Dict[str, secretsmanager.Secret]:
+    def secret_configurations(self) -> Optional[Dict[str, secretsmanager.ISecret]]:
         return self._secret_configurations
 
     @staticmethod
     def get_configurations(
-        namespace: str = "default", next_token: Optional[str] = None, ssm_client=None
-    ) -> Dict[str, any]:
+        namespace: str = "default", next_token: Optional[str] = None, ssm_client: Optional[boto3.client] = None
+    ) -> Dict[str, Any]:
         ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
         params = {"Path": f"{SSM_PARAMETER_PREFIX}/{namespace}/"}
         if next_token:
@@ -302,13 +306,15 @@ class ClusterConfiguration(BaseConstruct):
         return configurations
 
     @staticmethod
-    def get_configuration(configuration_name: str, namespace: str = "default", ssm_client=None) -> Dict[str, any]:
+    def get_configuration(
+        configuration_name: str, namespace: str = "default", ssm_client: Optional[boto3.client] = None
+    ) -> Dict[str, Any]:
         ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
         try:
             configuration_json = ssm_client.get_parameter(
                 Name=f"{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}"
             )["Parameter"]["Value"]
-            return json.loads(configuration_json)
+            return cast(Dict[str, Any], json.loads(configuration_json))
         except ClientError as e:
             if e.response["Error"]["Code"] == "ParameterNotFound":
                 raise ClusterConfigurationNotFoundError()
@@ -316,9 +322,11 @@ class ClusterConfiguration(BaseConstruct):
                 raise e
 
     @staticmethod
-    def from_stored_configuration(scope: core.Construct, id: str, configuration_name: str, namespace: str = "default"):
+    def from_stored_configuration(
+        scope: core.Construct, id: str, configuration_name: str, namespace: str = "default"
+    ) -> "ClusterConfiguration":
         stored_config = ClusterConfiguration.get_configuration(configuration_name, namespace)
-        cluster_config = ClusterConfiguration(scope, id, configuration_name=None)
+        cluster_config = ClusterConfiguration(scope, id, configuration_name=None)  # type: ignore
         cluster_config.from_json(stored_config)
         cluster_config._rehydrated = True
         return cluster_config

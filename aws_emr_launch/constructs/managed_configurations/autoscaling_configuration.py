@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_secretsmanager as secretsmanager
@@ -16,28 +16,28 @@ class AutoScalingClusterConfiguration(InstanceGroupConfiguration):
         id: str,
         *,
         configuration_name: str,
-        subnet: ec2.Subnet,
+        subnet: ec2.ISubnet,
         namespace: str = "default",
-        release_label: Optional[str] = "emr-5.29.0",
-        master_instance_type: Optional[str] = "m5.2xlarge",
-        master_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
-        core_instance_type: Optional[str] = "m5.xlarge",
-        core_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
-        core_instance_count: Optional[int] = 2,
-        task_instance_type: Optional[str] = "m5.xlarge",
-        task_instance_market: Optional[InstanceMarketType] = InstanceMarketType.ON_DEMAND,
-        initial_task_instance_count: Optional[int] = 2,
-        minimum_task_instance_count: Optional[int] = 2,
-        maximum_task_instance_count: Optional[int] = 5,
-        scale_out_adjustment: Optional[int] = 2,
-        scale_in_adjustment: Optional[int] = 2,
+        release_label: str = "emr-5.29.0",
+        master_instance_type: str = "m5.2xlarge",
+        master_instance_market: InstanceMarketType = InstanceMarketType.ON_DEMAND,
+        core_instance_type: str = "m5.xlarge",
+        core_instance_market: InstanceMarketType = InstanceMarketType.ON_DEMAND,
+        core_instance_count: int = 2,
+        task_instance_type: str = "m5.xlarge",
+        task_instance_market: InstanceMarketType = InstanceMarketType.ON_DEMAND,
+        initial_task_instance_count: int = 2,
+        minimum_task_instance_count: int = 2,
+        maximum_task_instance_count: int = 5,
+        scale_out_adjustment: int = 2,
+        scale_in_adjustment: int = 2,
         applications: Optional[List[str]] = None,
         bootstrap_actions: Optional[List[emr_code.EMRBootstrapAction]] = None,
-        configurations: Optional[List[dict]] = None,
-        use_glue_catalog: Optional[bool] = True,
-        step_concurrency_level: Optional[int] = 1,
+        configurations: Optional[List[Dict[str, Any]]] = None,
+        use_glue_catalog: bool = True,
+        step_concurrency_level: int = 1,
         description: Optional[str] = None,
-        secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None,
+        secret_configurations: Optional[Dict[str, secretsmanager.ISecret]] = None,
     ):
 
         super().__init__(

@@ -1,3 +1,5 @@
+from typing import cast
+
 from aws_cdk import aws_events as events
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda, core
@@ -32,7 +34,7 @@ class FailIfClusterRunningBuilder(BaseBuilder):
                 ],
             )
             BaseBuilder.tag_construct(lambda_function)
-        return lambda_function
+        return cast(aws_lambda.Function, lambda_function)
 
 
 class LoadClusterConfigurationBuilder(BaseBuilder):
@@ -101,7 +103,7 @@ class OverrideClusterConfigsBuilder(BaseBuilder):
                 layers=[layer],
             )
             BaseBuilder.tag_construct(lambda_function)
-        return lambda_function
+        return cast(aws_lambda.Function, lambda_function)
 
 
 class UpdateClusterTagsBuilder(BaseBuilder):
@@ -124,7 +126,7 @@ class UpdateClusterTagsBuilder(BaseBuilder):
                 layers=[layer],
             )
             BaseBuilder.tag_construct(lambda_function)
-        return lambda_function
+        return cast(aws_lambda.Function, lambda_function)
 
 
 class ParseJsonStringBuilder(BaseBuilder):
@@ -147,7 +149,7 @@ class ParseJsonStringBuilder(BaseBuilder):
                 layers=[layer],
             )
             BaseBuilder.tag_construct(lambda_function)
-        return lambda_function
+        return cast(aws_lambda.Function, lambda_function)
 
 
 class OverrideStepArgsBuilder(BaseBuilder):
@@ -170,7 +172,7 @@ class OverrideStepArgsBuilder(BaseBuilder):
                 layers=[layer],
             )
             BaseBuilder.tag_construct(lambda_function)
-        return lambda_function
+        return cast(aws_lambda.Function, lambda_function)
 
 
 class RunJobFlowBuilder(BaseBuilder):
@@ -213,7 +215,7 @@ class RunJobFlowBuilder(BaseBuilder):
                 ],
             )
             BaseBuilder.tag_construct(lambda_function)
-        return lambda_function
+        return cast(aws_lambda.Function, lambda_function)
 
 
 class CheckClusterStatusBuilder(BaseBuilder):
@@ -258,7 +260,7 @@ class CheckClusterStatusBuilder(BaseBuilder):
                 source_arn=event_rule.rule_arn,
             )
 
-        return lambda_function
+        return cast(aws_lambda.Function, lambda_function)
 
 
 class EMRConfigUtilsLayerBuilder(BaseBuilder):
@@ -278,4 +280,4 @@ class EMRConfigUtilsLayerBuilder(BaseBuilder):
                 description="EMR configuration utility functions",
             )
             BaseBuilder.tag_construct(layer)
-        return layer
+        return cast(aws_lambda.LayerVersion, layer)

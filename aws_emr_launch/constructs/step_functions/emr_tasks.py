@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, cast
 
 from aws_cdk import aws_events as events
 from aws_cdk import aws_iam as iam
@@ -23,7 +23,7 @@ class BaseTask(sfn.TaskStateBase):
         comment: Optional[str] = None,
         heartbeat: Optional[core.Duration] = None,
         input_path: Optional[str] = None,
-        integration_pattern: Optional[sfn.IntegrationPattern] = None,
+        integration_pattern: sfn.IntegrationPattern = sfn.IntegrationPattern.REQUEST_RESPONSE,
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
         timeout: Optional[core.Duration] = None,
@@ -45,12 +45,12 @@ class BaseTask(sfn.TaskStateBase):
 
     @staticmethod
     def get_resource_arn(
-        service: str, api: str, integration_pattern: Optional[sfn.IntegrationPattern] = sfn.IntegrationPattern.RUN_JOB
+        service: str, api: str, integration_pattern: sfn.IntegrationPattern = sfn.IntegrationPattern.RUN_JOB
     ) -> str:
         if not service or not api:
             raise ValueError('Both "service" and "api" are required to build the resource ARN')
 
-        resource_arn_suffixes = {
+        resource_arn_suffixes: Dict[sfn.IntegrationPattern, str] = {
             sfn.IntegrationPattern.REQUEST_RESPONSE: "",
             sfn.IntegrationPattern.RUN_JOB: ".sync",
             sfn.IntegrationPattern.WAIT_FOR_TASK_TOKEN: ".waitForTaskToken",
@@ -59,7 +59,7 @@ class BaseTask(sfn.TaskStateBase):
         return f"arn:{core.Aws.PARTITION}:states:::{service}:{api}{resource_arn_suffixes[integration_pattern]}"
 
     @staticmethod
-    def render_json_path(json_path: str) -> str:
+    def render_json_path(json_path: Optional[str]) -> Optional[str]:
         if json_path is None:
             return None
         elif json_path == sfn.JsonPath.DISCARD:
@@ -84,8 +84,9 @@ class BaseTask(sfn.TaskStateBase):
 
     def _when_bound_to_graph(self, graph: sfn.StateGraph) -> None:
         super()._when_bound_to_graph(graph)
-        for policy_statement in self._task_policies():
-            graph.register_policy_statement(policy_statement)
+        if self._task_policies:
+            for policy_statement in self._task_policies:
+                graph.register_policy_statement(policy_statement)
 
 
 class StartExecutionTask(BaseTask):
@@ -97,12 +98,12 @@ class StartExecutionTask(BaseTask):
         comment: Optional[str] = None,
         heartbeat: Optional[core.Duration] = None,
         input_path: Optional[str] = None,
-        integration_pattern: Optional[sfn.IntegrationPattern] = sfn.IntegrationPattern.RUN_JOB,
+        integration_pattern: sfn.IntegrationPattern = sfn.IntegrationPattern.RUN_JOB,
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
         timeout: Optional[core.Duration] = None,
-        state_machine: sfn.StateMachine,
-        input: Optional[Dict[str, any]] = None,
+        state_machine: sfn.IStateMachine,
+        input: Optional[Dict[str, Any]] = None,
         name: Optional[str] = None,
     ):
 
@@ -192,7 +193,7 @@ class EmrCreateClusterTask(BaseTask):
         comment: Optional[str] = None,
         heartbeat: Optional[core.Duration] = None,
         input_path: Optional[str] = None,
-        integration_pattern: Optional[sfn.IntegrationPattern] = sfn.IntegrationPattern.RUN_JOB,
+        integration_pattern: sfn.IntegrationPattern = sfn.IntegrationPattern.RUN_JOB,
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
         timeout: Optional[core.Duration] = None,
@@ -337,12 +338,12 @@ class EmrAddStepTask(BaseTask):
         comment: Optional[str] = None,
         heartbeat: Optional[core.Duration] = None,
         input_path: Optional[str] = None,
-        integration_pattern: Optional[sfn.IntegrationPattern] = sfn.IntegrationPattern.RUN_JOB,
+        integration_pattern: sfn.IntegrationPattern = sfn.IntegrationPattern.RUN_JOB,
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
         timeout: Optional[core.Duration] = None,
         cluster_id: str,
-        step: Dict[str, any],
+        step: Dict[str, Any],
     ):
         super().__init__(
             scope,
@@ -427,7 +428,7 @@ class LoadClusterConfigurationBuilder:
         configuration_name: str,
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
-    ) -> sfn.Task:
+    ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -470,7 +471,7 @@ class OverrideClusterConfigsBuilder:
         input_path: str = "$",
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
-    ) -> sfn.Task:
+    ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -507,7 +508,7 @@ class FailIfClusterRunningBuilder:
         input_path: str = "$",
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
-    ) -> sfn.Task:
+    ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -539,7 +540,7 @@ class UpdateClusterTagsBuilder:
         input_path: str = "$",
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
-    ) -> sfn.Task:
+    ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -572,7 +573,7 @@ class CreateClusterBuilder:
         result_path: Optional[str] = None,
         output_path: Optional[str] = None,
         wait_for_cluster_start: bool = True,
-    ) -> sfn.Task:
+    ) -> sfn.TaskStateBase:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
@@ -598,17 +599,17 @@ class RunJobFlowBuilder(BaseBuilder):
         id: str,
         *,
         roles: emr_roles.EMRRoles,
-        kerberos_attributes_secret: Optional[secretsmanager.Secret] = None,
-        secret_configurations: Optional[Dict[str, secretsmanager.Secret]] = None,
+        kerberos_attributes_secret: Optional[secretsmanager.ISecret] = None,
+        secret_configurations: Optional[Dict[str, secretsmanager.ISecret]] = None,
         input_path: str = "$",
         result_path: Optional[str] = None,
         output_path: Optional[str] = None,
         wait_for_cluster_start: bool = True,
-    ) -> sfn.Task:
+    ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
         construct = core.Construct(scope, id)
 
-        event_rule = core.Stack.of(scope).node.try_find_child("EventRule")
+        event_rule = cast(Optional[events.Rule], core.Stack.of(scope).node.try_find_child("EventRule"))
         if event_rule is None:
             event_rule = events.Rule(
                 construct, "EventRule", enabled=False, schedule=events.Schedule.rate(core.Duration.minutes(1))
@@ -668,7 +669,7 @@ class AddStepBuilder:
         result_path: Optional[str] = None,
         output_path: Optional[str] = None,
         wait_for_step_completion: bool = True,
-    ) -> sfn.Task:
+    ) -> sfn.TaskStateBase:
         # We use a nested Construct to avoid collisions with Task ids
         construct = core.Construct(scope, id)
         resolved_step = emr_step.resolve(construct)
@@ -698,7 +699,7 @@ class TerminateClusterBuilder:
         cluster_id: str,
         result_path: Optional[str] = None,
         output_path: Optional[str] = None,
-    ) -> sfn.Task:
+    ) -> sfn.TaskStateBase:
         # We use a nested Construct to avoid collisions with Task ids
         construct = core.Construct(scope, id)
 

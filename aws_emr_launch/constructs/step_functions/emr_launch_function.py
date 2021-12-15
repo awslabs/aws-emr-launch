@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 
 import boto3
 from aws_cdk import aws_lambda
@@ -294,15 +294,15 @@ class EMRLaunchFunction(BaseConstruct):
         return self._default_fail_if_cluster_running
 
     @property
-    def success_topic(self) -> sns.Topic:
+    def success_topic(self) -> Optional[sns.ITopic]:
         return self._success_topic
 
     @property
-    def failure_topic(self) -> sns.Topic:
+    def failure_topic(self) -> Optional[sns.ITopic]:
         return self._failure_topic
 
     @property
-    def override_cluster_configs_lambda(self) -> aws_lambda.Function:
+    def override_cluster_configs_lambda(self) -> Optional[aws_lambda.IFunction]:
         return self._override_cluster_configs_lambda
 
     @property
@@ -314,11 +314,13 @@ class EMRLaunchFunction(BaseConstruct):
         return self._state_machine
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         return self._description
 
     @staticmethod
-    def get_functions(namespace: str = "default", next_token: Optional[str] = None, ssm_client=None) -> Dict[str, any]:
+    def get_functions(
+        namespace: str = "default", next_token: Optional[str] = None, ssm_client: Optional[boto3.client] = None
+    ) -> Dict[str, Any]:
         ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
         params = {"Path": f"{SSM_PARAMETER_PREFIX}/{namespace}/"}
         if next_token:
@@ -331,13 +333,15 @@ class EMRLaunchFunction(BaseConstruct):
         return functions
 
     @staticmethod
-    def get_function(launch_function_name: str, namespace: str = "default", ssm_client=None) -> Dict[str, any]:
+    def get_function(
+        launch_function_name: str, namespace: str = "default", ssm_client: Optional[boto3.client] = None
+    ) -> Dict[str, Any]:
         ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
         try:
             function_json = ssm_client.get_parameter(Name=f"{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}")[
                 "Parameter"
             ]["Value"]
-            return json.loads(function_json)
+            return cast(Dict[str, Any], json.loads(function_json))
         except ClientError as e:
             if e.response["Error"]["Code"] == "ParameterNotFound":
                 raise EMRLaunchFunctionNotFoundError()
@@ -345,10 +349,17 @@ class EMRLaunchFunction(BaseConstruct):
                 raise e
 
     @staticmethod
-    def from_stored_function(scope: core.Construct, id: str, launch_function_name: str, namespace: str = "default"):
+    def from_stored_function(
+        scope: core.Construct, id: str, launch_function_name: str, namespace: str = "default"
+    ) -> "EMRLaunchFunction":
         stored_function = EMRLaunchFunction.get_function(launch_function_name, namespace)
         launch_function = EMRLaunchFunction(
-            scope, id, launch_function_name=None, emr_profile=None, cluster_configuration=None
+            scope,
+            id,
+            launch_function_name=None,  # type: ignore
+            emr_profile=None,  # type: ignore
+            cluster_configuration=None,  # type: ignore
+            cluster_name=None,  # type: ignore
         )
         launch_function._launch_function_name = launch_function_name
         launch_function._namespace = namespace

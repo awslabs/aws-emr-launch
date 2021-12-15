@@ -1,5 +1,4 @@
 import copy
-from typing import List, cast
 
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import core
@@ -117,7 +116,7 @@ def test_default_configuration() -> None:
         stack,
         "test-instance-group-config",
         configuration_name="test-cluster",
-        subnets=cast(List[ec2.Subnet], vpc.private_subnets),
+        subnets=vpc.private_subnets,
     )
 
     config = copy.deepcopy(default_config)

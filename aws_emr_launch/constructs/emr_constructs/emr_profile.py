@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import boto3
 from aws_cdk import aws_ec2 as ec2
@@ -51,10 +51,10 @@ class EMRProfile(BaseConstruct):
         *,
         profile_name: str,
         namespace: str = "default",
-        vpc: Optional[ec2.Vpc] = None,
-        artifacts_bucket: Optional[s3.Bucket] = None,
+        vpc: Optional[ec2.IVpc] = None,
+        artifacts_bucket: Optional[s3.IBucket] = None,
         artifacts_path: Optional[str] = None,
-        logs_bucket: Optional[s3.Bucket] = None,
+        logs_bucket: Optional[s3.IBucket] = None,
         logs_path: Optional[str] = "elasticmapreduce/",
         mutable_instance_role: bool = True,
         mutable_security_groups: bool = True,
@@ -86,16 +86,16 @@ class EMRProfile(BaseConstruct):
         self._logs_path = logs_path
         self._description = description
 
-        self._s3_encryption_configuration = {"EncryptionMode": S3EncryptionMode.SSE_S3.value}
-        self._local_disk_encryption_configuration = None
-        self._tls_certificate_configuration = None
-        self._kerberos_configuration = None
-        self._kerberos_attributes_secret = None
-        self._emrfs_configuration = None
-        self._lake_formation_configuration = None
+        self._s3_encryption_configuration: Optional[Dict[str, Any]] = {"EncryptionMode": S3EncryptionMode.SSE_S3.value}
+        self._local_disk_encryption_configuration: Optional[Dict[str, Any]] = None
+        self._tls_certificate_configuration: Optional[Dict[str, Any]] = None
+        self._kerberos_configuration: Optional[Dict[str, Any]] = None
+        self._kerberos_attributes_secret: Optional[secretsmanager.ISecret] = None
+        self._emrfs_configuration: Optional[Dict[str, Any]] = None
+        self._lake_formation_configuration: Optional[Dict[str, Any]] = None
 
-        self._security_configuration = None
-        self._security_configuration_name = None
+        self._security_configuration: Optional[emr.CfnSecurityConfiguration] = None
+        self._security_configuration_name: Optional[str] = None
 
         self._ssm_parameter = ssm.CfnParameter(
             self,
@@ -136,9 +136,9 @@ class EMRProfile(BaseConstruct):
             "LocalDiskEncryptionConfiguration": self._local_disk_encryption_configuration,
             "TLSCertificateConfiguration": self._tls_certificate_configuration,
             "KerberosConfiguration": self._kerberos_configuration,
-            "KerberosAttributesSecret": self._kerberos_attributes_secret.secret_arn
-            if self._kerberos_attributes_secret
-            else None,
+            "KerberosAttributesSecret": (
+                self._kerberos_attributes_secret.secret_arn if self._kerberos_attributes_secret is not None else None
+            ),
             "EmrFsConfiguration": self._emrfs_configuration,
             "LakeFormationConfiguration": self._lake_formation_configuration,
             "SecurityConfiguration": self._security_configuration_name,
@@ -146,7 +146,7 @@ class EMRProfile(BaseConstruct):
         }
         return property_values
 
-    def from_json(self, property_values: Dict[str, Any]):
+    def from_json(self, property_values: Dict[str, Any]) -> "EMRProfile":
         self._profile_name = property_values["ProfileName"]
         self._namespace = property_values["Namespace"]
         self._mutable_instance_role = property_values["MutableInstanceRole"]
@@ -193,7 +193,7 @@ class EMRProfile(BaseConstruct):
         kerberos_attributes_secret = property_values.get("KerberosAttributesSecret", None)
         self._kerberos_attributes_secret = (
             secretsmanager.Secret.from_secret_arn(self, "KerberosAttributesSecret", kerberos_attributes_secret)
-            if kerberos_attributes_secret
+            if kerberos_attributes_secret is not None
             else None
         )
 
@@ -204,7 +204,7 @@ class EMRProfile(BaseConstruct):
         self._rehydrated = True
         return self
 
-    def _construct_security_configuration(self, custom_security_configuration=None) -> None:
+    def _construct_security_configuration(self, custom_security_configuration: Optional[Dict[str, Any]] = None) -> None:
         # Initialize the CfnSecurityConfiguration
         if self._security_configuration is None:
             self._security_configuration = emr.CfnSecurityConfiguration(
@@ -215,7 +215,7 @@ class EMRProfile(BaseConstruct):
         self._ssm_parameter.value = json.dumps(self.to_json())
 
         if custom_security_configuration is not None:
-            self._security_configuration.security_configuration = self._custom_security_configuration
+            self._security_configuration.security_configuration = custom_security_configuration
             return
 
         # Set Encryption
@@ -247,7 +247,7 @@ class EMRProfile(BaseConstruct):
             "LakeFormationConfiguration": self._lake_formation_configuration,
         }
 
-    def _configure_mutual_assume_role(self, role: iam.Role):
+    def _configure_mutual_assume_role(self, role: iam.Role) -> None:
         self._roles.instance_role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW, principals=[iam.ArnPrincipal(role.role_arn)], actions=["sts:AssumeRole"]
@@ -279,15 +279,15 @@ class EMRProfile(BaseConstruct):
         return self._mutable_security_groups
 
     @property
-    def vpc(self) -> ec2.Vpc:
+    def vpc(self) -> Optional[ec2.IVpc]:
         return self._vpc
 
     @property
-    def artifacts_bucket(self) -> s3.Bucket:
+    def artifacts_bucket(self) -> Optional[s3.IBucket]:
         return self._artifacts_bucket
 
     @property
-    def logs_bucket(self) -> s3.Bucket:
+    def logs_bucket(self) -> Optional[s3.IBucket]:
         return self._logs_bucket
 
     @property
@@ -299,25 +299,25 @@ class EMRProfile(BaseConstruct):
         return self._roles
 
     @property
-    def security_configuration_name(self) -> str:
+    def security_configuration_name(self) -> Optional[str]:
         return self._security_configuration_name
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         return self._description
 
     @property
-    def kerberos_attributes_secret(self) -> secretsmanager.Secret:
+    def kerberos_attributes_secret(self) -> Optional[secretsmanager.ISecret]:
         return self._kerberos_attributes_secret
 
-    def lake_formation_enabled(self):
+    def lake_formation_enabled(self) -> bool:
         return self._lake_formation_configuration is not None
 
-    def set_s3_encryption(self, mode: Optional[S3EncryptionMode], encryption_key: Optional[kms.Key] = None):
+    def set_s3_encryption(self, mode: S3EncryptionMode, encryption_key: Optional[kms.Key] = None) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
-        if mode and mode == S3EncryptionMode.CSE_Custom:
+        if mode == S3EncryptionMode.CSE_Custom:
             raise NotImplementedError(
                 "Use of CSE-Custom currently requires setting a custom security "
                 "configuration with `set_custom_security_configuration()`"
@@ -335,7 +335,7 @@ class EMRProfile(BaseConstruct):
         self._construct_security_configuration()
         return self
 
-    def set_local_disk_encryption(self, encryption_key: kms.Key, ebs_encryption: bool = True):
+    def set_local_disk_encryption(self, encryption_key: kms.Key, ebs_encryption: bool = True) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -353,7 +353,7 @@ class EMRProfile(BaseConstruct):
         self._construct_security_configuration()
         return self
 
-    def set_tls_certificate(self, certificate_location: str):
+    def set_tls_certificate(self, certificate_location: str) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -364,8 +364,8 @@ class EMRProfile(BaseConstruct):
         return self
 
     def set_local_kdc(
-        self, kerberos_attributes_secret: secretsmanager.Secret, ticket_lifetime_in_hours: Optional[int] = 24
-    ):
+        self, kerberos_attributes_secret: secretsmanager.ISecret, ticket_lifetime_in_hours: Optional[int] = 24
+    ) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -383,13 +383,13 @@ class EMRProfile(BaseConstruct):
 
     def set_local_kdc_with_cross_realm_trust(
         self,
-        kerberos_attributes_secret: secretsmanager.Secret,
+        kerberos_attributes_secret: secretsmanager.ISecret,
         realm: str,
         domain: str,
         admin_server: str,
         kdc_server: str,
         ticket_lifetime_in_hours: Optional[int] = 24,
-    ):
+    ) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -417,7 +417,9 @@ class EMRProfile(BaseConstruct):
         self._construct_security_configuration()
         return self
 
-    def set_external_kdc(self, kerberos_attributes_secret: secretsmanager.Secret, admin_server: str, kdc_server: str):
+    def set_external_kdc(
+        self, kerberos_attributes_secret: secretsmanager.ISecret, admin_server: str, kdc_server: str
+    ) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -442,12 +444,12 @@ class EMRProfile(BaseConstruct):
 
     def set_external_kdc_with_cross_realm_trust(
         self,
-        kerberos_attributes_secret: secretsmanager.Secret,
+        kerberos_attributes_secret: secretsmanager.ISecret,
         admin_server: str,
         kdc_server: str,
         ad_realm: str,
         ad_domain: str,
-    ):
+    ) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -472,7 +474,7 @@ class EMRProfile(BaseConstruct):
         self._construct_security_configuration()
         return self
 
-    def add_emrfs_role_mapping_for_s3_prefixes(self, role: iam.Role, s3_prefixes: List[str]):
+    def add_emrfs_role_mapping_for_s3_prefixes(self, role: iam.Role, s3_prefixes: List[str]) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -486,7 +488,7 @@ class EMRProfile(BaseConstruct):
         )
         return self
 
-    def add_emrfs_role_mapping_for_users(self, role: iam.Role, users: List[str]):
+    def add_emrfs_role_mapping_for_users(self, role: iam.Role, users: List[str]) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -500,7 +502,7 @@ class EMRProfile(BaseConstruct):
         )
         return self
 
-    def add_emrfs_role_mapping_for_groups(self, role: iam.Role, groups: List[str]):
+    def add_emrfs_role_mapping_for_groups(self, role: iam.Role, groups: List[str]) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -516,13 +518,13 @@ class EMRProfile(BaseConstruct):
 
     def enable_lake_formation(
         self,
-        kerberos_attributes_secret: secretsmanager.Secret,
+        kerberos_attributes_secret: secretsmanager.ISecret,
         idp_metadata_path: str,
         lake_formation_role: iam.Role,
         services_role: iam.Role,
         ticket_lifetime_in_hours: Optional[int] = 24,
         idp_code: Optional[emr_code.EMRCode] = None,
-    ):
+    ) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -555,7 +557,7 @@ class EMRProfile(BaseConstruct):
         }
         return self
 
-    def set_custom_security_configuration(self, security_configuration):
+    def set_custom_security_configuration(self, security_configuration: Dict[str, Any]) -> "EMRProfile":
         if self._rehydrated:
             raise ReadOnlyEMRProfileError()
 
@@ -566,28 +568,28 @@ class EMRProfile(BaseConstruct):
         self._construct_security_configuration(security_configuration)
         return self
 
-    def authorize_input_bucket(self, bucket: s3.Bucket, objects_key_pattern: Optional[str] = None):
+    def authorize_input_bucket(self, bucket: s3.IBucket, objects_key_pattern: Optional[str] = None) -> "EMRProfile":
         if self._rehydrated and not self._mutable_instance_role:
             raise ReadOnlyEMRProfileError()
 
         bucket.grant_read(self._roles.instance_role, objects_key_pattern).assert_success()
         return self
 
-    def authorize_output_bucket(self, bucket: s3.Bucket, objects_key_pattern: Optional[str] = None):
+    def authorize_output_bucket(self, bucket: s3.IBucket, objects_key_pattern: Optional[str] = None) -> "EMRProfile":
         if self._rehydrated and not self._mutable_instance_role:
             raise ReadOnlyEMRProfileError()
 
         bucket.grant_read_write(self._roles.instance_role, objects_key_pattern).assert_success()
         return self
 
-    def authorize_input_key(self, key: kms.Key):
+    def authorize_input_key(self, key: kms.Key) -> "EMRProfile":
         if self._rehydrated and not self._mutable_instance_role:
             raise ReadOnlyEMRProfileError()
 
         key.grant_decrypt(self._roles.instance_role).assert_success()
         return self
 
-    def authorize_output_key(self, key: kms.Key):
+    def authorize_output_key(self, key: kms.Key) -> "EMRProfile":
         if self._rehydrated and not self._mutable_instance_role:
             raise ReadOnlyEMRProfileError()
 
@@ -595,7 +597,9 @@ class EMRProfile(BaseConstruct):
         return self
 
     @staticmethod
-    def get_profiles(namespace: str = "default", next_token: Optional[str] = None, ssm_client=None) -> Dict[str, any]:
+    def get_profiles(
+        namespace: str = "default", next_token: Optional[str] = None, ssm_client: Optional[boto3.client] = None
+    ) -> Dict[str, Any]:
         ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
         params = {"Path": f"{SSM_PARAMETER_PREFIX}/{namespace}/"}
         if next_token:
@@ -608,13 +612,15 @@ class EMRProfile(BaseConstruct):
         return profiles
 
     @staticmethod
-    def get_profile(profile_name: str, namespace: str = "default", ssm_client=None) -> Dict[str, any]:
+    def get_profile(
+        profile_name: str, namespace: str = "default", ssm_client: Optional[boto3.client] = None
+    ) -> Dict[str, Any]:
         ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
         try:
             profile_json = ssm_client.get_parameter(Name=f"{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}")[
                 "Parameter"
             ]["Value"]
-            return json.loads(profile_json)
+            return cast(Dict[str, Any], json.loads(profile_json))
         except ClientError as e:
             if e.response["Error"]["Code"] == "ParameterNotFound":
                 raise EMRProfileNotFoundError()
@@ -622,7 +628,9 @@ class EMRProfile(BaseConstruct):
                 raise e
 
     @staticmethod
-    def from_stored_profile(scope: core.Construct, id: str, profile_name: str, namespace: str = "default"):
+    def from_stored_profile(
+        scope: core.Construct, id: str, profile_name: str, namespace: str = "default"
+    ) -> "EMRProfile":
         stored_profile = EMRProfile.get_profile(profile_name, namespace)
-        profile = EMRProfile(scope, id, profile_name=None)
+        profile = EMRProfile(scope, id, profile_name=None)  # type: ignore
         return profile.from_json(stored_profile)

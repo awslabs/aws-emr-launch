@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import traceback
+from typing import Any, Dict, Optional
 
 import boto3
 
@@ -11,7 +12,7 @@ LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
 
-def handler(event, context):
+def handler(event: Dict[str, Any], context: Optional[Dict[str, Any]]) -> None:
     LOGGER.info("Lambda metadata: {} (type = {})".format(json.dumps(event), type(event)))
 
     try:

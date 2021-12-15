@@ -15,21 +15,21 @@ class EMRRoles(BaseConstruct):
         id: str,
         *,
         role_name_prefix: Optional[str] = None,
-        artifacts_bucket: Optional[s3.Bucket] = None,
+        artifacts_bucket: Optional[s3.IBucket] = None,
         artifacts_path: Optional[str] = None,
-        logs_bucket: Optional[s3.Bucket] = None,
+        logs_bucket: Optional[s3.IBucket] = None,
         logs_path: Optional[str] = None,
     ) -> None:
         super().__init__(scope, id)
 
         if role_name_prefix:
-            self._service_role = EMRRoles._create_service_role(
+            self._service_role: iam.IRole = EMRRoles._create_service_role(
                 self, "EMRServiceRole", role_name="{}-ServiceRole".format(role_name_prefix)
             )
-            self._instance_role = EMRRoles._create_instance_role(
+            self._instance_role: iam.IRole = EMRRoles._create_instance_role(
                 self, "EMRInstanceRole", role_name="{}-InstanceRole".format(role_name_prefix)
             )
-            self._autoscaling_role = EMRRoles._create_autoscaling_role(
+            self._autoscaling_role: iam.IRole = EMRRoles._create_autoscaling_role(
                 self, "EMRAutoScalingRole", role_name="{}-AutoScalingRole".format(role_name_prefix)
             )
 
@@ -92,7 +92,7 @@ class EMRRoles(BaseConstruct):
         )
 
     @staticmethod
-    def _create_service_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
+    def _create_service_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None) -> iam.Role:
         role = iam.Role(
             scope,
             id,
@@ -106,7 +106,7 @@ class EMRRoles(BaseConstruct):
         return role
 
     @staticmethod
-    def _create_autoscaling_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
+    def _create_autoscaling_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None) -> iam.Role:
         role = iam.Role(
             scope,
             id,
@@ -117,17 +117,18 @@ class EMRRoles(BaseConstruct):
             ],
         )
 
-        role.assume_role_policy.add_statements(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                principals=[iam.ServicePrincipal("application-autoscaling.amazonaws.com")],
-                actions=["sts:AssumeRole"],
+        if role.assume_role_policy:
+            role.assume_role_policy.add_statements(
+                iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    principals=[iam.ServicePrincipal("application-autoscaling.amazonaws.com")],
+                    actions=["sts:AssumeRole"],
+                )
             )
-        )
         return role
 
     @staticmethod
-    def _create_instance_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None):
+    def _create_instance_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None) -> iam.Role:
         role = iam.Role(
             scope,
             id,
@@ -148,7 +149,7 @@ class EMRRoles(BaseConstruct):
         instance_role_arn: str,
         autoscaling_role_arn: str,
         mutable: Optional[bool] = None,
-    ):
+    ) -> "EMRRoles":
         roles = EMRRoles(scope, id)
         roles._service_role = iam.Role.from_role_arn(roles, "EMRServiceRole", service_role_arn, mutable=False)
         roles._instance_role = iam.Role.from_role_arn(roles, "EMRInstanceRole", instance_role_arn, mutable=mutable)
@@ -159,15 +160,15 @@ class EMRRoles(BaseConstruct):
         return roles
 
     @property
-    def service_role(self) -> iam.Role:
+    def service_role(self) -> iam.IRole:
         return self._service_role
 
     @property
-    def instance_role(self) -> iam.Role:
+    def instance_role(self) -> iam.IRole:
         return self._instance_role
 
     @property
-    def autoscaling_role(self) -> iam.Role:
+    def autoscaling_role(self) -> iam.IRole:
         return self._autoscaling_role
 
     @property
