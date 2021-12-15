@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.5.2 (unreleased)
 ------------------
 
+- Added static checks
+
 - Added type checking, linting, formatting
 
 
