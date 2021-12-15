@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.5.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added type checking, linting, formatting
 
 
 1.5.1 (2021-07-02)
