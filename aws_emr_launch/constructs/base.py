@@ -6,13 +6,12 @@ from logzero import logger
 from aws_emr_launch import __product__, __version__
 
 
-def _tag_construct(construct: core.Construct):
-    suppress_tags = os.environ.get('SUPPRESS_EMR_LAUNCH_DEPLOYMENT_TAGS', '').lower() in \
-                    ('1', 't', 'true', 'y', 'yes')
+def _tag_construct(construct: core.Construct) -> None:
+    suppress_tags = os.environ.get("SUPPRESS_EMR_LAUNCH_DEPLOYMENT_TAGS", "").lower() in ("1", "t", "true", "y", "yes")
 
     if not suppress_tags:
-        core.Tags.of(construct).add('deployment:product:name', __product__)
-        core.Tags.of(construct).add('deployment:product:version', __version__)
+        core.Tags.of(construct).add("deployment:product:name", __product__)
+        core.Tags.of(construct).add("deployment:product:version", __version__)
     else:
         logger.info('Suppressing "deployment:product" tags for: %s', construct.node.id)
 
@@ -25,5 +24,5 @@ class BaseConstruct(core.Construct):
 
 class BaseBuilder:
     @staticmethod
-    def tag_construct(construct: core.Construct):
+    def tag_construct(construct: core.Construct) -> None:
         _tag_construct(construct)

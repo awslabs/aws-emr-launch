@@ -5,6 +5,6 @@ from aws_cdk import core
 from aws_emr_launch import control_plane
 
 app = core.App()
-control_plane.ControlPlaneStack(app, 'EMRLaunchControlPlaneStack')
+control_plane.ControlPlaneStack(app, "EMRLaunchControlPlaneStack")
 
 app.synth()

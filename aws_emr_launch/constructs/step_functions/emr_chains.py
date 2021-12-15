@@ -1,4 +1,4 @@
-from typing import List, Mapping, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_stepfunctions as sfn
@@ -11,21 +11,27 @@ from aws_emr_launch.constructs.step_functions import emr_tasks
 
 
 class Success(sfn.StateMachineFragment):
-    def __init__(self, scope: core.Construct, id: str, *,
-                 message: sfn.TaskInput, subject: Optional[str] = None,
-                 topic: Optional[sns.Topic] = None,
-                 result_path: str = '$.PublishResult', output_path: Optional[str] = None):
+    def __init__(
+        self,
+        scope: core.Construct,
+        id: str,
+        *,
+        message: sfn.TaskInput,
+        subject: Optional[str] = None,
+        topic: Optional[sns.ITopic] = None,
+        result_path: str = "$.PublishResult",
+        output_path: Optional[str] = None,
+    ):
         super().__init__(scope, id)
 
-        self._end = sfn.Succeed(
-            self, 'Succeeded', output_path=output_path
-        )
+        self._end = sfn.Succeed(self, "Succeeded", output_path=output_path)
 
         if topic is not None:
-            self._start = sfn_tasks.SnsPublish(
-                self, 'Success Notification',
-                input_path='$',
-                output_path='$',
+            self._start: Union[sfn_tasks.SnsPublish, sfn.Succeed] = sfn_tasks.SnsPublish(
+                self,
+                "Success Notification",
+                input_path="$",
+                output_path="$",
                 result_path=result_path,
                 topic=topic,
                 message=message,
@@ -45,22 +51,29 @@ class Success(sfn.StateMachineFragment):
 
 
 class Fail(sfn.StateMachineFragment):
-    def __init__(self, scope: core.Construct, id: str, *,
-                 message: sfn.TaskInput, subject: Optional[str] = None,
-                 topic: Optional[sns.Topic] = None,
-                 result_path: str = '$.PublishResult', output_path: str = '$',
-                 cause: Optional[str] = None, comment: Optional[str] = None,
-                 error: Optional[str] = None):
+    def __init__(
+        self,
+        scope: core.Construct,
+        id: str,
+        *,
+        message: sfn.TaskInput,
+        subject: Optional[str] = None,
+        topic: Optional[sns.ITopic] = None,
+        result_path: str = "$.PublishResult",
+        output_path: str = "$",
+        cause: Optional[str] = None,
+        comment: Optional[str] = None,
+        error: Optional[str] = None,
+    ):
         super().__init__(scope, id)
 
-        self._end = sfn.Fail(
-            self, 'Execution Failed', cause=cause, comment=comment, error=error
-        )
+        self._end = sfn.Fail(self, "Execution Failed", cause=cause, comment=comment, error=error)
 
         if topic is not None:
-            self._start = sfn_tasks.SnsPublish(
-                self, 'Failure Notification',
-                input_path='$',
+            self._start: Union[sfn_tasks.SnsPublish, sfn.Fail] = sfn_tasks.SnsPublish(
+                self,
+                "Failure Notification",
+                input_path="$",
                 output_path=output_path,
                 result_path=result_path,
                 topic=topic,
@@ -81,12 +94,20 @@ class Fail(sfn.StateMachineFragment):
 
 
 class NestedStateMachine(sfn.StateMachineFragment):
-    def __init__(self, scope: core.Construct, id: str, name: str, state_machine: sfn.StateMachine,
-                 input: Optional[Mapping[str, any]] = None, fail_chain: Optional[sfn.IChainable] = None):
+    def __init__(
+        self,
+        scope: core.Construct,
+        id: str,
+        name: str,
+        state_machine: sfn.IStateMachine,
+        input: Optional[Dict[str, Any]] = None,
+        fail_chain: Optional[sfn.IChainable] = None,
+    ):
         super().__init__(scope, id)
 
         state_machine_task = emr_tasks.StartExecutionTask(
-            self, name,
+            self,
+            name,
             state_machine=state_machine,
             input=input,
             integration_pattern=sfn.IntegrationPattern.RUN_JOB,
@@ -95,18 +116,17 @@ class NestedStateMachine(sfn.StateMachineFragment):
         parse_json_string = emr_lambdas.ParseJsonStringBuilder.get_or_build(self)
 
         parse_json_string_task = sfn_tasks.LambdaInvoke(
-            self, f'{name} - Parse JSON Output',
-            result_path='$',
+            self,
+            f"{name} - Parse JSON Output",
+            result_path="$",
             lambda_function=parse_json_string,
             payload_response_only=True,
-            payload=sfn.TaskInput.from_object({
-                'JsonString': sfn.TaskInput.from_data_at('$.Output').value
-            }),
+            payload=sfn.TaskInput.from_object({"JsonString": sfn.TaskInput.from_data_at("$.Output").value}),
         )
 
         if fail_chain:
-            state_machine_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
-            parse_json_string_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
+            state_machine_task.add_catch(fail_chain, errors=["States.ALL"], result_path="$.Error")
+            parse_json_string_task.add_catch(fail_chain, errors=["States.ALL"], result_path="$.Error")
 
         state_machine_task.next(parse_json_string_task)
 
@@ -123,37 +143,47 @@ class NestedStateMachine(sfn.StateMachineFragment):
 
 
 class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
-    def __init__(self, scope: core.Construct, id: str, *,
-                 emr_step: emr_code.EMRStep,
-                 cluster_id: str,
-                 result_path: Optional[str] = None,
-                 output_path: Optional[str] = None,
-                 fail_chain: Optional[sfn.IChainable] = None,
-                 wait_for_step_completion: bool = True):
+    def __init__(
+        self,
+        scope: core.Construct,
+        id: str,
+        *,
+        emr_step: emr_code.EMRStep,
+        cluster_id: str,
+        result_path: Optional[str] = None,
+        output_path: Optional[str] = None,
+        fail_chain: Optional[sfn.IChainable] = None,
+        wait_for_step_completion: bool = True,
+    ):
         super().__init__(scope, id)
 
         override_step_args = emr_lambdas.OverrideStepArgsBuilder.get_or_build(self)
 
         override_step_args_task = sfn_tasks.LambdaInvoke(
-            self, f'{emr_step.name} - Override Args',
-            result_path=f'$.{id}ResultArgs',
+            self,
+            f"{emr_step.name} - Override Args",
+            result_path=f"$.{id}ResultArgs",
             lambda_function=override_step_args,
             payload_response_only=True,
-            payload=sfn.TaskInput.from_object({
-                'ExecutionInput': sfn.TaskInput.from_context_at('$$.Execution.Input').value,
-                'StepName': emr_step.name,
-                'Args': emr_step.args
-            }),
+            payload=sfn.TaskInput.from_object(
+                {
+                    "ExecutionInput": sfn.TaskInput.from_context_at("$$.Execution.Input").value,
+                    "StepName": emr_step.name,
+                    "Args": emr_step.args,
+                }
+            ),
         )
 
         resolved_step = emr_step.resolve(self)
-        resolved_step['HadoopJarStep']['Args'] = sfn.TaskInput.from_data_at(f'$.{id}ResultArgs').value
+        resolved_step["HadoopJarStep"]["Args"] = sfn.TaskInput.from_data_at(f"$.{id}ResultArgs").value
 
-        integration_pattern = sfn.IntegrationPattern.RUN_JOB if wait_for_step_completion \
-            else sfn.IntegrationPattern.REQUEST_RESPONSE
+        integration_pattern = (
+            sfn.IntegrationPattern.RUN_JOB if wait_for_step_completion else sfn.IntegrationPattern.REQUEST_RESPONSE
+        )
 
         add_step_task = emr_tasks.EmrAddStepTask(
-            self, emr_step.name,
+            self,
+            emr_step.name,
             output_path=output_path,
             result_path=result_path,
             cluster_id=cluster_id,
@@ -162,8 +192,8 @@ class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
         )
 
         if fail_chain:
-            override_step_args_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
-            add_step_task.add_catch(fail_chain, errors=['States.ALL'], result_path='$.Error')
+            override_step_args_task.add_catch(fail_chain, errors=["States.ALL"], result_path="$.Error")
+            add_step_task.add_catch(fail_chain, errors=["States.ALL"], result_path="$.Error")
 
         override_step_args_task.next(add_step_task)
 

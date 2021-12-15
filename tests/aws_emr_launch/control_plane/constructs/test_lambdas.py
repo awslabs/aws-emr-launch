@@ -3,10 +3,10 @@ from aws_cdk import core
 from aws_emr_launch.control_plane.constructs.lambdas.apis import Apis
 
 
-def test_emr_lambdas():
+def test_emr_lambdas() -> None:
     app = core.App()
-    stack = core.Stack(app, 'test-lambdas-stack')
-    apis = Apis(stack, 'test-apis')
+    stack = core.Stack(app, "test-lambdas-stack")
+    apis = Apis(stack, "test-apis")
 
     assert apis.get_profile
     assert apis.get_profiles
