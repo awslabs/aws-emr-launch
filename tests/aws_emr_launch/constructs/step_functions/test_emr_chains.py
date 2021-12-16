@@ -1,5 +1,6 @@
 from typing import Any, Dict
 
+from aws_cdk import assertions
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_stepfunctions as sfn
 from aws_cdk import core
@@ -18,229 +19,176 @@ def print_and_assert(default_fragment_json: Dict[str, Any], fragment: sfn.StateM
 
 def test_success_chain() -> None:
     default_fragment_json = {
-        "Type": "Parallel",
-        "End": True,
-        "Branches": [
-            {
-                "StartAt": "test-fragment: Success Notification",
-                "States": {
-                    "test-fragment: Success Notification": {
-                        "Next": "test-fragment: Succeeded",
-                        "InputPath": "$",
-                        "Parameters": {
-                            "TopicArn": {"Ref": "testtopicB3D54793"},
-                            "Message": "TestMessage",
-                            "Subject": "TestSubject",
-                        },
-                        "OutputPath": "$",
-                        "Type": "Task",
-                        "Resource": {"Fn::Join": ["", ["arn:", {"Ref": "AWS::Partition"}, ":states:::sns:publish"]]},
-                        "ResultPath": "$.PublishResult",
-                    },
-                    "test-fragment: Succeeded": {"Type": "Succeed"},
-                },
-            }
-        ],
+        "Fn::Join": [
+            "",
+            [
+                (
+                    '{"StartAt":"Success Notification","States":{"Success Notification":{"Next":"Succeeded","Type":'
+                    '"Task","InputPath":"$","OutputPath":"$","ResultPath":"$.PublishResult","Resource":"arn:'
+                ),
+                {"Ref": "AWS::Partition"},
+                ':states:::sns:publish","Parameters":{"TopicArn":"',
+                {"Ref": "testtopicB3D54793"},
+                '","Message":"TestMessage","Subject":"TestSubject"}},"Succeeded":{"Type":"Succeed"}}}',
+            ],
+        ]
     }
 
     stack = core.Stack(core.App(), "test-stack")
-
-    fragment = emr_chains.Success(
+    sfn.StateMachine(
         stack,
-        "test-fragment",
-        message=sfn.TaskInput.from_text("TestMessage"),
-        subject="TestSubject",
-        topic=sns.Topic(stack, "test-topic"),
+        "test-machine",
+        definition=emr_chains.Success(
+            stack,
+            "test-fragment",
+            message=sfn.TaskInput.from_text("TestMessage"),
+            subject="TestSubject",
+            topic=sns.Topic(stack, "test-topic"),
+        ),
     )
 
-    print_and_assert(default_fragment_json, fragment)
+    template = assertions.Template.from_stack(stack)
+    print(template.find_resources("AWS::StepFunctions::StateMachine"))
+    template.has_resource_properties(
+        "AWS::StepFunctions::StateMachine", {"DefinitionString": assertions.Match.object_like(default_fragment_json)}
+    )
 
 
 def test_fail_chain() -> None:
     default_fragment_json = {
-        "Type": "Parallel",
-        "End": True,
-        "Branches": [
-            {
-                "StartAt": "test-fragment: Failure Notification",
-                "States": {
-                    "test-fragment: Failure Notification": {
-                        "Next": "test-fragment: Execution Failed",
-                        "InputPath": "$",
-                        "Parameters": {
-                            "TopicArn": {"Ref": "testtopicB3D54793"},
-                            "Message": "TestMessage",
-                            "Subject": "TestSubject",
-                        },
-                        "OutputPath": "$",
-                        "Type": "Task",
-                        "Resource": {"Fn::Join": ["", ["arn:", {"Ref": "AWS::Partition"}, ":states:::sns:publish"]]},
-                        "ResultPath": "$.PublishResult",
-                    },
-                    "test-fragment: Execution Failed": {
-                        "Type": "Fail",
-                        "Comment": "TestComment",
-                        "Error": "TestError",
-                        "Cause": "TestCause",
-                    },
-                },
-            }
-        ],
+        "Fn::Join": [
+            "",
+            [
+                (
+                    '{"StartAt":"Failure Notification","States":{"Failure Notification":{"Next":"Execution Failed",'
+                    '"Type":"Task","InputPath":"$","OutputPath":"$","ResultPath":"$.PublishResult","Resource":"arn:'
+                ),
+                {"Ref": "AWS::Partition"},
+                ':states:::sns:publish","Parameters":{"TopicArn":"',
+                {"Ref": "testtopicB3D54793"},
+                (
+                    '","Message":"TestMessage","Subject":"TestSubject"}},"Execution Failed":{"Type":"Fail","Comment":'
+                    '"TestComment","Error":"TestError","Cause":"TestCause"}}}'
+                ),
+            ],
+        ]
     }
 
     stack = core.Stack(core.App(), "test-stack")
-
-    fragment = emr_chains.Fail(
+    sfn.StateMachine(
         stack,
-        "test-fragment",
-        message=sfn.TaskInput.from_text("TestMessage"),
-        subject="TestSubject",
-        topic=sns.Topic(stack, "test-topic"),
-        cause="TestCause",
-        comment="TestComment",
-        error="TestError",
+        "test-machine",
+        definition=emr_chains.Fail(
+            stack,
+            "test-fragment",
+            message=sfn.TaskInput.from_text("TestMessage"),
+            subject="TestSubject",
+            topic=sns.Topic(stack, "test-topic"),
+            cause="TestCause",
+            comment="TestComment",
+            error="TestError",
+        ),
     )
 
-    print_and_assert(default_fragment_json, fragment)
+    template = assertions.Template.from_stack(stack)
+    print(template.find_resources("AWS::StepFunctions::StateMachine"))
+    template.has_resource_properties(
+        "AWS::StepFunctions::StateMachine", {"DefinitionString": assertions.Match.object_like(default_fragment_json)}
+    )
 
 
 def test_nested_state_machine_chain() -> None:
     default_fragment_json = {
-        "Type": "Parallel",
-        "End": True,
-        "Branches": [
-            {
-                "StartAt": "test-fragment: test-nested-state-machine",
-                "States": {
-                    "test-fragment: test-nested-state-machine": {
-                        "Resource": {
-                            "Fn::Join": [
-                                "",
-                                ["arn:", {"Ref": "AWS::Partition"}, ":states:::states:startExecution.sync"],
-                            ]
-                        },
-                        "Parameters": {
-                            "StateMachineArn": {"Ref": "teststatemachine7F4C511D"},
-                            "Input": {"Key1": "Value1"},
-                        },
-                        "Next": "test-fragment: test-nested-state-machine - Parse JSON Output",
-                        "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.Error", "Next": "test-fail"}],
-                        "Type": "Task",
-                    },
-                    "test-fragment: test-nested-state-machine - Parse JSON Output": {
-                        "End": True,
-                        "Retry": [
-                            {
-                                "ErrorEquals": [
-                                    "Lambda.ServiceException",
-                                    "Lambda.AWSLambdaException",
-                                    "Lambda.SdkClientException",
-                                ],
-                                "IntervalSeconds": 2,
-                                "MaxAttempts": 6,
-                                "BackoffRate": 2,
-                            }
-                        ],
-                        "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.Error", "Next": "test-fail"}],
-                        "Type": "Task",
-                        "ResultPath": "$",
-                        "Resource": {"Fn::GetAtt": ["ParseJsonString859DB4F0", "Arn"]},
-                        "Parameters": {"JsonString.$": "$.Output"},
-                    },
-                    "test-fail": {"Type": "Fail"},
-                },
-            }
-        ],
+        "Fn::Join": [
+            "",
+            [
+                '{"StartAt":"test-nested-state-machine","States":{"test-nested-state-machine":{"Resource":"arn:',
+                {"Ref": "AWS::Partition"},
+                ':states:::states:startExecution.sync","Parameters":{"StateMachineArn":"',
+                {"Ref": "teststatemachine7F4C511D"},
+                (
+                    '","Input":{"Key1":"Value1"}},"Next":"test-nested-state-machine - Parse JSON Output","Catch":'
+                    '[{"ErrorEquals":["States.ALL"],"ResultPath":"$.Error","Next":"test-fail"}],"Type":"Task"},'
+                    '"test-nested-state-machine - Parse JSON Output":{"End":true,"Retry":[{"ErrorEquals":['
+                    '"Lambda.ServiceException","Lambda.AWSLambdaException","Lambda.SdkClientException"],'
+                    '"IntervalSeconds":2,"MaxAttempts":6,"BackoffRate":2}],"Catch":[{"ErrorEquals":["States.ALL"],'
+                    '"ResultPath":"$.Error","Next":"test-fail"}],"Type":"Task","ResultPath":"$","Resource":"'
+                ),
+                {"Fn::GetAtt": ["ParseJsonString859DB4F0", "Arn"]},
+                '","Parameters":{"JsonString.$":"$.Output"}},"test-fail":{"Type":"Fail"}}}',
+            ],
+        ]
     }
 
     stack = core.Stack(core.App(), "test-stack")
-
     state_machine = sfn.StateMachine(
         stack, "test-state-machine", definition=sfn.Chain.start(sfn.Succeed(stack, "Succeeded"))
     )
 
-    fragment = emr_chains.NestedStateMachine(
+    sfn.StateMachine(
         stack,
-        "test-fragment",
-        name="test-nested-state-machine",
-        state_machine=state_machine,
-        input={"Key1": "Value1"},
-        fail_chain=sfn.Fail(stack, "test-fail"),
+        "test-machine",
+        definition=emr_chains.NestedStateMachine(
+            stack,
+            "test-fragment",
+            name="test-nested-state-machine",
+            state_machine=state_machine,
+            input={"Key1": "Value1"},
+            fail_chain=sfn.Fail(stack, "test-fail"),
+        ),
     )
 
-    print_and_assert(default_fragment_json, fragment)
+    template = assertions.Template.from_stack(stack)
+    print(template.find_resources("AWS::StepFunctions::StateMachine"))
+    template.has_resource_properties(
+        "AWS::StepFunctions::StateMachine", {"DefinitionString": assertions.Match.object_like(default_fragment_json)}
+    )
 
 
 def test_add_step_with_argument_overrides() -> None:
     default_fragment_json = {
-        "Type": "Parallel",
-        "End": True,
-        "Branches": [
-            {
-                "StartAt": "test-fragment: test-step - Override Args",
-                "States": {
-                    "test-fragment: test-step - Override Args": {
-                        "Next": "test-fragment: test-step",
-                        "Retry": [
-                            {
-                                "ErrorEquals": [
-                                    "Lambda.ServiceException",
-                                    "Lambda.AWSLambdaException",
-                                    "Lambda.SdkClientException",
-                                ],
-                                "IntervalSeconds": 2,
-                                "MaxAttempts": 6,
-                                "BackoffRate": 2,
-                            }
-                        ],
-                        "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.Error", "Next": "test-fail"}],
-                        "Type": "Task",
-                        "ResultPath": "$.test-fragmentResultArgs",
-                        "Resource": {"Fn::GetAtt": ["OverrideStepArgsE9376C9F", "Arn"]},
-                        "Parameters": {
-                            "ExecutionInput.$": "$$.Execution.Input",
-                            "StepName": "test-step",
-                            "Args": ["Arg1", "Arg2"],
-                        },
-                    },
-                    "test-fragment: test-step": {
-                        "Resource": {
-                            "Fn::Join": [
-                                "",
-                                ["arn:", {"Ref": "AWS::Partition"}, ":states:::elasticmapreduce:addStep.sync"],
-                            ]
-                        },
-                        "Parameters": {
-                            "ClusterId": "test-cluster-id",
-                            "Step": {
-                                "Name": "test-step",
-                                "ActionOnFailure": "CONTINUE",
-                                "HadoopJarStep": {
-                                    "Jar": "Jar",
-                                    "MainClass": "Main",
-                                    "Args.$": "$.test-fragmentResultArgs",
-                                    "Properties": [],
-                                },
-                            },
-                        },
-                        "End": True,
-                        "Catch": [{"ErrorEquals": ["States.ALL"], "ResultPath": "$.Error", "Next": "test-fail"}],
-                        "Type": "Task",
-                    },
-                    "test-fail": {"Type": "Fail"},
-                },
-            }
-        ],
+        "Fn::Join": [
+            "",
+            [
+                (
+                    '{"StartAt":"test-step - Override Args","States":{"test-step - Override Args":{"Next":"test-step",'
+                    '"Retry":[{"ErrorEquals":["Lambda.ServiceException","Lambda.AWSLambdaException",'
+                    '"Lambda.SdkClientException"],"IntervalSeconds":2,"MaxAttempts":6,"BackoffRate":2}],"Catch":['
+                    '{"ErrorEquals":["States.ALL"],"ResultPath":"$.Error","Next":"test-fail"}],"Type":"Task",'
+                    '"ResultPath":"$.test-fragmentResultArgs","Resource":"'
+                ),
+                {"Fn::GetAtt": ["OverrideStepArgsE9376C9F", "Arn"]},
+                (
+                    '","Parameters":{"ExecutionInput.$":"$$.Execution.Input","StepName":"test-step","Args":["Arg1",'
+                    '"Arg2"]}},"test-step":{"Resource":"arn:'
+                ),
+                {"Ref": "AWS::Partition"},
+                (
+                    ':states:::elasticmapreduce:addStep.sync","Parameters":{"ClusterId":"test-cluster-id","Step":'
+                    '{"Name":"test-step","ActionOnFailure":"CONTINUE","HadoopJarStep":{"Jar":"Jar","MainClass":"Main",'
+                    '"Args.$":"$.test-fragmentResultArgs","Properties":[]}}},"End":true,"Catch":[{"ErrorEquals":'
+                    '["States.ALL"],"ResultPath":"$.Error","Next":"test-fail"}],"Type":"Task"},"test-fail":'
+                    '{"Type":"Fail"}}}'
+                ),
+            ],
+        ]
     }
 
     stack = core.Stack(core.App(), "test-stack")
-
-    fragment = emr_chains.AddStepWithArgumentOverrides(
+    sfn.StateMachine(
         stack,
-        "test-fragment",
-        emr_step=emr_code.EMRStep("test-step", "Jar", "Main", ["Arg1", "Arg2"]),
-        cluster_id="test-cluster-id",
-        fail_chain=sfn.Fail(stack, "test-fail"),
+        "test-machine",
+        definition=emr_chains.AddStepWithArgumentOverrides(
+            stack,
+            "test-fragment",
+            emr_step=emr_code.EMRStep("test-step", "Jar", "Main", ["Arg1", "Arg2"]),
+            cluster_id="test-cluster-id",
+            fail_chain=sfn.Fail(stack, "test-fail"),
+        ),
     )
 
-    print_and_assert(default_fragment_json, fragment)
+    template = assertions.Template.from_stack(stack)
+    print(template.find_resources("AWS::StepFunctions::StateMachine"))
+    template.has_resource_properties(
+        "AWS::StepFunctions::StateMachine", {"DefinitionString": assertions.Match.object_like(default_fragment_json)}
+    )
