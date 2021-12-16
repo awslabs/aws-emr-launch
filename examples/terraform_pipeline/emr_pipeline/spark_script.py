@@ -1,10 +1,8 @@
-from pyspark.sql import (
-    DataFrame,
-    SparkSession,
-)
-
 import argparse
 import sys
+
+from pyspark.sql import SparkSession  # noqa
+
 
 def parse_arguments(args):
     parser = argparse.ArgumentParser()
@@ -15,7 +13,7 @@ def parse_arguments(args):
 def main(argv):
     arguments = parse_arguments(argv)
     spark = SparkSession.builder.appName("demo-spark-app").getOrCreate()
-    df = spark.createDataFrame([(x,) for x in range(1000)], ['integers'])
+    df = spark.createDataFrame([(x,) for x in range(1000)], ["integers"])
     df.write.save(arguments.output_s3_path, format="csv", mode="append", header=True)
 
 

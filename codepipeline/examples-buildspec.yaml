@@ -15,6 +15,7 @@ phases:
   pre_build:
     commands:
       - . .venv/bin/activate
+      - ./validate.sh
       - pytest
   build:
     commands:

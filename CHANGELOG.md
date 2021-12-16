@@ -1,6 +1,16 @@
 Changelog for emr-launch
 =============================
 
+1.5.2 (2021-12-15)
+------------------
+
+- Added bounding on 1.5.x CDK requirements
+
+- Added static checks
+
+- Added type checking, linting, formatting
+
+
 1.5.1 (2021-07-02)
 ------------------
 
