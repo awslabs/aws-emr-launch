@@ -4,7 +4,7 @@ Changelog for emr-launch
 1.5.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add user-agent string to control-plane and client API calls
 
 
 1.5.2 (2021-12-15)
