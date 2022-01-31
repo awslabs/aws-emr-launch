@@ -11,6 +11,7 @@ from aws_cdk import aws_ssm as ssm
 from aws_cdk import core
 from botocore.exceptions import ClientError
 
+from aws_emr_launch import boto3_client
 from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.emr_constructs import emr_code
 
@@ -294,7 +295,7 @@ class ClusterConfiguration(BaseConstruct):
     def get_configurations(
         namespace: str = "default", next_token: Optional[str] = None, ssm_client: Optional[boto3.client] = None
     ) -> Dict[str, Any]:
-        ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
+        ssm_client = boto3_client("ssm") if ssm_client is None else ssm_client
         params = {"Path": f"{SSM_PARAMETER_PREFIX}/{namespace}/"}
         if next_token:
             params["NextToken"] = next_token
@@ -309,7 +310,7 @@ class ClusterConfiguration(BaseConstruct):
     def get_configuration(
         configuration_name: str, namespace: str = "default", ssm_client: Optional[boto3.client] = None
     ) -> Dict[str, Any]:
-        ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
+        ssm_client = boto3_client("ssm") if ssm_client is None else ssm_client
         try:
             configuration_json = ssm_client.get_parameter(
                 Name=f"{SSM_PARAMETER_PREFIX}/{namespace}/{configuration_name}"

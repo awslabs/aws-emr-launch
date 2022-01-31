@@ -11,7 +11,7 @@ from aws_cdk import core
 from botocore.exceptions import ClientError
 from logzero import logger
 
-from aws_emr_launch import __product__, __version__
+from aws_emr_launch import __product__, __version__, boto3_client
 from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.emr_constructs import cluster_configuration, emr_profile
 from aws_emr_launch.constructs.step_functions import emr_chains, emr_tasks
@@ -321,7 +321,7 @@ class EMRLaunchFunction(BaseConstruct):
     def get_functions(
         namespace: str = "default", next_token: Optional[str] = None, ssm_client: Optional[boto3.client] = None
     ) -> Dict[str, Any]:
-        ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
+        ssm_client = boto3_client("ssm") if ssm_client is None else ssm_client
         params = {"Path": f"{SSM_PARAMETER_PREFIX}/{namespace}/"}
         if next_token:
             params["NextToken"] = next_token
@@ -336,7 +336,7 @@ class EMRLaunchFunction(BaseConstruct):
     def get_function(
         launch_function_name: str, namespace: str = "default", ssm_client: Optional[boto3.client] = None
     ) -> Dict[str, Any]:
-        ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
+        ssm_client = boto3_client("ssm") if ssm_client is None else ssm_client
         try:
             function_json = ssm_client.get_parameter(Name=f"{SSM_PARAMETER_PREFIX}/{namespace}/{launch_function_name}")[
                 "Parameter"

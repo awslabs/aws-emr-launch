@@ -14,6 +14,7 @@ from aws_cdk import core
 from botocore.exceptions import ClientError
 from logzero import logger
 
+from aws_emr_launch import boto3_client
 from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.iam_roles.emr_roles import EMRRoles
@@ -600,7 +601,7 @@ class EMRProfile(BaseConstruct):
     def get_profiles(
         namespace: str = "default", next_token: Optional[str] = None, ssm_client: Optional[boto3.client] = None
     ) -> Dict[str, Any]:
-        ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
+        ssm_client = boto3_client("ssm") if ssm_client is None else ssm_client
         params = {"Path": f"{SSM_PARAMETER_PREFIX}/{namespace}/"}
         if next_token:
             params["NextToken"] = next_token
@@ -615,7 +616,7 @@ class EMRProfile(BaseConstruct):
     def get_profile(
         profile_name: str, namespace: str = "default", ssm_client: Optional[boto3.client] = None
     ) -> Dict[str, Any]:
-        ssm_client = boto3.client("ssm") if ssm_client is None else ssm_client
+        ssm_client = boto3_client("ssm") if ssm_client is None else ssm_client
         try:
             profile_json = ssm_client.get_parameter(Name=f"{SSM_PARAMETER_PREFIX}/{namespace}/{profile_name}")[
                 "Parameter"

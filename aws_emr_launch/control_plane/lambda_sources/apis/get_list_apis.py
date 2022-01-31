@@ -1,9 +1,11 @@
 import json
 import logging
+import os
 import traceback
 from typing import Any, Dict, Optional, cast
 
 import boto3
+import botocore
 from botocore.exceptions import ClientError
 
 LOGGER = logging.getLogger()
@@ -13,8 +15,6 @@ LOGGER.setLevel(logging.INFO)
 PROFILES_SSM_PARAMETER_PREFIX = "/emr_launch/emr_profiles"
 CONFIGURATIONS_SSM_PARAMETER_PREFIX = "/emr_launch/cluster_configurations"
 FUNCTIONS_SSM_PARAMETER_PREFIX = "/emr_launch/emr_launch_functions"
-
-ssm = boto3.client("ssm")
 
 
 class EMRProfileNotFoundError(Exception):
@@ -27,6 +27,24 @@ class ClusterConfigurationNotFoundError(Exception):
 
 class EMRLaunchFunctionNotFoundError(Exception):
     pass
+
+
+def _get_botocore_config() -> botocore.config.Config:
+    product = os.environ.get("AWS_EMR_LAUNCH_PRODUCT", "")
+    version = os.environ.get("AWS_EMR_LAUNCH_VERSION", "")
+    return botocore.config.Config(
+        retries={"max_attempts": 5},
+        connect_timeout=10,
+        max_pool_connections=10,
+        user_agent_extra=f"{product}/{version}",
+    )
+
+
+def _boto3_client(service_name: str) -> boto3.client:
+    return boto3.Session().client(service_name=service_name, use_ssl=True, config=_get_botocore_config())
+
+
+ssm = _boto3_client("ssm")
 
 
 def _get_parameter_values(
