@@ -4,6 +4,7 @@ from aws_cdk import aws_events as events
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda, core
 
+from aws_emr_launch import __product__, __version__
 from aws_emr_launch.constructs.base import BaseBuilder
 from aws_emr_launch.constructs.iam_roles import emr_roles
 from aws_emr_launch.constructs.lambdas import _lambda_path
@@ -27,6 +28,7 @@ class FailIfClusterRunningBuilder(BaseBuilder):
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
                 layers=[layer],
+                environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
                 initial_policy=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW, actions=["elasticmapreduce:ListClusters"], resources=["*"]
@@ -59,6 +61,7 @@ class LoadClusterConfigurationBuilder(BaseBuilder):
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             timeout=core.Duration.minutes(1),
             layers=[layer],
+            environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             initial_policy=[
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
@@ -101,6 +104,7 @@ class OverrideClusterConfigsBuilder(BaseBuilder):
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
                 layers=[layer],
+                environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             )
             BaseBuilder.tag_construct(lambda_function)
         return cast(aws_lambda.Function, lambda_function)
@@ -124,6 +128,7 @@ class UpdateClusterTagsBuilder(BaseBuilder):
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
                 layers=[layer],
+                environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             )
             BaseBuilder.tag_construct(lambda_function)
         return cast(aws_lambda.Function, lambda_function)
@@ -147,6 +152,7 @@ class ParseJsonStringBuilder(BaseBuilder):
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
                 layers=[layer],
+                environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             )
             BaseBuilder.tag_construct(lambda_function)
         return cast(aws_lambda.Function, lambda_function)
@@ -170,6 +176,7 @@ class OverrideStepArgsBuilder(BaseBuilder):
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
                 layers=[layer],
+                environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             )
             BaseBuilder.tag_construct(lambda_function)
         return cast(aws_lambda.Function, lambda_function)
@@ -193,6 +200,7 @@ class RunJobFlowBuilder(BaseBuilder):
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
                 layers=[layer],
+                environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
                 initial_policy=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW, actions=["elasticmapreduce:RunJobFlow"], resources=["*"]
@@ -236,6 +244,7 @@ class CheckClusterStatusBuilder(BaseBuilder):
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
                 timeout=core.Duration.minutes(1),
                 layers=[layer],
+                environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
                 initial_policy=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,

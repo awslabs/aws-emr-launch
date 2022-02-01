@@ -1,18 +1,37 @@
 import base64
 import json
 import logging
+import os
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 import boto3
+import botocore
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-emr = boto3.client("emr")
-sfn = boto3.client("stepfunctions")
-events = boto3.client("events")
-secretsmanager = boto3.client("secretsmanager")
+
+
+def _get_botocore_config() -> botocore.config.Config:
+    product = os.environ.get("AWS_EMR_LAUNCH_PRODUCT", "")
+    version = os.environ.get("AWS_EMR_LAUNCH_VERSION", "")
+    return botocore.config.Config(
+        retries={"max_attempts": 5},
+        connect_timeout=10,
+        max_pool_connections=10,
+        user_agent_extra=f"{product}/{version}",
+    )
+
+
+def _boto3_client(service_name: str) -> boto3.client:
+    return boto3.Session().client(service_name=service_name, use_ssl=True, config=_get_botocore_config())
+
+
+emr = _boto3_client("emr")
+sfn = _boto3_client("stepfunctions")
+events = _boto3_client("events")
+secretsmanager = _boto3_client("secretsmanager")
 
 
 class SecretNotFoundError(Exception):

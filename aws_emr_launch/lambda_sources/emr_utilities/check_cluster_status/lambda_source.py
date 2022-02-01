@@ -1,15 +1,34 @@
 import json
 import logging
+import os
 from datetime import date, datetime
 from typing import Any, Dict, Optional
 
 import boto3
+import botocore
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-emr = boto3.client("emr")
-events = boto3.client("events")
-sfn = boto3.client("stepfunctions")
+
+
+def _get_botocore_config() -> botocore.config.Config:
+    product = os.environ.get("AWS_EMR_LAUNCH_PRODUCT", "")
+    version = os.environ.get("AWS_EMR_LAUNCH_VERSION", "")
+    return botocore.config.Config(
+        retries={"max_attempts": 5},
+        connect_timeout=10,
+        max_pool_connections=10,
+        user_agent_extra=f"{product}/{version}",
+    )
+
+
+def _boto3_client(service_name: str) -> boto3.client:
+    return boto3.Session().client(service_name=service_name, use_ssl=True, config=_get_botocore_config())
+
+
+emr = _boto3_client("emr")
+events = _boto3_client("events")
+sfn = _boto3_client("stepfunctions")
 
 
 def json_serial(obj: object) -> str:
