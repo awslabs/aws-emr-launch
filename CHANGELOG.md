@@ -4,6 +4,8 @@ Changelog for emr-launch
 1.5.3 (unreleased)
 ------------------
 
+- Add user-agent string to lambda API calls
+
 - Add user-agent string to control-plane and client API calls
 
 
