@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.5.3 (unreleased)
+1.5.3 (2022-02-02)
 ------------------
 
 - Add user-agent string to lambda API calls
