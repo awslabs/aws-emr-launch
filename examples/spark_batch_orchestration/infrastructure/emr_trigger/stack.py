@@ -1,15 +1,17 @@
+import aws_cdk
 from aws_cdk import aws_dynamodb as dynamo
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda
 from aws_cdk import aws_lambda_event_sources as sources
 from aws_cdk import aws_sns as sns
-from aws_cdk import core
+
+import constructs
 
 
-class EmrTriggerStack(core.Stack):
+class EmrTriggerStack(aws_cdk.Stack):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         target_step_function_arn: str,
         source_bucket_sns: sns.Topic,
@@ -27,7 +29,7 @@ class EmrTriggerStack(core.Stack):
             code=lambda_code,
             handler="trigger.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
+            timeout=aws_cdk.Duration.minutes(1),
             environment={"PIPELINE_ARN": target_step_function_arn, "TABLE_NAME": dynamo_table.table_name},
             initial_policy=[
                 iam.PolicyStatement(

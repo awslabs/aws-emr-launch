@@ -1,14 +1,14 @@
+import aws_cdk
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_kms as kms
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_secretsmanager as secretsmanager
-from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import emr_profile
 
-app = core.App()
-stack = core.Stack(app, "test-stack")
+app = aws_cdk.App()
+stack = aws_cdk.Stack(app, "test-stack")
 vpc = ec2.Vpc(stack, "test-vpc")
 artifacts_bucket = s3.Bucket(stack, "test-artifacts-bucket")
 logs_bucket = s3.Bucket(stack, "test-logs-bucket")

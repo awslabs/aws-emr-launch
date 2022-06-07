@@ -1,15 +1,17 @@
+import aws_cdk
 from aws_cdk import aws_iam as iam
-from aws_cdk import aws_lambda, core
+from aws_cdk import aws_lambda
 
+import constructs
 from aws_emr_launch import __package__, __product__, __version__
 from aws_emr_launch.control_plane.constructs.lambdas import _lambda_path
 
 
-class Apis(core.Construct):
-    def __init__(self, scope: core.Construct, id: str) -> None:
+class Apis(constructs.Construct):
+    def __init__(self, scope: constructs.Construct, id: str) -> None:
         super().__init__(scope, id)
 
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
         code = aws_lambda.Code.from_asset(_lambda_path("apis"))
 
         self._get_profile = aws_lambda.Function(
@@ -20,7 +22,7 @@ class Apis(core.Construct):
             code=code,
             handler="get_list_apis.get_profile_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
+            timeout=aws_cdk.Duration.minutes(1),
             environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             initial_policy=[
                 iam.PolicyStatement(
@@ -43,7 +45,7 @@ class Apis(core.Construct):
             code=code,
             handler="get_list_apis.get_profiles_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
+            timeout=aws_cdk.Duration.minutes(1),
             environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             initial_policy=[
                 iam.PolicyStatement(
@@ -66,7 +68,7 @@ class Apis(core.Construct):
             code=code,
             handler="get_list_apis.get_configuration_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
+            timeout=aws_cdk.Duration.minutes(1),
             environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             initial_policy=[
                 iam.PolicyStatement(
@@ -91,7 +93,7 @@ class Apis(core.Construct):
             code=code,
             handler="get_list_apis.get_configurations_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
+            timeout=aws_cdk.Duration.minutes(1),
             environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             initial_policy=[
                 iam.PolicyStatement(
@@ -116,7 +118,7 @@ class Apis(core.Construct):
             code=code,
             handler="get_list_apis.get_function_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
+            timeout=aws_cdk.Duration.minutes(1),
             environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             initial_policy=[
                 iam.PolicyStatement(
@@ -141,7 +143,7 @@ class Apis(core.Construct):
             code=code,
             handler="get_list_apis.get_functions_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
+            timeout=aws_cdk.Duration.minutes(1),
             environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             initial_policy=[
                 iam.PolicyStatement(

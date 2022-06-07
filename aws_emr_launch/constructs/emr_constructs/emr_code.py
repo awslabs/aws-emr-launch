@@ -6,7 +6,8 @@ from typing import Any, Dict, List, Optional
 
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_s3_deployment as s3_deployment
-from aws_cdk import core
+
+import constructs
 
 
 class StepFailureAction(enum.Enum):
@@ -18,7 +19,7 @@ class StepFailureAction(enum.Enum):
 
 class Resolvable:
     @abstractmethod
-    def resolve(self, scope: core.Construct) -> Dict[str, Any]:
+    def resolve(self, scope: constructs.Construct) -> Dict[str, Any]:
         ...
 
 
@@ -30,7 +31,7 @@ class EMRCode(Resolvable):
         self._id = id
         self._bucket_deployment: Optional[s3_deployment.BucketDeployment] = None
 
-    def resolve(self, scope: core.Construct) -> Dict[str, Any]:
+    def resolve(self, scope: constructs.Construct) -> Dict[str, Any]:
         # If the same deployment is used multiple times, retain only the first instantiation
         if self._bucket_deployment is None:
             # Convert BucketDeploymentProps to dict
@@ -88,7 +89,7 @@ class EMRBootstrapAction(Resolvable):
         self._args = args
         self._code = code
 
-    def resolve(self, scope: core.Construct) -> Dict[str, Any]:
+    def resolve(self, scope: constructs.Construct) -> Dict[str, Any]:
         if self._code is not None:
             self._code.resolve(scope)
 
@@ -133,7 +134,7 @@ class EMRStep(Resolvable):
         self._properties = properties
         self._code = code
 
-    def resolve(self, scope: core.Construct) -> Dict[str, Any]:
+    def resolve(self, scope: constructs.Construct) -> Dict[str, Any]:
         if self._code is not None:
             self._code.resolve(scope)
 

@@ -2,21 +2,21 @@
 
 import os
 
+import aws_cdk
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_stepfunctions as sfn
-from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.step_functions import emr_chains, emr_tasks
 
-NAMING_PREFIX = f"emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}"
+NAMING_PREFIX = f"emr-launch-{aws_cdk.Aws.ACCOUNT_ID}-{aws_cdk.Aws.REGION}"
 
-app = core.App()
-stack = core.Stack(
+app = aws_cdk.App()
+stack = aws_cdk.Stack(
     app,
     "PersistentPipelineStack",
-    env=core.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
+    env=aws_cdk.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
 )
 
 # SNS Topics for Success/Failures messages from our Pipeline
@@ -35,7 +35,11 @@ step_code = emr_code.Code.from_path(
 
 # Create a Chain to receive Failure messages
 fail = emr_chains.Fail(
-    stack, "FailChain", message=sfn.TaskInput.from_data_at("$.Error"), subject="Pipeline Failure", topic=failure_topic
+    stack,
+    "FailChain",
+    message=sfn.TaskInput.from_json_path_at("$.Error"),
+    subject="Pipeline Failure",
+    topic=failure_topic,
 )
 
 # Create a Parallel Task for the Phase 1 Steps
@@ -57,7 +61,7 @@ for file in emr_code.Code.files_in_path("./step_sources", "test_step_*.sh"):
             args=[f"{step_code.s3_path}/{file}", "Arg1", "Arg2"],
             code=step_code,
         ),
-        cluster_id=sfn.TaskInput.from_data_at("$.ClusterId").value,
+        cluster_id=sfn.TaskInput.from_json_path_at("$.ClusterId").value,
     )
     phase_1.branch(step_task)
 
@@ -89,7 +93,7 @@ for file in emr_code.Code.files_in_path("./step_sources", "test_step_*.hql"):
             ],
             code=step_code,
         ),
-        cluster_id=sfn.TaskInput.from_data_at("$.ClusterId").value,
+        cluster_id=sfn.TaskInput.from_json_path_at("$.ClusterId").value,
     )
     phase_2.branch(step_task)
 
@@ -97,7 +101,7 @@ for file in emr_code.Code.files_in_path("./step_sources", "test_step_*.hql"):
 success = emr_chains.Success(
     stack,
     "SuccessChain",
-    message=sfn.TaskInput.from_data_at("$.Result"),
+    message=sfn.TaskInput.from_json_path_at("$.Result"),
     subject="Pipeline Succeeded",
     topic=success_topic,
 )

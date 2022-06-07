@@ -10,10 +10,10 @@ from aws_cdk import aws_kms as kms
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_ssm as ssm
-from aws_cdk import core
 from botocore.exceptions import ClientError
 from logzero import logger
 
+import constructs
 from aws_emr_launch import boto3_client
 from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.emr_constructs import emr_code
@@ -47,7 +47,7 @@ class S3EncryptionMode(Enum):
 class EMRProfile(BaseConstruct):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         profile_name: str,
@@ -193,7 +193,7 @@ class EMRProfile(BaseConstruct):
 
         kerberos_attributes_secret = property_values.get("KerberosAttributesSecret", None)
         self._kerberos_attributes_secret = (
-            secretsmanager.Secret.from_secret_arn(self, "KerberosAttributesSecret", kerberos_attributes_secret)
+            secretsmanager.Secret.from_secret_partial_arn(self, "KerberosAttributesSecret", kerberos_attributes_secret)
             if kerberos_attributes_secret is not None
             else None
         )
@@ -249,7 +249,7 @@ class EMRProfile(BaseConstruct):
         }
 
     def _configure_mutual_assume_role(self, role: iam.Role) -> None:
-        self._roles.instance_role.add_to_policy(
+        cast(iam.Role, self._roles.instance_role).add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW, principals=[iam.ArnPrincipal(role.role_arn)], actions=["sts:AssumeRole"]
             )
@@ -534,20 +534,20 @@ class EMRProfile(BaseConstruct):
         if idp_code:
             idp_code.resolve(self)
 
-        self._roles.instance_role.add_to_policy(
+        cast(iam.Role, self._roles.instance_role).add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW, actions=["iam:PassRole"], resources=[lake_formation_role.role_arn]
             )
         )
-        self._roles.instance_role.add_to_policy(
+        cast(iam.Role, self._roles.instance_role).add_to_policy(
             iam.PolicyStatement(effect=iam.Effect.ALLOW, actions=["sts:AssumeRole"], resources=[services_role.role_arn])
         )
-        self._roles.instance_role.add_to_policy(
+        cast(iam.Role, self._roles.instance_role).add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW, actions=["lakeformation:GetTemporaryUserCredentialsWithSAML"], resources=["*"]
             )
         )
-        self._roles.instance_role.add_to_policy(
+        cast(iam.Role, self._roles.instance_role).add_to_policy(
             iam.PolicyStatement(effect=iam.Effect.ALLOW, actions=["iam:GetRole"], resources=["arn:aws:iam::*:role/*"])
         )
 
@@ -630,7 +630,7 @@ class EMRProfile(BaseConstruct):
 
     @staticmethod
     def from_stored_profile(
-        scope: core.Construct, id: str, profile_name: str, namespace: str = "default"
+        scope: constructs.Construct, id: str, profile_name: str, namespace: str = "default"
     ) -> "EMRProfile":
         stored_profile = EMRProfile.get_profile(profile_name, namespace)
         profile = EMRProfile(scope, id, profile_name=None)  # type: ignore

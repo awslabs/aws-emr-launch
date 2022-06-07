@@ -1,16 +1,17 @@
 import json
 from typing import Any, Dict, List, Optional, Union, cast
 
+import aws_cdk
 import boto3
 from aws_cdk import aws_lambda
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_ssm as ssm
 from aws_cdk import aws_stepfunctions as sfn
-from aws_cdk import core
 from botocore.exceptions import ClientError
 from logzero import logger
 
+import constructs
 from aws_emr_launch import __product__, __version__, boto3_client
 from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.emr_constructs import cluster_configuration, emr_profile
@@ -26,7 +27,7 @@ class EMRLaunchFunctionNotFoundError(Exception):
 class EMRLaunchFunction(BaseConstruct):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         launch_function_name: str,
@@ -40,7 +41,7 @@ class EMRLaunchFunction(BaseConstruct):
         override_cluster_configs_lambda: Optional[aws_lambda.IFunction] = None,
         allowed_cluster_config_overrides: Optional[Dict[str, Dict[str, str]]] = None,
         description: Optional[str] = None,
-        cluster_tags: Union[List[core.Tag], Dict[str, str], None] = None,
+        cluster_tags: Union[List[aws_cdk.Tag], Dict[str, str], None] = None,
         wait_for_cluster_start: bool = True,
     ) -> None:
         super().__init__(scope, id)
@@ -66,14 +67,17 @@ class EMRLaunchFunction(BaseConstruct):
             self._allowed_cluster_config_overrides = allowed_cluster_config_overrides
 
         if isinstance(cluster_tags, dict):
-            self._cluster_tags = [core.Tag(k, v) for k, v in cluster_tags.items()]
+            self._cluster_tags = [aws_cdk.Tag(k, v) for k, v in cluster_tags.items()]
         elif isinstance(cluster_tags, list):
             self._cluster_tags = cluster_tags
         else:
             self._cluster_tags = []
 
         self._cluster_tags.extend(
-            [core.Tag("deployment:product:name", __product__), core.Tag("deployment:product:version", __version__)]
+            [
+                aws_cdk.Tag("deployment:product:name", __product__),
+                aws_cdk.Tag("deployment:product:version", __version__),
+            ]
         )
 
         if len(cluster_configuration.configuration_artifacts) > 0:
@@ -94,7 +98,7 @@ class EMRLaunchFunction(BaseConstruct):
         fail = emr_chains.Fail(
             self,
             "FailChain",
-            message=sfn.TaskInput.from_data_at("$.Error"),
+            message=sfn.TaskInput.from_json_path_at("$.Error"),
             subject="EMR Launch Function Failure",
             topic=failure_topic,
             error="Failed to Launch Cluster",
@@ -180,7 +184,7 @@ class EMRLaunchFunction(BaseConstruct):
         success = emr_chains.Success(
             self,
             "SuccessChain",
-            message=sfn.TaskInput.from_data_at("$.LaunchClusterResult"),
+            message=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult"),
             subject="Launch EMR Config Succeeded",
             topic=success_topic,
             output_path="$",
@@ -261,7 +265,7 @@ class EMRLaunchFunction(BaseConstruct):
 
         self._allowed_cluster_config_overrides = property_values.get("AllowedClusterConfigOverrides", None)
         self._description = property_values.get("Description", None)
-        self._cluster_tags = [core.Tag(t["Key"], t["Value"]) for t in property_values["ClusterTags"]]
+        self._cluster_tags = [aws_cdk.Tag(t["Key"], t["Value"]) for t in property_values["ClusterTags"]]
 
         state_machine = property_values["StateMachine"]
         self._state_machine = sfn.StateMachine.from_state_machine_arn(self, "StateMachine", state_machine)
@@ -350,7 +354,7 @@ class EMRLaunchFunction(BaseConstruct):
 
     @staticmethod
     def from_stored_function(
-        scope: core.Construct, id: str, launch_function_name: str, namespace: str = "default"
+        scope: constructs.Construct, id: str, launch_function_name: str, namespace: str = "default"
     ) -> "EMRLaunchFunction":
         stored_function = EMRLaunchFunction.get_function(launch_function_name, namespace)
         launch_function = EMRLaunchFunction(

@@ -2,11 +2,11 @@ import json
 import unittest
 from typing import Any, Dict, cast
 
+import aws_cdk
 import boto3
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_sns as sns
-from aws_cdk import core
 from moto import mock_ssm
 
 from aws_emr_launch import __product__, __version__
@@ -40,7 +40,7 @@ class TestControlPlaneApis(unittest.TestCase):
     }
 
     def print_and_assert(self, function_json: Dict[str, Any], function: emr_launch_function.EMRLaunchFunction) -> None:
-        stack = core.Stack.of(function)
+        stack = aws_cdk.Stack.of(function)
 
         resolved_function = stack.resolve(function.to_json())
         print(self.default_function)
@@ -61,7 +61,7 @@ class TestControlPlaneApis(unittest.TestCase):
         assert function_json == resolved_function
 
     def test_emr_launch_function(self) -> None:
-        stack = core.Stack(core.App(), "test-stack")
+        stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
         vpc = ec2.Vpc(stack, "Vpc")
         success_topic = sns.Topic(stack, "SuccessTopic")
         failure_topic = sns.Topic(stack, "FailureTopic")
@@ -88,7 +88,7 @@ class TestControlPlaneApis(unittest.TestCase):
         self.print_and_assert(self.default_function, function)
 
     def test_emr_secure_launch_function(self) -> None:
-        stack = core.Stack(core.App(), "test-stack")
+        stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
         vpc = ec2.Vpc(stack, "Vpc")
         success_topic = sns.Topic(stack, "SuccessTopic")
         failure_topic = sns.Topic(stack, "FailureTopic")
@@ -124,7 +124,9 @@ class TestControlPlaneApis(unittest.TestCase):
 
     @mock_ssm
     def test_get_function(self) -> None:
-        stack = core.Stack(core.App(), "test-stack", env=core.Environment(account="123456789012", region="us-east-1"))
+        stack = aws_cdk.Stack(
+            aws_cdk.App(), "test-stack", env=aws_cdk.Environment(account="123456789012", region="us-east-1")
+        )
         vpc = ec2.Vpc.from_lookup(stack, "test-vpc", vpc_id="vpc-12345678")
         success_topic = sns.Topic(stack, "SuccessTopic")
         failure_topic = sns.Topic(stack, "FailureTopic")

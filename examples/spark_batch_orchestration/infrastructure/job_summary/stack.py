@@ -1,15 +1,18 @@
 import os
 
+import aws_cdk
 from aws_cdk import aws_events as events
 from aws_cdk import aws_events_targets as event_targets
 from aws_cdk import aws_iam as iam
-from aws_cdk import aws_lambda, core
+from aws_cdk import aws_lambda
+
+import constructs
 
 
-class JobSummaryStack(core.Stack):
+class JobSummaryStack(aws_cdk.Stack):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         orchestration_sfn_name: str,
         launch_sfn_name: str,
@@ -32,7 +35,7 @@ class JobSummaryStack(core.Stack):
             code=lambda_code,
             handler="main.lambda_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
+            timeout=aws_cdk.Duration.minutes(1),
             environment={
                 "DESTINATION_BUCKET_NAME": destination_bucket_name,
                 "SUCCESS_SNS_TOPIC_ARN": success_sns_topic_arn,
