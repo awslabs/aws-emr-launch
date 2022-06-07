@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-1.6.0 (unreleased)
+2.0.0 (2022-06-07)
 ------------------
 
 - Updated CDK to v2.20+
