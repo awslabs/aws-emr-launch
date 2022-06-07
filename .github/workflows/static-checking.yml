@@ -30,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
           pip install -r requirements-dev.txt
-          pip install -r requirements-1.5.x.txt
+          pip install -r requirements-2.x.txt
       - name: Mypy Check
         run: mypy .
       - name: Flake8 Check
