@@ -1,3 +1,4 @@
 aws-cdk-lib>=2.20.0
+aws-cdk.aws-lambda-python-alpha>=2.20.0a0
 boto3>=1.12.23
 logzero~=1.5.0

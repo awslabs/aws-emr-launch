@@ -168,7 +168,7 @@ class ClusterConfiguration(BaseConstruct):
         secret_configurations = property_values.get("SecretConfigurations", None)
         self._secret_configurations = (
             {
-                k: secretsmanager.Secret.from_secret_complete_arn(self, f"Secret_{k}", v)
+                k: secretsmanager.Secret.from_secret_partial_arn(self, f"Secret_{k}", v)
                 for k, v in secret_configurations.items()
             }
             if secret_configurations

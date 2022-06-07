@@ -4,6 +4,7 @@ import aws_cdk
 from aws_cdk import aws_events as events
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda
+from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 
 import constructs
 from aws_emr_launch import __product__, __version__
@@ -279,18 +280,17 @@ class CheckClusterStatusBuilder(BaseBuilder):
 class EMRConfigUtilsLayerBuilder(BaseBuilder):
     @staticmethod
     def get_or_build(scope: constructs.Construct) -> aws_lambda.LayerVersion:
-        code = aws_lambda.Code.from_asset(_lambda_path("layers/emr_config_utils"))
         stack = aws_cdk.Stack.of(scope)
 
         layer = stack.node.try_find_child("EMRConfigUtilsLayer")
         if layer is None:
-            layer = aws_lambda.LayerVersion(
+            layer = PythonLayerVersion(
                 stack,
                 "EMRConfigUtilsLayer",
                 layer_version_name="EMRLaunch_EMRUtilities_EMRConfigUtilsLayer",
-                code=code,
                 compatible_runtimes=[aws_lambda.Runtime.PYTHON_3_7],
                 description="EMR configuration utility functions",
+                entry=_lambda_path("layers/emr_config_utils"),
             )
             BaseBuilder.tag_construct(layer)
         return cast(aws_lambda.LayerVersion, layer)

@@ -41,7 +41,7 @@ subnet = vpc.private_subnets[0]
 
 # Load a SecretsManger Secret with secure RDS Metastore credentials
 secret_name = f"{NAMING_PREFIX}-external-metastore"
-secret = secretsmanager.Secret.from_secret_complete_arn(
+secret = secretsmanager.Secret.from_secret_partial_arn(
     stack,
     "Secret",
     f"arn:{aws_cdk.Aws.PARTITION}:secretsmanager:{aws_cdk.Aws.REGION}:{aws_cdk.Aws.ACCOUNT_ID}:secret:{secret_name}",

@@ -17,25 +17,28 @@ stack = aws_cdk.Stack(
     env=aws_cdk.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
 )
 
-vpc = ec2.Vpc(stack, "EmrLaunchVpc")
+vpc = ec2.Vpc(stack, "EmrLaunchVpc", cidr="10.0.0.0/24", max_azs=2)
 
 logs_bucket = s3.Bucket(
     stack,
     "EmrLaunchLogsBucket",
     bucket_name=f"{NAMING_PREFIX}-logs",
     block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+    removal_policy=aws_cdk.RemovalPolicy.DESTROY,
 )
 artifacts_bucket = s3.Bucket(
     stack,
     "EmrLaunchArtifactsBucket",
     bucket_name=f"{NAMING_PREFIX}-artifacts",
     block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+    removal_policy=aws_cdk.RemovalPolicy.DESTROY,
 )
 data_bucket = s3.Bucket(
     stack,
     "EmrLaunchDataBucket",
     bucket_name=f"{NAMING_PREFIX}-data",
     block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+    removal_policy=aws_cdk.RemovalPolicy.DESTROY,
 )
 
 external_metastore_secret = secretsmanager.Secret(

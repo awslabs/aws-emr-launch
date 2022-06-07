@@ -193,7 +193,7 @@ class EMRProfile(BaseConstruct):
 
         kerberos_attributes_secret = property_values.get("KerberosAttributesSecret", None)
         self._kerberos_attributes_secret = (
-            secretsmanager.Secret.from_secret_complete_arn(self, "KerberosAttributesSecret", kerberos_attributes_secret)
+            secretsmanager.Secret.from_secret_partial_arn(self, "KerberosAttributesSecret", kerberos_attributes_secret)
             if kerberos_attributes_secret is not None
             else None
         )

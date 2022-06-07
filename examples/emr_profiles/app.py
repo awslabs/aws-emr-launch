@@ -26,7 +26,7 @@ logs_bucket = s3.Bucket.from_bucket_name(stack, "LogsBucket", f"{NAMING_PREFIX}-
 data_bucket = s3.Bucket.from_bucket_name(stack, "DataBucket", f"{NAMING_PREFIX}-data")
 
 secret_name = f"{NAMING_PREFIX}-kerberos-attributes"
-kerberos_attributes_secret = secretsmanager.Secret.from_secret_complete_arn(
+kerberos_attributes_secret = secretsmanager.Secret.from_secret_partial_arn(
     stack,
     "KerberosAttributesSecret",
     f"arn:{aws_cdk.Aws.PARTITION}:secretsmanager:{aws_cdk.Aws.REGION}:{aws_cdk.Aws.ACCOUNT_ID}:secret:{secret_name}",
