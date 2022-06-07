@@ -2,21 +2,21 @@
 
 import os
 
+import aws_cdk
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_stepfunctions as sfn
-from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.step_functions import emr_chains, emr_launch_function, emr_tasks
 
-NAMING_PREFIX = f"emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}"
+NAMING_PREFIX = f"emr-launch-{aws_cdk.Aws.ACCOUNT_ID}-{aws_cdk.Aws.REGION}"
 
-app = core.App()
-stack = core.Stack(
+app = aws_cdk.App()
+stack = aws_cdk.Stack(
     app,
     "TransientPipelineStack",
-    env=core.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
+    env=aws_cdk.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
 )
 
 # SNS Topics for Success/Failures messages from our Pipeline
@@ -43,7 +43,11 @@ step_code = emr_code.Code.from_path(
 
 # Create a Chain to receive Failure messages
 fail = emr_chains.Fail(
-    stack, "FailChain", message=sfn.TaskInput.from_data_at("$.Error"), subject="Pipeline Failure", topic=failure_topic
+    stack,
+    "FailChain",
+    message=sfn.TaskInput.from_json_path_at("$.Error"),
+    subject="Pipeline Failure",
+    topic=failure_topic,
 )
 
 # Define a Task to Terminate the Cluster on failure
@@ -51,7 +55,7 @@ terminate_failed_cluster = emr_tasks.TerminateClusterBuilder.build(
     stack,
     "TerminateFailedCluster",
     name="Terminate Failed Cluster",
-    cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+    cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
     result_path="$.TerminateResult",
 ).add_catch(fail, errors=["States.ALL"], result_path="$.Error")
 terminate_failed_cluster.next(fail)
@@ -86,7 +90,7 @@ for file in emr_code.Code.files_in_path("./step_sources", "test_step_*.sh"):
             args=[f"{step_code.s3_path}/{file}", "Arg1", "Arg2"],
             code=step_code,
         ),
-        cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+        cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
     )
     phase_1.branch(step_task)
 
@@ -100,7 +104,7 @@ validate_phase_1 = emr_chains.AddStepWithArgumentOverrides(
         args=[f"{step_code.s3_path}/phase_1/test_validation.sh", "Arg1", "Arg2"],
         code=step_code,
     ),
-    cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+    cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
     result_path="$.ValidatePhase1Result",
     fail_chain=fail,
 )
@@ -133,7 +137,7 @@ for file in emr_code.Code.files_in_path("./step_sources", "test_step_*.hql"):
             ],
             code=step_code,
         ),
-        cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+        cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
     )
     phase_2.branch(step_task)
 
@@ -147,7 +151,7 @@ validate_phase_2 = emr_tasks.AddStepBuilder.build(
         args=["hive-script", "--run-hive-script", "--args", "-f", f"{step_code.s3_path}/phase_2/test_validation.hql"],
         code=step_code,
     ),
-    cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+    cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
     result_path="$.ValidatePhase2Result",
 ).add_catch(terminate_failed_cluster, errors=["States.ALL"], result_path="$.Error")
 
@@ -157,7 +161,7 @@ terminate_successful_cluster = emr_tasks.TerminateClusterBuilder.build(
     stack,
     "TerminateSuccessfulCluster",
     name="Terminate Cluster",
-    cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+    cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
     result_path="$.TerminateResult",
 ).add_catch(fail, errors=["States.ALL"], result_path="$.Error")
 
@@ -165,7 +169,7 @@ terminate_successful_cluster = emr_tasks.TerminateClusterBuilder.build(
 success = emr_chains.Success(
     stack,
     "SuccessChain",
-    message=sfn.TaskInput.from_data_at("$.TerminateResult"),
+    message=sfn.TaskInput.from_json_path_at("$.TerminateResult"),
     subject="Pipeline Succeeded",
     topic=success_topic,
 )
@@ -185,6 +189,8 @@ state_machine = sfn.StateMachine(
     stack, "TransientPipeline", state_machine_name="transient-multi-phase-pipeline", definition=definition
 )
 
-core.CfnOutput(stack, "SuccessTopicArn", value=success_topic.topic_arn, export_name="TransientPipeline-SuccessTopicArn")
+aws_cdk.CfnOutput(
+    stack, "SuccessTopicArn", value=success_topic.topic_arn, export_name="TransientPipeline-SuccessTopicArn"
+)
 
 app.synth()

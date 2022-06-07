@@ -2,8 +2,8 @@ from typing import Any, Dict, List, Optional
 
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_secretsmanager as secretsmanager
-from aws_cdk import core
 
+import constructs
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.emr_constructs.cluster_configuration import ClusterConfiguration, InstanceMarketType
 
@@ -11,7 +11,7 @@ from aws_emr_launch.constructs.emr_constructs.cluster_configuration import Clust
 class InstanceGroupConfiguration(ClusterConfiguration):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         configuration_name: str,
@@ -109,7 +109,7 @@ class InstanceGroupConfiguration(ClusterConfiguration):
 class ManagedScalingConfiguration(InstanceGroupConfiguration):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         configuration_name: str,

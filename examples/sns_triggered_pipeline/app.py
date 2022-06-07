@@ -2,24 +2,24 @@
 
 import os
 
+import aws_cdk
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda
 from aws_cdk import aws_lambda_event_sources as sources
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_stepfunctions as sfn
-from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import cluster_configuration, emr_code, emr_profile
 from aws_emr_launch.constructs.step_functions import emr_chains, emr_launch_function, emr_tasks
 
-NAMING_PREFIX = f"emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}"
+NAMING_PREFIX = f"emr-launch-{aws_cdk.Aws.ACCOUNT_ID}-{aws_cdk.Aws.REGION}"
 
-app = core.App()
-stack = core.Stack(
+app = aws_cdk.App()
+stack = aws_cdk.Stack(
     app,
     "SNSTriggeredPipelineStack",
-    env=core.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
+    env=aws_cdk.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
 )
 
 # SNS Topics for Success/Failures messages from our Pipeline
@@ -66,7 +66,11 @@ step_code = emr_code.Code.from_path(
 
 # Create a Chain to receive Failure messages
 fail = emr_chains.Fail(
-    stack, "FailChain", message=sfn.TaskInput.from_data_at("$.Error"), subject="Pipeline Failure", topic=failure_topic
+    stack,
+    "FailChain",
+    message=sfn.TaskInput.from_json_path_at("$.Error"),
+    subject="Pipeline Failure",
+    topic=failure_topic,
 )
 
 # Use the State Machine defined earlier to launch the Cluster
@@ -78,8 +82,8 @@ launch_cluster = emr_chains.NestedStateMachine(
     name="Launch SNS Pipeline Cluster StateMachine",
     state_machine=launch_function.state_machine,
     input={
-        "ClusterConfigurationOverrides": sfn.TaskInput.from_data_at("$.ClusterConfigurationOverrides").value,
-        "Tags": sfn.TaskInput.from_data_at("$.Tags").value,
+        "ClusterConfigurationOverrides": sfn.TaskInput.from_json_path_at("$.ClusterConfigurationOverrides").value,
+        "Tags": sfn.TaskInput.from_json_path_at("$.Tags").value,
     },
     fail_chain=fail,
 )
@@ -103,7 +107,7 @@ for file in emr_code.Code.files_in_path("./step_sources", "test_step_*.py"):
             args=["spark-submit", f"{step_code.s3_path}/{file}", "Arg1"],
             code=step_code,
         ),
-        cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+        cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
     )
     steps.branch(step_task)
 
@@ -112,7 +116,7 @@ terminate_cluster = emr_tasks.TerminateClusterBuilder.build(
     stack,
     "TerminateCluster",
     name="Terminate Cluster",
-    cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+    cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
     result_path="$.TerminateResult",
 ).add_catch(fail, errors=["States.ALL"], result_path="$.Error")
 
@@ -120,7 +124,7 @@ terminate_cluster = emr_tasks.TerminateClusterBuilder.build(
 success = emr_chains.Success(
     stack,
     "SuccessChain",
-    message=sfn.TaskInput.from_data_at("$.TerminateResult"),
+    message=sfn.TaskInput.from_json_path_at("$.TerminateResult"),
     subject="Pipeline Succeeded",
     topic=success_topic,
 )
@@ -142,7 +146,7 @@ sns_lambda = aws_lambda.Function(
     code=lambda_code,
     handler="execute_pipeline.handler",
     runtime=aws_lambda.Runtime.PYTHON_3_7,
-    timeout=core.Duration.minutes(1),
+    timeout=aws_cdk.Duration.minutes(1),
     environment={"PIPELINE_ARN": state_machine.state_machine_arn},
     initial_policy=[
         iam.PolicyStatement(
@@ -152,7 +156,7 @@ sns_lambda = aws_lambda.Function(
     events=[
         sources.SnsEventSource(
             sns.Topic.from_topic_arn(
-                stack, "TransientPipelineSuccessTopic", core.Fn.import_value("TransientPipeline-SuccessTopicArn")
+                stack, "TransientPipelineSuccessTopic", aws_cdk.Fn.import_value("TransientPipeline-SuccessTopicArn")
             )
         )
     ],

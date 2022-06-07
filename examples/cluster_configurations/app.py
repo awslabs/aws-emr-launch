@@ -2,21 +2,21 @@
 
 import os
 
+import aws_cdk
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_secretsmanager as secretsmanager
-from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.managed_configurations import instance_group_configuration
 
-NAMING_PREFIX = f"emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}"
+NAMING_PREFIX = f"emr-launch-{aws_cdk.Aws.ACCOUNT_ID}-{aws_cdk.Aws.REGION}"
 
-app = core.App()
-stack = core.Stack(
+app = aws_cdk.App()
+stack = aws_cdk.Stack(
     app,
     "ClusterConfigurationsStack",
-    env=core.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
+    env=aws_cdk.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
 )
 
 vpc = ec2.Vpc.from_lookup(stack, "Vpc", vpc_name="EmrLaunchExamplesEnvStack/EmrLaunchVpc")
@@ -41,10 +41,10 @@ subnet = vpc.private_subnets[0]
 
 # Load a SecretsManger Secret with secure RDS Metastore credentials
 secret_name = f"{NAMING_PREFIX}-external-metastore"
-secret = secretsmanager.Secret.from_secret_arn(
+secret = secretsmanager.Secret.from_secret_complete_arn(
     stack,
     "Secret",
-    f"arn:{core.Aws.PARTITION}:secretsmanager:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:secret:{secret_name}",
+    f"arn:{aws_cdk.Aws.PARTITION}:secretsmanager:{aws_cdk.Aws.REGION}:{aws_cdk.Aws.ACCOUNT_ID}:secret:{secret_name}",
 )
 
 

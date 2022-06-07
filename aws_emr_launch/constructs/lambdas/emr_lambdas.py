@@ -1,9 +1,11 @@
 from typing import cast
 
+import aws_cdk
 from aws_cdk import aws_events as events
 from aws_cdk import aws_iam as iam
-from aws_cdk import aws_lambda, core
+from aws_cdk import aws_lambda
 
+import constructs
 from aws_emr_launch import __product__, __version__
 from aws_emr_launch.constructs.base import BaseBuilder
 from aws_emr_launch.constructs.iam_roles import emr_roles
@@ -12,9 +14,9 @@ from aws_emr_launch.constructs.lambdas import _lambda_path
 
 class FailIfClusterRunningBuilder(BaseBuilder):
     @staticmethod
-    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
+    def get_or_build(scope: constructs.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path("emr_utilities/fail_if_cluster_running"))
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
 
         layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
@@ -26,7 +28,7 @@ class FailIfClusterRunningBuilder(BaseBuilder):
                 code=code,
                 handler="lambda_source.handler",
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1),
+                timeout=aws_cdk.Duration.minutes(1),
                 layers=[layer],
                 environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
                 initial_policy=[
@@ -42,14 +44,14 @@ class FailIfClusterRunningBuilder(BaseBuilder):
 class LoadClusterConfigurationBuilder(BaseBuilder):
     @staticmethod
     def build(
-        scope: core.Construct,
+        scope: constructs.Construct,
         profile_namespace: str,
         profile_name: str,
         configuration_namespace: str,
         configuration_name: str,
     ) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path("emr_utilities/load_cluster_configuration"))
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
 
         layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
@@ -59,7 +61,7 @@ class LoadClusterConfigurationBuilder(BaseBuilder):
             code=code,
             handler="lambda_source.handler",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            timeout=core.Duration.minutes(1),
+            timeout=aws_cdk.Duration.minutes(1),
             layers=[layer],
             environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             initial_policy=[
@@ -88,9 +90,9 @@ class LoadClusterConfigurationBuilder(BaseBuilder):
 
 class OverrideClusterConfigsBuilder(BaseBuilder):
     @staticmethod
-    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
+    def get_or_build(scope: constructs.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path("emr_utilities/override_cluster_configs"))
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
 
         layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
@@ -102,7 +104,7 @@ class OverrideClusterConfigsBuilder(BaseBuilder):
                 code=code,
                 handler="lambda_source.handler",
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1),
+                timeout=aws_cdk.Duration.minutes(1),
                 layers=[layer],
                 environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             )
@@ -112,9 +114,9 @@ class OverrideClusterConfigsBuilder(BaseBuilder):
 
 class UpdateClusterTagsBuilder(BaseBuilder):
     @staticmethod
-    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
+    def get_or_build(scope: constructs.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path("emr_utilities/update_cluster_tags"))
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
 
         layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
@@ -126,7 +128,7 @@ class UpdateClusterTagsBuilder(BaseBuilder):
                 code=code,
                 handler="lambda_source.handler",
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1),
+                timeout=aws_cdk.Duration.minutes(1),
                 layers=[layer],
                 environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             )
@@ -136,9 +138,9 @@ class UpdateClusterTagsBuilder(BaseBuilder):
 
 class ParseJsonStringBuilder(BaseBuilder):
     @staticmethod
-    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
+    def get_or_build(scope: constructs.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path("emr_utilities/parse_json_string"))
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
 
         layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
@@ -150,7 +152,7 @@ class ParseJsonStringBuilder(BaseBuilder):
                 code=code,
                 handler="lambda_source.handler",
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1),
+                timeout=aws_cdk.Duration.minutes(1),
                 layers=[layer],
                 environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             )
@@ -160,9 +162,9 @@ class ParseJsonStringBuilder(BaseBuilder):
 
 class OverrideStepArgsBuilder(BaseBuilder):
     @staticmethod
-    def get_or_build(scope: core.Construct) -> aws_lambda.Function:
+    def get_or_build(scope: constructs.Construct) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path("emr_utilities/override_step_args"))
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
 
         layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
@@ -174,7 +176,7 @@ class OverrideStepArgsBuilder(BaseBuilder):
                 code=code,
                 handler="lambda_source.handler",
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1),
+                timeout=aws_cdk.Duration.minutes(1),
                 layers=[layer],
                 environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
             )
@@ -184,9 +186,11 @@ class OverrideStepArgsBuilder(BaseBuilder):
 
 class RunJobFlowBuilder(BaseBuilder):
     @staticmethod
-    def get_or_build(scope: core.Construct, roles: emr_roles.EMRRoles, event_rule: events.Rule) -> aws_lambda.Function:
+    def get_or_build(
+        scope: constructs.Construct, roles: emr_roles.EMRRoles, event_rule: events.Rule
+    ) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path("emr_utilities/run_job_flow"))
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
 
         layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
@@ -198,7 +202,7 @@ class RunJobFlowBuilder(BaseBuilder):
                 code=code,
                 handler="lambda_source.handler",
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1),
+                timeout=aws_cdk.Duration.minutes(1),
                 layers=[layer],
                 environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
                 initial_policy=[
@@ -228,9 +232,9 @@ class RunJobFlowBuilder(BaseBuilder):
 
 class CheckClusterStatusBuilder(BaseBuilder):
     @staticmethod
-    def get_or_build(scope: core.Construct, event_rule: events.Rule) -> aws_lambda.Function:
+    def get_or_build(scope: constructs.Construct, event_rule: events.Rule) -> aws_lambda.Function:
         code = aws_lambda.Code.from_asset(_lambda_path("emr_utilities/check_cluster_status"))
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
 
         layer = EMRConfigUtilsLayerBuilder.get_or_build(scope)
 
@@ -242,7 +246,7 @@ class CheckClusterStatusBuilder(BaseBuilder):
                 code=code,
                 handler="lambda_source.handler",
                 runtime=aws_lambda.Runtime.PYTHON_3_7,
-                timeout=core.Duration.minutes(1),
+                timeout=aws_cdk.Duration.minutes(1),
                 layers=[layer],
                 environment={"AWS_EMR_LAUNCH_PRODUCT": __product__, "AWS_EMR_LAUNCH_VERSION": __version__},
                 initial_policy=[
@@ -274,9 +278,9 @@ class CheckClusterStatusBuilder(BaseBuilder):
 
 class EMRConfigUtilsLayerBuilder(BaseBuilder):
     @staticmethod
-    def get_or_build(scope: core.Construct) -> aws_lambda.LayerVersion:
+    def get_or_build(scope: constructs.Construct) -> aws_lambda.LayerVersion:
         code = aws_lambda.Code.from_asset(_lambda_path("layers/emr_config_utils"))
-        stack = core.Stack.of(scope)
+        stack = aws_cdk.Stack.of(scope)
 
         layer = stack.node.try_find_child("EMRConfigUtilsLayer")
         if layer is None:

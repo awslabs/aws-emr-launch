@@ -3,18 +3,18 @@
 import json
 import os
 
+import aws_cdk
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_secretsmanager as secretsmanager
-from aws_cdk import core
 
-NAMING_PREFIX = f"emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}"
+NAMING_PREFIX = f"emr-launch-{aws_cdk.Aws.ACCOUNT_ID}-{aws_cdk.Aws.REGION}"
 
-app = core.App()
-stack = core.Stack(
+app = aws_cdk.App()
+stack = aws_cdk.Stack(
     app,
     "EmrLaunchExamplesEnvStack",
-    env=core.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
+    env=aws_cdk.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
 )
 
 vpc = ec2.Vpc(stack, "EmrLaunchVpc")

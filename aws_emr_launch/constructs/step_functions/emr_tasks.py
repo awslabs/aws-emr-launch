@@ -1,13 +1,14 @@
 from typing import Any, Dict, List, Mapping, Optional, cast
 
+import aws_cdk
 from aws_cdk import aws_events as events
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_stepfunctions as sfn
 from aws_cdk import aws_stepfunctions_tasks as sfn_tasks
-from aws_cdk import core
 
+import constructs
 from aws_emr_launch.constructs.base import BaseBuilder
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.iam_roles import emr_roles
@@ -17,16 +18,16 @@ from aws_emr_launch.constructs.lambdas import emr_lambdas
 class BaseTask(sfn.TaskStateBase):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         comment: Optional[str] = None,
-        heartbeat: Optional[core.Duration] = None,
+        heartbeat: Optional[aws_cdk.Duration] = None,
         input_path: Optional[str] = None,
         integration_pattern: sfn.IntegrationPattern = sfn.IntegrationPattern.REQUEST_RESPONSE,
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
-        timeout: Optional[core.Duration] = None,
+        timeout: Optional[aws_cdk.Duration] = None,
     ):
         super().__init__(
             scope,
@@ -56,7 +57,7 @@ class BaseTask(sfn.TaskStateBase):
             sfn.IntegrationPattern.WAIT_FOR_TASK_TOKEN: ".waitForTaskToken",
         }
 
-        return f"arn:{core.Aws.PARTITION}:states:::{service}:{api}{resource_arn_suffixes[integration_pattern]}"
+        return f"arn:{aws_cdk.Aws.PARTITION}:states:::{service}:{api}{resource_arn_suffixes[integration_pattern]}"
 
     @staticmethod
     def render_json_path(json_path: Optional[str]) -> Optional[str]:
@@ -95,16 +96,16 @@ class BaseTask(sfn.TaskStateBase):
 class StartExecutionTask(BaseTask):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         comment: Optional[str] = None,
-        heartbeat: Optional[core.Duration] = None,
+        heartbeat: Optional[aws_cdk.Duration] = None,
         input_path: Optional[str] = None,
         integration_pattern: sfn.IntegrationPattern = sfn.IntegrationPattern.RUN_JOB,
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
-        timeout: Optional[core.Duration] = None,
+        timeout: Optional[aws_cdk.Duration] = None,
         state_machine: sfn.IStateMachine,
         input: Optional[Dict[str, Any]] = None,
         name: Optional[str] = None,
@@ -130,7 +131,7 @@ class StartExecutionTask(BaseTask):
         self._statements = self._create_policy_statements()
 
     def _create_policy_statements(self) -> List[iam.PolicyStatement]:
-        stack = core.Stack.of(self)
+        stack = aws_cdk.Stack.of(self)
 
         policy_statements = list()
 
@@ -176,7 +177,7 @@ class StartExecutionTask(BaseTask):
         return self._statements
 
     def to_state_json(self) -> Mapping[Any, Any]:
-        input = self._input if self._input is not None else sfn.TaskInput.from_context_at("$$.Execution.Input").value
+        input = self._input if self._input is not None else sfn.TaskInput.from_json_path_at("$$.Execution.Input").value
         task = {
             "Resource": self.get_resource_arn("states", "startExecution", self._integration_pattern),
             "Parameters": sfn.FieldUtils.render_object(
@@ -192,16 +193,16 @@ class StartExecutionTask(BaseTask):
 class EmrCreateClusterTask(BaseTask):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         comment: Optional[str] = None,
-        heartbeat: Optional[core.Duration] = None,
+        heartbeat: Optional[aws_cdk.Duration] = None,
         input_path: Optional[str] = None,
         integration_pattern: sfn.IntegrationPattern = sfn.IntegrationPattern.RUN_JOB,
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
-        timeout: Optional[core.Duration] = None,
+        timeout: Optional[aws_cdk.Duration] = None,
         roles: emr_roles.EMRRoles,
     ):
         super().__init__(
@@ -222,7 +223,7 @@ class EmrCreateClusterTask(BaseTask):
         self._statements = self._create_policy_statements()
 
     def _create_policy_statements(self) -> List[iam.PolicyStatement]:
-        stack = core.Stack.of(self)
+        stack = aws_cdk.Stack.of(self)
 
         policy_statements = list()
 
@@ -275,58 +276,60 @@ class EmrCreateClusterTask(BaseTask):
             "Resource": self.get_resource_arn("elasticmapreduce", "createCluster", self._integration_pattern),
             "Parameters": sfn.FieldUtils.render_object(
                 {
-                    "AdditionalInfo": sfn.TaskInput.from_data_at("$.AdditionalInfo").value,
-                    "AmiVersion": sfn.TaskInput.from_data_at("$.AmiVersion").value,
-                    "Applications": sfn.TaskInput.from_data_at("$.Applications").value,
-                    "AutoScalingRole": sfn.TaskInput.from_data_at("$.AutoScalingRole").value,
-                    "BootstrapActions": sfn.TaskInput.from_data_at("$.BootstrapActions").value,
-                    "Configurations": sfn.TaskInput.from_data_at("$.Configurations").value,
-                    "CustomAmiId": sfn.TaskInput.from_data_at("$.CustomAmiId").value,
-                    "EbsRootVolumeSize": sfn.TaskInput.from_data_at("$.EbsRootVolumeSize").value,
+                    "AdditionalInfo": sfn.TaskInput.from_json_path_at("$.AdditionalInfo").value,
+                    "AmiVersion": sfn.TaskInput.from_json_path_at("$.AmiVersion").value,
+                    "Applications": sfn.TaskInput.from_json_path_at("$.Applications").value,
+                    "AutoScalingRole": sfn.TaskInput.from_json_path_at("$.AutoScalingRole").value,
+                    "BootstrapActions": sfn.TaskInput.from_json_path_at("$.BootstrapActions").value,
+                    "Configurations": sfn.TaskInput.from_json_path_at("$.Configurations").value,
+                    "CustomAmiId": sfn.TaskInput.from_json_path_at("$.CustomAmiId").value,
+                    "EbsRootVolumeSize": sfn.TaskInput.from_json_path_at("$.EbsRootVolumeSize").value,
                     "Instances": {
-                        "AdditionalMasterSecurityGroups": sfn.TaskInput.from_data_at(
+                        "AdditionalMasterSecurityGroups": sfn.TaskInput.from_json_path_at(
                             "$.Instances.AdditionalMasterSecurityGroups"
                         ).value,
-                        "AdditionalSlaveSecurityGroups": sfn.TaskInput.from_data_at(
+                        "AdditionalSlaveSecurityGroups": sfn.TaskInput.from_json_path_at(
                             "$.Instances.AdditionalSlaveSecurityGroups"
                         ).value,
-                        "Ec2KeyName": sfn.TaskInput.from_data_at("$.Instances.Ec2KeyName").value,
-                        "Ec2SubnetId": sfn.TaskInput.from_data_at("$.Instances.Ec2SubnetId").value,
-                        "Ec2SubnetIds": sfn.TaskInput.from_data_at("$.Instances.Ec2SubnetIds").value,
-                        "EmrManagedMasterSecurityGroup": sfn.TaskInput.from_data_at(
+                        "Ec2KeyName": sfn.TaskInput.from_json_path_at("$.Instances.Ec2KeyName").value,
+                        "Ec2SubnetId": sfn.TaskInput.from_json_path_at("$.Instances.Ec2SubnetId").value,
+                        "Ec2SubnetIds": sfn.TaskInput.from_json_path_at("$.Instances.Ec2SubnetIds").value,
+                        "EmrManagedMasterSecurityGroup": sfn.TaskInput.from_json_path_at(
                             "$.Instances.EmrManagedMasterSecurityGroup"
                         ).value,
-                        "EmrManagedSlaveSecurityGroup": sfn.TaskInput.from_data_at(
+                        "EmrManagedSlaveSecurityGroup": sfn.TaskInput.from_json_path_at(
                             "$.Instances.EmrManagedSlaveSecurityGroup"
                         ).value,
-                        "HadoopVersion": sfn.TaskInput.from_data_at("$.Instances.HadoopVersion").value,
-                        "InstanceCount": sfn.TaskInput.from_data_at("$.Instances.InstanceCount").value,
-                        "InstanceFleets": sfn.TaskInput.from_data_at("$.Instances.InstanceFleets").value,
-                        "InstanceGroups": sfn.TaskInput.from_data_at("$.Instances.InstanceGroups").value,
+                        "HadoopVersion": sfn.TaskInput.from_json_path_at("$.Instances.HadoopVersion").value,
+                        "InstanceCount": sfn.TaskInput.from_json_path_at("$.Instances.InstanceCount").value,
+                        "InstanceFleets": sfn.TaskInput.from_json_path_at("$.Instances.InstanceFleets").value,
+                        "InstanceGroups": sfn.TaskInput.from_json_path_at("$.Instances.InstanceGroups").value,
                         "KeepJobFlowAliveWhenNoSteps": True,
-                        "MasterInstanceType": sfn.TaskInput.from_data_at("$.Instances.MasterInstanceType").value,
-                        "Placement": sfn.TaskInput.from_data_at("$.Instances.Placement").value,
-                        "ServiceAccessSecurityGroup": sfn.TaskInput.from_data_at(
+                        "MasterInstanceType": sfn.TaskInput.from_json_path_at("$.Instances.MasterInstanceType").value,
+                        "Placement": sfn.TaskInput.from_json_path_at("$.Instances.Placement").value,
+                        "ServiceAccessSecurityGroup": sfn.TaskInput.from_json_path_at(
                             "$.Instances.ServiceAccessSecurityGroup"
                         ).value,
-                        "SlaveInstanceType": sfn.TaskInput.from_data_at("$.Instances.SlaveInstanceType").value,
-                        "TerminationProtected": sfn.TaskInput.from_data_at("$.Instances.TerminationProtected").value,
+                        "SlaveInstanceType": sfn.TaskInput.from_json_path_at("$.Instances.SlaveInstanceType").value,
+                        "TerminationProtected": sfn.TaskInput.from_json_path_at(
+                            "$.Instances.TerminationProtected"
+                        ).value,
                     },
-                    "JobFlowRole": sfn.TaskInput.from_data_at("$.JobFlowRole").value,
-                    "KerberosAttributes": sfn.TaskInput.from_data_at("$.KerberosAttributes").value,
-                    "LogUri": sfn.TaskInput.from_data_at("$.LogUri").value,
-                    "ManagedScalingPolicy": sfn.TaskInput.from_data_at("$.ManagedScalingPolicy").value,
-                    "Name": sfn.TaskInput.from_data_at("$.Name").value,
-                    "NewSupportedProducts": sfn.TaskInput.from_data_at("$.NewSupportedProducts").value,
-                    "ReleaseLabel": sfn.TaskInput.from_data_at("$.ReleaseLabel").value,
-                    "RepoUpgradeOnBoot": sfn.TaskInput.from_data_at("$.RepoUpgradeOnBoot").value,
-                    "ScaleDownBehavior": sfn.TaskInput.from_data_at("$.ScaleDownBehavior").value,
-                    "SecurityConfiguration": sfn.TaskInput.from_data_at("$.SecurityConfiguration").value,
-                    "ServiceRole": sfn.TaskInput.from_data_at("$.ServiceRole").value,
-                    "StepConcurrencyLevel": sfn.TaskInput.from_data_at("$.StepConcurrencyLevel").value,
-                    "SupportedProducts": sfn.TaskInput.from_data_at("$.SupportedProducts").value,
-                    "Tags": sfn.TaskInput.from_data_at("$.Tags").value,
-                    "VisibleToAllUsers": sfn.TaskInput.from_data_at("$.VisibleToAllUsers").value,
+                    "JobFlowRole": sfn.TaskInput.from_json_path_at("$.JobFlowRole").value,
+                    "KerberosAttributes": sfn.TaskInput.from_json_path_at("$.KerberosAttributes").value,
+                    "LogUri": sfn.TaskInput.from_json_path_at("$.LogUri").value,
+                    "ManagedScalingPolicy": sfn.TaskInput.from_json_path_at("$.ManagedScalingPolicy").value,
+                    "Name": sfn.TaskInput.from_json_path_at("$.Name").value,
+                    "NewSupportedProducts": sfn.TaskInput.from_json_path_at("$.NewSupportedProducts").value,
+                    "ReleaseLabel": sfn.TaskInput.from_json_path_at("$.ReleaseLabel").value,
+                    "RepoUpgradeOnBoot": sfn.TaskInput.from_json_path_at("$.RepoUpgradeOnBoot").value,
+                    "ScaleDownBehavior": sfn.TaskInput.from_json_path_at("$.ScaleDownBehavior").value,
+                    "SecurityConfiguration": sfn.TaskInput.from_json_path_at("$.SecurityConfiguration").value,
+                    "ServiceRole": sfn.TaskInput.from_json_path_at("$.ServiceRole").value,
+                    "StepConcurrencyLevel": sfn.TaskInput.from_json_path_at("$.StepConcurrencyLevel").value,
+                    "SupportedProducts": sfn.TaskInput.from_json_path_at("$.SupportedProducts").value,
+                    "Tags": sfn.TaskInput.from_json_path_at("$.Tags").value,
+                    "VisibleToAllUsers": sfn.TaskInput.from_json_path_at("$.VisibleToAllUsers").value,
                 }
             ),
         }
@@ -339,16 +342,16 @@ class EmrCreateClusterTask(BaseTask):
 class EmrAddStepTask(BaseTask):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         comment: Optional[str] = None,
-        heartbeat: Optional[core.Duration] = None,
+        heartbeat: Optional[aws_cdk.Duration] = None,
         input_path: Optional[str] = None,
         integration_pattern: sfn.IntegrationPattern = sfn.IntegrationPattern.RUN_JOB,
         output_path: Optional[str] = None,
         result_path: Optional[str] = None,
-        timeout: Optional[core.Duration] = None,
+        timeout: Optional[aws_cdk.Duration] = None,
         cluster_id: str,
         step: Dict[str, Any],
     ):
@@ -371,7 +374,7 @@ class EmrAddStepTask(BaseTask):
         self._statements = self._create_policy_statements()
 
     def _create_policy_statements(self) -> List[iam.PolicyStatement]:
-        stack = core.Stack.of(self)
+        stack = aws_cdk.Stack.of(self)
 
         policy_statements = list()
 
@@ -383,7 +386,7 @@ class EmrAddStepTask(BaseTask):
                     "elasticmapreduce:DescribeStep",
                     "elasticmapreduce:CancelSteps",
                 ],
-                resources=[f"arn:aws:elasticmapreduce:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:cluster/*"],
+                resources=[f"arn:aws:elasticmapreduce:{aws_cdk.Aws.REGION}:{aws_cdk.Aws.ACCOUNT_ID}:cluster/*"],
             )
         )
 
@@ -426,11 +429,11 @@ class EmrAddStepTask(BaseTask):
 class LoadClusterConfigurationBuilder:
     @staticmethod
     def build(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         cluster_name: str,
-        cluster_tags: List[core.Tag],
+        cluster_tags: List[aws_cdk.Tag],
         profile_namespace: str,
         profile_name: str,
         configuration_namespace: str,
@@ -439,7 +442,7 @@ class LoadClusterConfigurationBuilder:
         result_path: Optional[str] = None,
     ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
-        construct = core.Construct(scope, id)
+        construct = constructs.Construct(scope, id)
 
         load_cluster_configuration_lambda = emr_lambdas.LoadClusterConfigurationBuilder.build(
             construct,
@@ -472,7 +475,7 @@ class LoadClusterConfigurationBuilder:
 class OverrideClusterConfigsBuilder:
     @staticmethod
     def build(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         override_cluster_configs_lambda: Optional[aws_lambda.IFunction] = None,
@@ -482,7 +485,7 @@ class OverrideClusterConfigsBuilder:
         result_path: Optional[str] = None,
     ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
-        construct = core.Construct(scope, id)
+        construct = constructs.Construct(scope, id)
 
         override_cluster_configs_lambda = (
             emr_lambdas.OverrideClusterConfigsBuilder.get_or_build(construct)
@@ -499,8 +502,8 @@ class OverrideClusterConfigsBuilder:
             payload_response_only=True,
             payload=sfn.TaskInput.from_object(
                 {
-                    "ExecutionInput": sfn.TaskInput.from_context_at("$$.Execution.Input").value,
-                    "Input": sfn.TaskInput.from_data_at(input_path).value,
+                    "ExecutionInput": sfn.TaskInput.from_json_path_at("$$.Execution.Input").value,
+                    "Input": sfn.TaskInput.from_json_path_at(input_path).value,
                     "AllowedClusterConfigOverrides": allowed_cluster_config_overrides,
                 }
             ),
@@ -510,7 +513,7 @@ class OverrideClusterConfigsBuilder:
 class FailIfClusterRunningBuilder:
     @staticmethod
     def build(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         default_fail_if_cluster_running: bool,
@@ -519,7 +522,7 @@ class FailIfClusterRunningBuilder:
         result_path: Optional[str] = None,
     ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
-        construct = core.Construct(scope, id)
+        construct = constructs.Construct(scope, id)
 
         fail_if_cluster_running_lambda = emr_lambdas.FailIfClusterRunningBuilder.get_or_build(construct)
 
@@ -532,9 +535,9 @@ class FailIfClusterRunningBuilder:
             payload_response_only=True,
             payload=sfn.TaskInput.from_object(
                 {
-                    "ExecutionInput": sfn.TaskInput.from_context_at("$$.Execution.Input").value,
+                    "ExecutionInput": sfn.TaskInput.from_json_path_at("$$.Execution.Input").value,
                     "DefaultFailIfClusterRunning": default_fail_if_cluster_running,
-                    "Input": sfn.TaskInput.from_data_at(input_path).value,
+                    "Input": sfn.TaskInput.from_json_path_at(input_path).value,
                 }
             ),
         )
@@ -543,7 +546,7 @@ class FailIfClusterRunningBuilder:
 class UpdateClusterTagsBuilder:
     @staticmethod
     def build(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         input_path: str = "$",
@@ -551,7 +554,7 @@ class UpdateClusterTagsBuilder:
         result_path: Optional[str] = None,
     ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
-        construct = core.Construct(scope, id)
+        construct = constructs.Construct(scope, id)
 
         update_cluster_tags_lambda = emr_lambdas.UpdateClusterTagsBuilder.get_or_build(construct)
 
@@ -564,8 +567,8 @@ class UpdateClusterTagsBuilder:
             payload_response_only=True,
             payload=sfn.TaskInput.from_object(
                 {
-                    "ExecutionInput": sfn.TaskInput.from_context_at("$$.Execution.Input").value,
-                    "Input": sfn.TaskInput.from_data_at(input_path).value,
+                    "ExecutionInput": sfn.TaskInput.from_json_path_at("$$.Execution.Input").value,
+                    "Input": sfn.TaskInput.from_json_path_at(input_path).value,
                 }
             ),
         )
@@ -574,7 +577,7 @@ class UpdateClusterTagsBuilder:
 class CreateClusterBuilder:
     @staticmethod
     def build(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         roles: emr_roles.EMRRoles,
@@ -584,7 +587,7 @@ class CreateClusterBuilder:
         wait_for_cluster_start: bool = True,
     ) -> sfn.TaskStateBase:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
-        construct = core.Construct(scope, id)
+        construct = constructs.Construct(scope, id)
 
         integration_pattern = (
             sfn.IntegrationPattern.RUN_JOB if wait_for_cluster_start else sfn.IntegrationPattern.REQUEST_RESPONSE
@@ -604,7 +607,7 @@ class CreateClusterBuilder:
 class RunJobFlowBuilder(BaseBuilder):
     @staticmethod
     def build(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         roles: emr_roles.EMRRoles,
@@ -616,12 +619,12 @@ class RunJobFlowBuilder(BaseBuilder):
         wait_for_cluster_start: bool = True,
     ) -> sfn_tasks.LambdaInvoke:
         # We use a nested Construct to avoid collisions with Lambda and Task ids
-        construct = core.Construct(scope, id)
+        construct = constructs.Construct(scope, id)
 
-        event_rule = cast(Optional[events.Rule], core.Stack.of(scope).node.try_find_child("EventRule"))
+        event_rule = cast(Optional[events.Rule], aws_cdk.Stack.of(scope).node.try_find_child("EventRule"))
         if event_rule is None:
             event_rule = events.Rule(
-                construct, "EventRule", enabled=False, schedule=events.Schedule.rate(core.Duration.minutes(1))
+                construct, "EventRule", enabled=False, schedule=events.Schedule.rate(aws_cdk.Duration.minutes(1))
             )
             BaseBuilder.tag_construct(event_rule)
 
@@ -656,9 +659,9 @@ class RunJobFlowBuilder(BaseBuilder):
             integration_pattern=sfn.IntegrationPattern.WAIT_FOR_TASK_TOKEN,
             payload=sfn.TaskInput.from_object(
                 {
-                    "ExecutionInput": sfn.TaskInput.from_context_at("$$.Execution.Input").value,
-                    "Input": sfn.TaskInput.from_data_at(input_path).value,
-                    "TaskToken": sfn.Context.task_token,
+                    "ExecutionInput": sfn.TaskInput.from_json_path_at("$$.Execution.Input").value,
+                    "Input": sfn.TaskInput.from_json_path_at(input_path).value,
+                    "TaskToken": sfn.JsonPath.task_token,
                     "CheckStatusLambda": check_cluster_status_lambda.function_arn,
                     "RuleName": event_rule.rule_name,
                     "FireAndForget": not wait_for_cluster_start,
@@ -670,7 +673,7 @@ class RunJobFlowBuilder(BaseBuilder):
 class AddStepBuilder:
     @staticmethod
     def build(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         emr_step: emr_code.EMRStep,
@@ -680,7 +683,7 @@ class AddStepBuilder:
         wait_for_step_completion: bool = True,
     ) -> sfn.TaskStateBase:
         # We use a nested Construct to avoid collisions with Task ids
-        construct = core.Construct(scope, id)
+        construct = constructs.Construct(scope, id)
         resolved_step = emr_step.resolve(construct)
 
         integration_pattern = (
@@ -701,7 +704,7 @@ class AddStepBuilder:
 class TerminateClusterBuilder:
     @staticmethod
     def build(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         name: str,
@@ -710,7 +713,7 @@ class TerminateClusterBuilder:
         output_path: Optional[str] = None,
     ) -> sfn.TaskStateBase:
         # We use a nested Construct to avoid collisions with Task ids
-        construct = core.Construct(scope, id)
+        construct = constructs.Construct(scope, id)
 
         return sfn_tasks.EmrTerminateCluster(
             construct,

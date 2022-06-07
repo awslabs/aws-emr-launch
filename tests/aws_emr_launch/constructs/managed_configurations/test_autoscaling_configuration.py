@@ -1,13 +1,13 @@
 import copy
 from typing import cast
 
+import aws_cdk
 from aws_cdk import aws_ec2 as ec2
-from aws_cdk import core
 
 from aws_emr_launch.constructs.managed_configurations import autoscaling_configuration
 
-app = core.App()
-stack = core.Stack(app, "test-stack")
+app = aws_cdk.App()
+stack = aws_cdk.Stack(app, "test-stack")
 vpc = ec2.Vpc(stack, "test-vpc")
 default_config = {
     "ConfigurationName": "test-cluster",

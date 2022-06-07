@@ -1,0 +1,3 @@
+aws-cdk-lib>=2.20.0
+boto3>=1.12.23
+logzero~=1.5.0

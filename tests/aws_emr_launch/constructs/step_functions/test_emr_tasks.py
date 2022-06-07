@@ -1,15 +1,15 @@
 from typing import Any, Dict
 
+import aws_cdk
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_stepfunctions as sfn
-from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import emr_code, emr_profile
 from aws_emr_launch.constructs.step_functions import emr_tasks
 
 
 def print_and_assert(default_task_json: Dict[str, Any], task: sfn.TaskStateBase) -> None:
-    stack = core.Stack.of(task)
+    stack = aws_cdk.Stack.of(task)
     resolved_task = stack.resolve(task.to_state_json())
     print(default_task_json)
     print(resolved_task)
@@ -24,7 +24,7 @@ def test_start_execution_task() -> None:
         "Type": "Task",
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     state_machine = sfn.StateMachine(
         stack, "test-state-machine", definition=sfn.Chain.start(sfn.Succeed(stack, "Succeeded"))
@@ -51,7 +51,7 @@ def test_start_execution_task_with_input() -> None:
         "Type": "Task",
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     state_machine = sfn.StateMachine(
         stack, "test-state-machine", definition=sfn.Chain.start(sfn.Succeed(stack, "Succeeded"))
@@ -118,7 +118,7 @@ def test_emr_create_cluster_task() -> None:
         "InputPath": "$.ClusterConfiguration.Cluster",
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.EmrCreateClusterTask(
         stack,
@@ -138,7 +138,7 @@ def test_emr_add_step_task() -> None:
         "Type": "Task",
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.EmrAddStepTask(stack, "test-task", cluster_id="test-cluster-id", step={"Key1": {"Key2": "Value2"}})
 
@@ -168,13 +168,13 @@ def test_load_cluster_configuration_builder() -> None:
         },
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.LoadClusterConfigurationBuilder.build(
         stack,
         "test-task",
         cluster_name="test-cluster",
-        cluster_tags=[core.Tag("Key1", "Value1")],
+        cluster_tags=[aws_cdk.Tag("Key1", "Value1")],
         profile_namespace="test",
         profile_name="test-profile",
         configuration_namespace="test",
@@ -200,7 +200,7 @@ def test_override_cluster_configs_builder() -> None:
         "Parameters": {"ExecutionInput.$": "$$.Execution.Input", "Input.$": "$"},
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.OverrideClusterConfigsBuilder.build(
         stack,
@@ -226,7 +226,7 @@ def test_fail_if_cluster_running_builder() -> None:
         "Parameters": {"ExecutionInput.$": "$$.Execution.Input", "DefaultFailIfClusterRunning": True, "Input.$": "$"},
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.FailIfClusterRunningBuilder.build(stack, "test-task", default_fail_if_cluster_running=True)
 
@@ -249,7 +249,7 @@ def test_update_cluster_tags_builder() -> None:
         "Parameters": {"ExecutionInput.$": "$$.Execution.Input", "Input.$": "$"},
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.UpdateClusterTagsBuilder.build(
         stack,
@@ -313,7 +313,7 @@ def test_create_cluster_builder() -> None:
         "InputPath": "$",
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.CreateClusterBuilder.build(
         stack, "test-task", roles=emr_profile.EMRRoles(stack, "test-emr-roles", role_name_prefix="test-roles")
@@ -348,7 +348,7 @@ def test_run_job_flow_builder() -> None:
         },
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.RunJobFlowBuilder.build(
         stack,
@@ -376,7 +376,7 @@ def test_add_step_builder() -> None:
         "Type": "Task",
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.AddStepBuilder.build(
         stack,
@@ -398,7 +398,7 @@ def test_terminate_cluster_builder() -> None:
         },
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
 
     task = emr_tasks.TerminateClusterBuilder.build(
         stack,
