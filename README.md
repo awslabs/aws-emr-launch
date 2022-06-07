@@ -2,7 +2,6 @@
 
 > An [AWS Professional Service](https://aws.amazon.com/professional-services/) open source initiative | aws-proserve-opensource@amazon.com
 
-[![Release](https://img.shields.io/badge/release-1.5.2-brightgreen.svg)](https://pypi.org/project/aws-emr-launch/)
 ![Python Version](https://img.shields.io/badge/python-3.6%20%7C%203.7%20%7C%203.8%20%7C%203.9-brightgreen.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -123,48 +122,15 @@ After activating your `venv`:
    pip install -r requirements-dev.txt
    ```
 
-2. Install the Lambda Layer Packages:
-
-   ```bash
-   pip install -r requirements-lambda-layer.txt \
-   --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/
-   ```
-
-3. Install the library locally:
+2. Install the library locally:
 
    ```bash
    pip install -e .
    ```
 
-### Installing New Layer Packages
+### Managing Layer Packages
 
-1. Update the `requirements-lambda-layer.txt` adding the new package(s)
-2. Install new package(s):
-
-   ```bash
-   pip install -r requirements-lambda-layer.txt \
-   --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/
-   ```
-
-   - This will skip upgrades of previously installed packages
-
-### Updating Lambda Layer Packages
-
-To Update the Lambda Layer packages it is recommended that you first delete the entire layer contents to eliminate bloat.
-
-1. Remove packages:
-
-   ```bash
-   rm -fr aws_emr_launch/lambda_sources/layers/emr_config_utils/*
-   ```
-
-2. Update the `requirements-lambda-layer.txt`
-3. Reinstall packages:
-
-   ```bash
-   pip install -r requirements-lambda-layer.txt \
-   --target=aws_emr_launch/lambda_sources/layers/emr_config_utils/python/lib/python3.7/site-packages/
-   ```
+Update the `aws_emr_launch/lambda_sources/layers/emr_config_utils/requirements.txt` adding/updating/removing package(s)
 
 ### Testing
 

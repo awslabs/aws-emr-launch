@@ -2,16 +2,16 @@
 
 import os
 
-from aws_cdk import core
+import aws_cdk
 
 from aws_emr_launch.constructs.emr_constructs import cluster_configuration, emr_profile
 from aws_emr_launch.constructs.step_functions import emr_launch_function
 
-app = core.App()
-stack = core.Stack(
+app = aws_cdk.App()
+stack = aws_cdk.Stack(
     app,
     "EmrLaunchFunctionStack",
-    env=core.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
+    env=aws_cdk.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
 )
 
 # Load our SSE-KMS EMR Profile created in the emr_profiles example
@@ -34,7 +34,7 @@ launch_function = emr_launch_function.EMRLaunchFunction(
     emr_profile=sse_kms_profile,
     cluster_name="basic-cluster",
     default_fail_if_cluster_running=True,
-    cluster_tags=[core.Tag("Key1", "Value1"), core.Tag("Key2", "Value2")],
+    cluster_tags=[aws_cdk.Tag("Key1", "Value1"), aws_cdk.Tag("Key2", "Value2")],
     wait_for_cluster_start=True,
 )
 

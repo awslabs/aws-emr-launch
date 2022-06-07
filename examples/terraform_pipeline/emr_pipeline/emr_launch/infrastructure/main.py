@@ -4,7 +4,7 @@ import json
 import logging
 import os
 
-from aws_cdk import core
+import aws_cdk
 from cluster_definition import EMRClusterDefinition
 
 environment_variables = [
@@ -48,7 +48,7 @@ int_vars = ["CORE_INSTANCE_COUNT", "TASK_INSTANCE_COUNT", "TASK_INSTANCE_EBS_SIZ
 
 json_vars = ["CONFIGURATION"]
 
-app = core.App()
+app = aws_cdk.App()
 
 config = {"CLUSTER_NAME": app.node.try_get_context("cluster-name")}
 
@@ -74,7 +74,7 @@ if config["CORE_INSTANCE_EBS_SIZE"] > 0:
 print(config)
 logging.info(config)
 
-env = core.Environment(
+env = aws_cdk.Environment(
     account=config["CDK_DEPLOY_ACCOUNT"],
     region=config["CDK_DEPLOY_REGION"],
 )

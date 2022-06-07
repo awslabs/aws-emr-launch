@@ -1,17 +1,18 @@
 import os
 from typing import Optional
 
+import aws_cdk
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3 as s3
-from aws_cdk import core
 
+import constructs
 from aws_emr_launch.constructs.base import BaseConstruct
 
 
 class EMRRoles(BaseConstruct):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         role_name_prefix: Optional[str] = None,
@@ -55,8 +56,8 @@ class EMRRoles(BaseConstruct):
             ).assert_success()
 
     @staticmethod
-    def _glue_catalog_policy(scope: core.Construct) -> iam.PolicyDocument:
-        stack = core.Stack.of(scope)
+    def _glue_catalog_policy(scope: constructs.Construct) -> iam.PolicyDocument:
+        stack = aws_cdk.Stack.of(scope)
         return iam.PolicyDocument(
             statements=[
                 iam.PolicyStatement(
@@ -92,7 +93,7 @@ class EMRRoles(BaseConstruct):
         )
 
     @staticmethod
-    def _create_service_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None) -> iam.Role:
+    def _create_service_role(scope: constructs.Construct, id: str, *, role_name: Optional[str] = None) -> iam.Role:
         role = iam.Role(
             scope,
             id,
@@ -106,7 +107,7 @@ class EMRRoles(BaseConstruct):
         return role
 
     @staticmethod
-    def _create_autoscaling_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None) -> iam.Role:
+    def _create_autoscaling_role(scope: constructs.Construct, id: str, *, role_name: Optional[str] = None) -> iam.Role:
         role = iam.Role(
             scope,
             id,
@@ -128,7 +129,7 @@ class EMRRoles(BaseConstruct):
         return role
 
     @staticmethod
-    def _create_instance_role(scope: core.Construct, id: str, *, role_name: Optional[str] = None) -> iam.Role:
+    def _create_instance_role(scope: constructs.Construct, id: str, *, role_name: Optional[str] = None) -> iam.Role:
         role = iam.Role(
             scope,
             id,
@@ -143,7 +144,7 @@ class EMRRoles(BaseConstruct):
 
     @staticmethod
     def from_role_arns(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         service_role_arn: str,
         instance_role_arn: str,

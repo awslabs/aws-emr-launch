@@ -1,14 +1,14 @@
 import copy
 from typing import Any, Dict
 
+import aws_cdk
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_s3 as s3
-from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import cluster_configuration, emr_code
 
-app = core.App()
-stack = core.Stack(app, "test-stack")
+app = aws_cdk.App()
+stack = aws_cdk.Stack(app, "test-stack")
 vpc = ec2.Vpc(stack, "test-vpc")
 default_config: Dict[str, Any] = {
     "ConfigurationName": "test-cluster",

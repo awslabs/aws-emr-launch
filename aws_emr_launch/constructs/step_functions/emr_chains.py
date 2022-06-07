@@ -3,8 +3,8 @@ from typing import Any, Dict, List, Optional, Union
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_stepfunctions as sfn
 from aws_cdk import aws_stepfunctions_tasks as sfn_tasks
-from aws_cdk import core
 
+import constructs
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.lambdas import emr_lambdas
 from aws_emr_launch.constructs.step_functions import emr_tasks
@@ -13,7 +13,7 @@ from aws_emr_launch.constructs.step_functions import emr_tasks
 class Success(sfn.StateMachineFragment):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         message: sfn.TaskInput,
@@ -53,7 +53,7 @@ class Success(sfn.StateMachineFragment):
 class Fail(sfn.StateMachineFragment):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         message: sfn.TaskInput,
@@ -96,7 +96,7 @@ class Fail(sfn.StateMachineFragment):
 class NestedStateMachine(sfn.StateMachineFragment):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         name: str,
         state_machine: sfn.IStateMachine,
@@ -121,7 +121,7 @@ class NestedStateMachine(sfn.StateMachineFragment):
             result_path="$",
             lambda_function=parse_json_string,
             payload_response_only=True,
-            payload=sfn.TaskInput.from_object({"JsonString": sfn.TaskInput.from_data_at("$.Output").value}),
+            payload=sfn.TaskInput.from_object({"JsonString": sfn.TaskInput.from_json_path_at("$.Output").value}),
         )
 
         if fail_chain:
@@ -145,7 +145,7 @@ class NestedStateMachine(sfn.StateMachineFragment):
 class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         emr_step: emr_code.EMRStep,
@@ -167,7 +167,7 @@ class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
             payload_response_only=True,
             payload=sfn.TaskInput.from_object(
                 {
-                    "ExecutionInput": sfn.TaskInput.from_context_at("$$.Execution.Input").value,
+                    "ExecutionInput": sfn.TaskInput.from_json_path_at("$$.Execution.Input").value,
                     "StepName": emr_step.name,
                     "Args": emr_step.args,
                 }
@@ -175,7 +175,7 @@ class AddStepWithArgumentOverrides(sfn.StateMachineFragment):
         )
 
         resolved_step = emr_step.resolve(self)
-        resolved_step["HadoopJarStep"]["Args"] = sfn.TaskInput.from_data_at(f"$.{id}ResultArgs").value
+        resolved_step["HadoopJarStep"]["Args"] = sfn.TaskInput.from_json_path_at(f"$.{id}ResultArgs").value
 
         integration_pattern = (
             sfn.IntegrationPattern.RUN_JOB if wait_for_step_completion else sfn.IntegrationPattern.REQUEST_RESPONSE

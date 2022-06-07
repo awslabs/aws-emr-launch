@@ -1,21 +1,22 @@
+import aws_cdk
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_kms as kms
 from aws_cdk import aws_s3 as s3
-from aws_cdk import core
 from aws_cdk.aws_ec2 import Subnet
 from instance_group_config import TaskInstanceGroupConfiguration
 
+import constructs
 from aws_emr_launch.constructs.emr_constructs import emr_profile
 from aws_emr_launch.constructs.emr_constructs.cluster_configuration import InstanceMarketType
 from aws_emr_launch.constructs.step_functions import emr_launch_function
 
 
-class EMRClusterDefinition(core.Stack):
+class EMRClusterDefinition(aws_cdk.Stack):
     """
     Stack to define a Standard EMR Cluster Configuration:
     """
 
-    def __init__(self, scope: core.Construct, id: str, config: dict, **kwargs):
+    def __init__(self, scope: constructs.Construct, id: str, config: dict, **kwargs):
         super().__init__(scope, id, **kwargs)
 
         for k, v in config.items():
@@ -73,13 +74,13 @@ class EMRClusterDefinition(core.Stack):
         Extend the values here to add additional outputs of the module
         :return:
         """
-        core.CfnOutput(
+        aws_cdk.CfnOutput(
             self,
             "LaunchFunctionARN",
             value=self.launch_function_arn,
         )
 
-        core.CfnOutput(
+        aws_cdk.CfnOutput(
             self,
             "InstanceRoleName",
             value=self.instance_role_name,
@@ -223,7 +224,7 @@ class EMRClusterDefinition(core.Stack):
             cluster_name=self._cluster_name,
             default_fail_if_cluster_running=default_fail_if_cluster_running,
             allowed_cluster_config_overrides=cluster_configuration.override_interfaces["default"],
-            cluster_tags=[core.Tag(key="Group", value="AWSDemo")],
+            cluster_tags=[aws_cdk.Tag(key="Group", value="AWSDemo")],
         )
 
     @property

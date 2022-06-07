@@ -1,12 +1,12 @@
+import aws_cdk
 from aws_cdk import aws_s3 as s3
-from aws_cdk import core
 
 from aws_emr_launch.constructs.iam_roles.emr_roles import EMRRoles
 
 
 def test_emr_security_groups() -> None:
-    app = core.App()
-    stack = core.Stack(app, "test-stack")
+    app = aws_cdk.App()
+    stack = aws_cdk.Stack(app, "test-stack")
     artifacts_bucket = s3.Bucket(stack, "test-artifacts-bucket")
     logs_bucket = s3.Bucket(stack, "test-logs-bucket")
 

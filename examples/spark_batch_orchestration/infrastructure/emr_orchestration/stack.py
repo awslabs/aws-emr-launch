@@ -1,18 +1,21 @@
 import os
 
+import aws_cdk
 from aws_cdk import aws_dynamodb as dynamo
 from aws_cdk import aws_iam
 from aws_cdk import aws_s3_deployment as s3d
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_stepfunctions as sfn
-from aws_cdk import core
 
+import constructs
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.step_functions import emr_chains, emr_tasks
 
 
-class StepFunctionStack(core.Stack):
-    def __init__(self, scope: core.Construct, id: str, emr_launch_stack, artifact_bucket, output_bucket, **kwargs):
+class StepFunctionStack(aws_cdk.Stack):
+    def __init__(
+        self, scope: constructs.Construct, id: str, emr_launch_stack, artifact_bucket, output_bucket, **kwargs
+    ):
         super().__init__(scope, id, **kwargs)
 
         launch_function = emr_launch_stack.launch_function
@@ -60,7 +63,7 @@ class StepFunctionStack(core.Stack):
         fail = emr_chains.Fail(
             self,
             "FailChain",
-            message=sfn.TaskInput.from_data_at("$.Error"),
+            message=sfn.TaskInput.from_json_path_at("$.Error"),
             subject="Pipeline Failure",
             topic=self.failure_topic,
         )
@@ -70,7 +73,7 @@ class StepFunctionStack(core.Stack):
             self,
             "TerminateFailedCluster",
             name="Terminate Failed Cluster",
-            cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+            cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
             result_path="$.TerminateResult",
         ).add_catch(fail, errors=["States.ALL"], result_path="$.Error")
 
@@ -110,7 +113,7 @@ class StepFunctionStack(core.Stack):
                     os.environ["CDK_DEFAULT_REGION"],
                 ],
             ),
-            cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+            cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
             result_path="$.PySparkResult",
             fail_chain=terminate_failed_cluster,
         )
@@ -138,7 +141,7 @@ class StepFunctionStack(core.Stack):
                     os.environ["CDK_DEFAULT_REGION"],
                 ],
             ),
-            cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+            cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
             result_path="$.PySparkResult",
             fail_chain=terminate_failed_cluster,
         )
@@ -148,7 +151,7 @@ class StepFunctionStack(core.Stack):
             self,
             "TerminateCluster",
             name="Terminate Cluster",
-            cluster_id=sfn.TaskInput.from_data_at("$.LaunchClusterResult.ClusterId").value,
+            cluster_id=sfn.TaskInput.from_json_path_at("$.LaunchClusterResult.ClusterId").value,
             result_path="$.TerminateResult",
         ).add_catch(fail, errors=["States.ALL"], result_path="$.Error")
 
@@ -156,7 +159,7 @@ class StepFunctionStack(core.Stack):
         success = emr_chains.Success(
             self,
             "SuccessChain",
-            message=sfn.TaskInput.from_data_at("$.TerminateResult"),
+            message=sfn.TaskInput.from_json_path_at("$.TerminateResult"),
             subject="Pipeline Succeeded",
             topic=self.success_topic,
         )

@@ -129,9 +129,9 @@ output/
 templates/cdk.out
 
 # cached word files
-artifacts/~$+*.doc 
+artifacts/~$+*.doc
 cdk.out
 cdk.context.json
 
 examples/environment_vars.sh
-aws_emr_launch/lambda_sources/layers/
+# aws_emr_launch/lambda_sources/layers/

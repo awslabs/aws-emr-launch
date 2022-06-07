@@ -4,10 +4,10 @@ import json
 import os
 from typing import List
 
+import aws_cdk
 from aws_cdk import aws_s3
 from aws_cdk import aws_s3_notifications as s3n
 from aws_cdk import aws_sns as sns
-from aws_cdk import core
 from infrastructure.emr_launch.cluster_definition import EMRClusterDefinition
 from infrastructure.emr_orchestration.stack import StepFunctionStack
 from infrastructure.emr_trigger.stack import EmrTriggerStack
@@ -23,7 +23,7 @@ with open(config_file) as json_file:
 
 print(config)
 
-app = core.App()
+app = aws_cdk.App()
 stack_id = config["stack-id"]
 cluster_name = config["emr"]["CLUSTER_NAME"]
 
@@ -62,11 +62,11 @@ def emr_launch(config, input_buckets: List[str]):
     return EMRClusterDefinition(app, id=config["CLUSTER_NAME"] + "-EMRLaunch", config=clean_config)
 
 
-class S3InputStack(core.Stack):
-    def __init__(self, scope: core.Construct, id: str, **kwargs):
+class S3InputStack(aws_cdk.Stack):
+    def __init__(self, scope: aws_cdk.Construct, id: str, **kwargs):
         super().__init__(scope, id, **kwargs)
 
-        src_bucket = aws_s3.Bucket(self, id="src-bucket", removal_policy=core.RemovalPolicy.DESTROY)
+        src_bucket = aws_s3.Bucket(self, id="src-bucket", removal_policy=aws_cdk.RemovalPolicy.DESTROY)
 
         new_files_topic = sns.Topic(self, "NewFileEventNotification")
         src_bucket.add_event_notification(aws_s3.EventType.OBJECT_CREATED, s3n.SnsDestination(new_files_topic))

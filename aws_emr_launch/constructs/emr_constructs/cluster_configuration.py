@@ -8,9 +8,9 @@ from typing import Any, Dict, List, Optional, cast
 import boto3
 from aws_cdk import aws_secretsmanager as secretsmanager
 from aws_cdk import aws_ssm as ssm
-from aws_cdk import core
 from botocore.exceptions import ClientError
 
+import constructs
 from aws_emr_launch import boto3_client
 from aws_emr_launch.constructs.base import BaseConstruct
 from aws_emr_launch.constructs.emr_constructs import emr_code
@@ -34,7 +34,7 @@ class InstanceMarketType(Enum):
 class ClusterConfiguration(BaseConstruct):
     def __init__(
         self,
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         *,
         configuration_name: str,
@@ -66,7 +66,7 @@ class ClusterConfiguration(BaseConstruct):
 
         if bootstrap_actions:
             # Create a nested Construct to avoid Construct id collisions
-            construct = core.Construct(self, "BootstrapActions")
+            construct = constructs.Construct(self, "BootstrapActions")
             resolved_bootstrap_actions = [b.resolve(construct) for b in bootstrap_actions]
         else:
             resolved_bootstrap_actions = []
@@ -167,7 +167,10 @@ class ClusterConfiguration(BaseConstruct):
 
         secret_configurations = property_values.get("SecretConfigurations", None)
         self._secret_configurations = (
-            {k: secretsmanager.Secret.from_secret_arn(self, f"Secret_{k}", v) for k, v in secret_configurations.items()}
+            {
+                k: secretsmanager.Secret.from_secret_partial_arn(self, f"Secret_{k}", v)
+                for k, v in secret_configurations.items()
+            }
             if secret_configurations
             else None
         )
@@ -249,9 +252,11 @@ class ClusterConfiguration(BaseConstruct):
         construct_id = f"EmrCode_SparkJar_{token}"
 
         # Then attempt to find a previous Construct with this id
-        construct: Optional[core.Construct] = cast(Optional[core.Construct], self.node.try_find_child(construct_id))
+        construct: Optional[constructs.Construct] = cast(
+            Optional[constructs.Construct], self.node.try_find_child(construct_id)
+        )
         # If we didn't find a previous Construct, construct a new one
-        construct = core.Construct(self, construct_id) if construct is None else construct
+        construct = constructs.Construct(self, construct_id) if construct is None else construct
 
         bucket_path = code.resolve(construct)["S3Path"]
         for jar in jars_in_code:
@@ -324,7 +329,7 @@ class ClusterConfiguration(BaseConstruct):
 
     @staticmethod
     def from_stored_configuration(
-        scope: core.Construct, id: str, configuration_name: str, namespace: str = "default"
+        scope: constructs.Construct, id: str, configuration_name: str, namespace: str = "default"
     ) -> "ClusterConfiguration":
         stored_config = ClusterConfiguration.get_configuration(configuration_name, namespace)
         cluster_config = ClusterConfiguration(scope, id, configuration_name=None)  # type: ignore

@@ -1,13 +1,13 @@
 from typing import Optional
 
 from aws_cdk import aws_ec2 as ec2
-from aws_cdk import core
 
+import constructs
 from aws_emr_launch.constructs.base import BaseConstruct
 
 
 class EMRSecurityGroups(BaseConstruct):
-    def __init__(self, scope: core.Construct, id: str, *, vpc: Optional[ec2.IVpc] = None) -> None:
+    def __init__(self, scope: constructs.Construct, id: str, *, vpc: Optional[ec2.IVpc] = None) -> None:
         super().__init__(scope, id)
 
         if vpc:
@@ -46,7 +46,7 @@ class EMRSecurityGroups(BaseConstruct):
 
     @staticmethod
     def from_security_group_ids(
-        scope: core.Construct,
+        scope: constructs.Construct,
         id: str,
         master_group_id: str,
         workers_group_id: str,

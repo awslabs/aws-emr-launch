@@ -1,16 +1,16 @@
 from typing import Any, Dict
 
+import aws_cdk
 from aws_cdk import assertions
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_stepfunctions as sfn
-from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import emr_code
 from aws_emr_launch.constructs.step_functions import emr_chains
 
 
 def print_and_assert(default_fragment_json: Dict[str, Any], fragment: sfn.StateMachineFragment) -> None:
-    stack = core.Stack.of(fragment)
+    stack = aws_cdk.Stack.of(fragment)
     resolved_fragment = stack.resolve(fragment.to_single_state().to_state_json())
     print(default_fragment_json)
     print(resolved_fragment)
@@ -34,7 +34,7 @@ def test_success_chain() -> None:
         ]
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
     sfn.StateMachine(
         stack,
         "test-machine",
@@ -74,7 +74,7 @@ def test_fail_chain() -> None:
         ]
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
     sfn.StateMachine(
         stack,
         "test-machine",
@@ -120,7 +120,7 @@ def test_nested_state_machine_chain() -> None:
         ]
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
     state_machine = sfn.StateMachine(
         stack, "test-state-machine", definition=sfn.Chain.start(sfn.Succeed(stack, "Succeeded"))
     )
@@ -174,7 +174,7 @@ def test_add_step_with_argument_overrides() -> None:
         ]
     }
 
-    stack = core.Stack(core.App(), "test-stack")
+    stack = aws_cdk.Stack(aws_cdk.App(), "test-stack")
     sfn.StateMachine(
         stack,
         "test-machine",

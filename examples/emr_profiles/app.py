@@ -2,21 +2,21 @@
 
 import os
 
+import aws_cdk
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_kms as kms
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_secretsmanager as secretsmanager
-from aws_cdk import core
 
 from aws_emr_launch.constructs.emr_constructs import emr_profile
 
-NAMING_PREFIX = f"emr-launch-{core.Aws.ACCOUNT_ID}-{core.Aws.REGION}"
+NAMING_PREFIX = f"emr-launch-{aws_cdk.Aws.ACCOUNT_ID}-{aws_cdk.Aws.REGION}"
 
-app = core.App()
-stack = core.Stack(
+app = aws_cdk.App()
+stack = aws_cdk.Stack(
     app,
     "EmrProfilesStack",
-    env=core.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
+    env=aws_cdk.Environment(account=os.environ["CDK_DEFAULT_ACCOUNT"], region=os.environ["CDK_DEFAULT_REGION"]),
 )
 
 # Load some preexisting resources from my environment
@@ -26,10 +26,10 @@ logs_bucket = s3.Bucket.from_bucket_name(stack, "LogsBucket", f"{NAMING_PREFIX}-
 data_bucket = s3.Bucket.from_bucket_name(stack, "DataBucket", f"{NAMING_PREFIX}-data")
 
 secret_name = f"{NAMING_PREFIX}-kerberos-attributes"
-kerberos_attributes_secret = secretsmanager.Secret.from_secret_arn(
+kerberos_attributes_secret = secretsmanager.Secret.from_secret_partial_arn(
     stack,
     "KerberosAttributesSecret",
-    f"arn:{core.Aws.PARTITION}:secretsmanager:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:secret:{secret_name}",
+    f"arn:{aws_cdk.Aws.PARTITION}:secretsmanager:{aws_cdk.Aws.REGION}:{aws_cdk.Aws.ACCOUNT_ID}:secret:{secret_name}",
 )
 
 
@@ -63,6 +63,7 @@ sse_kms_profile = emr_profile.EMRProfile(
 # Authorize the profile for the Data Bucket and set the At Rest Encryption type
 sse_kms_profile.authorize_input_bucket(data_bucket).authorize_output_bucket(data_bucket).set_s3_encryption(
     emr_profile.S3EncryptionMode.SSE_KMS, encryption_key=kms_key
-).set_local_disk_encryption(kms_key, ebs_encryption=True).set_local_kdc(kerberos_attributes_secret)
+).set_local_disk_encryption(kms_key, ebs_encryption=True)
+# .set_local_kdc(kerberos_attributes_secret)
 
 app.synth()
