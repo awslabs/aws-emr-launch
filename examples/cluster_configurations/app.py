@@ -58,7 +58,7 @@ basic_cluster_config = instance_group_configuration.ManagedScalingConfiguration(
     subnet=subnet,
     bootstrap_actions=[bootstrap],
     step_concurrency_level=2,
-    secret_configurations={"hive-site": secret},
+    # secret_configurations={"hive-site": secret},
 )
 
 basic_cluster_config.add_spark_package("com.amazon.deequ:deequ:1.0.2")

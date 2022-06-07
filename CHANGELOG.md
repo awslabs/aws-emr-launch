@@ -4,7 +4,13 @@ Changelog for emr-launch
 1.6.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Updated CDK to v2.20+
+
+- Removed PermissionBoundaryAspect as CDK supports in natively
+
+- Removed need to pull/bundle Lambda Layer modules
+
+- Updated emr version on ClusterConfiguration to emr-6.6.0
 
 
 1.5.3 (2022-02-02)

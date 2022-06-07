@@ -63,6 +63,7 @@ sse_kms_profile = emr_profile.EMRProfile(
 # Authorize the profile for the Data Bucket and set the At Rest Encryption type
 sse_kms_profile.authorize_input_bucket(data_bucket).authorize_output_bucket(data_bucket).set_s3_encryption(
     emr_profile.S3EncryptionMode.SSE_KMS, encryption_key=kms_key
-).set_local_disk_encryption(kms_key, ebs_encryption=True).set_local_kdc(kerberos_attributes_secret)
+).set_local_disk_encryption(kms_key, ebs_encryption=True)
+# .set_local_kdc(kerberos_attributes_secret)
 
 app.synth()
