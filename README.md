@@ -85,6 +85,12 @@ It is recommended that a Python3 `venv` be used for all CDK builds and deploymen
 
 To get up and running quickly:
 
+### Prerequisites
+
+The AWS CDK v2.x utilizes containers to automate some tasks. EMR Launch uses and deploys a CDK `PythonLayerVersion`, this Construct uses a container to create the bundle for the Lambda Layer. As such, a `docker` runtime is required to deploy.
+
+### Deployment
+
 1. Install the [CDK CLI](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html)
 
    ```bash
@@ -101,7 +107,7 @@ To get up and running quickly:
 3. Install the CDK and Boto3 minimum requirements:
 
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements-2.x.txt
    ```
 
 4. Install `aws-emr-launch` package:
