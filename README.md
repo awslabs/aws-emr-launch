@@ -17,7 +17,7 @@ The intent of the EMR Launch library is to simplify the development experience f
 
 ## Concepts (and Constructs)
 
-This library utilizes the AWS CDK for deployement and management of resources. It is recommended that users familiarize themselves with the CDK's basic concepts and usage.
+This library utilizes the AWS CDK for deployment and management of resources. It is recommended that users familiarize themselves with the CDK's basic concepts and usage.
 
 ### EMR Profile
 
