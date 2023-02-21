@@ -47,7 +47,7 @@ colorama==0.4.4
     #   zest-releaser
 coverage[toml]==6.2
     # via pytest-cov
-cryptography==36.0.1
+cryptography==39.0.1
     # via
     #   moto
     #   secretstorage
