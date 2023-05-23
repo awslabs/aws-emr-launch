@@ -201,7 +201,7 @@ readme-renderer==32.0
     # via
     #   twine
     #   zest-releaser
-requests==2.26.0
+requests==2.31.0
     # via
     #   moto
     #   pyroma
