@@ -230,6 +230,7 @@ class EmrCreateClusterTask(BaseTask):
         policy_statements.append(
             iam.PolicyStatement(
                 actions=[
+                    "elasticmapreduce:AddTags",
                     "elasticmapreduce:RunJobFlow",
                     "elasticmapreduce:DescribeCluster",
                     "elasticmapreduce:TerminateJobFlows",
