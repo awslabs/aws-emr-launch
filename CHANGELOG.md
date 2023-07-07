@@ -1,7 +1,7 @@
 Changelog for emr-launch
 =============================
 
-2.1.0 (unreleased)
+2.0.1 (2023-07-07)
 ------------------
 
 - Add AddTags permission for launch cluster task
