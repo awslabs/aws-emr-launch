@@ -154,7 +154,7 @@ pydocstyle==6.1.1
     #   pytest-pydocstyle
 pyflakes==2.4.0
     # via flake8
-pygments==2.10.0
+pygments==2.15.0
     # via
     #   pyroma
     #   readme-renderer
