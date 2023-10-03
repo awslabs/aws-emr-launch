@@ -256,7 +256,7 @@ typing-extensions==4.0.1
     # via
     #   black
     #   mypy
-urllib3==1.26.7
+urllib3==1.26.17
     # via
     #   botocore
     #   requests
